@@ -1,0 +1,469 @@
+[
+  {
+    "prompt": "Show high-risk cases due this month, grouped by analyst",
+    "expected": [
+      "GroupedBoard"
+    ],
+    "component": "GroupedBoard",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "risk": [
+            "high",
+            "critical"
+          ],
+          "dueAfter": "2026-07-01",
+          "dueBefore": "2026-07-31"
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1004\",\"risk\":\"critical\",\"title\":\"Mismatched billing fingerprint\",\"status\":\"escalated\",\"analyst\":\"Priya Raman\",\"dueDate\":\"2026-07-08\",\"category\":\"fraud\",\"customer\":\"Cobalt Mining Co\",\"amountUsd\":167700,\"riskScore\":99,\"openedDate\":\"2026-06-05\"},{\"id\":\"CASE-1016\",\"risk\":\"critical\",\"title\":\"Beneficial ownership unclear\",\"status\":\"open\",\"analyst\":\"Kenji Watanabe\",\"dueDate\":\"2026-0",
+    "text": "Here's a kanban board showing all **26 high-risk (high & critical) cases due in July 2026**, grouped by analyst. The busiest analyst is **Jonas Lindqvist** with 11 cases, followed by **Kenji Watanabe**, **Priya Raman**, **Sarah Mitchell**, and others. You can click into any column to see the cases a",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "List all critical fraud cases",
+    "expected": [
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "risk": [
+            "critical"
+          ],
+          "category": [
+            "fraud"
+          ]
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1004\",\"risk\":\"critical\",\"title\":\"Mismatched billing fingerprint\",\"status\":\"escalated\",\"analyst\":\"Priya Raman\",\"dueDate\":\"2026-07-08\",\"category\":\"fraud\",\"customer\":\"Cobalt Mining Co\",\"amountUsd\":167700,\"riskScore\":99,\"openedDate\":\"2026-06-05\"},{\"id\":\"CASE-1008\",\"risk\":\"critical\",\"title\":\"Velocity spike on new device\",\"status\":\"in_review\",\"analyst\":\"Sarah Mitchell\",\"dueDate\":\"2",
+    "text": "Here are the **4 critical fraud cases** currently on file:\n\n| Case | Customer | Status | Analyst | Due | Amount |\n|------|----------|--------|---------|-----|--------|\n| CASE-1004 — Mismatched billing fingerprint | Cobalt Mining Co | ⚠️ Escalated | Priya Raman | Jul 8 | $167,700 |\n| CASE-1008 — Velo",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "How many cases are overdue right now?",
+    "expected": [
+      "KpiCards"
+    ],
+    "component": "KpiCards",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "overdueOnly": true,
+          "limit": 240
+        }
+      }
+    ],
+    "propsPreview": "{\"metrics\":[{\"unit\":\"\",\"label\":\"Overdue Cases\",\"value\":71,\"intent\":\"negative\",\"caption\":\"Cases past their due date as of Jul 5, 2026\"}]}",
+    "text": "There you go — **71 overdue cases** as of today (July 5, 2026). That's a significant number that would benefit from some attention. Would you like to see a list of those overdue cases, or maybe group them by analyst or risk level?",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "What should I work on today?",
+    "expected": [
+      "CaseQueue"
+    ],
+    "component": "CaseQueue",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "status": [
+            "open",
+            "in_review"
+          ],
+          "sortBy": "riskScore",
+          "order": "desc",
+          "limit": 20
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1037\",\"risk\":\"critical\",\"title\":\"Unrecognized recurring charges\",\"status\":\"in_review\",\"analyst\":\"Jonas Lindqvist\",\"dueDate\":\"2026-06-07\",\"category\":\"chargeback\",\"customer\":\"Atlas Travel Partners\",\"amountUsd\":126600,\"riskScore\":99,\"openedDate\":\"2026-06-26\"},{\"id\":\"CASE-1152\",\"risk\":\"critical\",\"title\":\"Friendly-fraud dispute cluster\",\"status\":\"open\",\"analyst\":\"Jonas Lindqvist\",",
+    "text": "Here's your prioritized work queue for today! I've sorted it with **overdue cases at the top** followed by the highest-risk items. \n\nHere's a quick snapshot of what needs your attention most urgently:\n\n🔴 **Overdue cases** (past due date):\n- **CASE-1037** – Unrecognized recurring charges ($126.6K) —",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Show the number of cases per analyst as a bar chart",
+    "expected": [
+      "Graph"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "analyst",
+          "metric": "count",
+          "filter": {}
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"bar\",\"labels\":[\"Jonas Lindqvist\",\"Dmitri Volkov\",\"Amara Okafor\",\"Omar Haddad\",\"Sarah Mitchell\",\"Priya Raman\",\"Lucía Fernández\",\"Kenji Watanabe\"],\"datasets\":[{\"data\":[58,45,34,23,23,22,20,15],\"color\":\"#3b82f6\",\"label\":\"Cases\"}]},\"size\":\"lg\",\"title\":\"Cases per Analyst\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":false}",
+    "text": "Here's a bar chart showing the number of cases per analyst. **Jonas Lindqvist** leads with 58 cases, followed by **Dmitri Volkov** (45) and **Amara Okafor** (34), while **Kenji Watanabe** has the fewest at 15.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Break down our total dollar exposure by category",
+    "expected": [
+      "Graph",
+      "KpiCards"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "category",
+          "metric": "totalAmountUsd",
+          "filter": {}
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"bar\",\"labels\":[\"Sanctions\",\"Chargeback\",\"AML\",\"Fraud\",\"KYC\"],\"datasets\":[{\"data\":[7470700,7210700,5556800,5116400,4979100],\"color\":\"#3b82f6\",\"label\":\"Total Exposure (USD)\"}]},\"size\":\"default\",\"title\":\"Total Dollar Exposure by Category\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":false}",
+    "text": "Here's your total dollar exposure broken down by category. **Sanctions** leads with **$7.47M**, followed closely by **Chargeback** at **$7.21M**, then **AML** ($5.56M), **Fraud** ($5.12M), and **KYC** ($4.98M). The bar chart above gives you a clear visual of how the exposure stacks up across categor",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Show me Amara Okafor's open cases",
+    "expected": [
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "status": [
+            "open"
+          ],
+          "analyst": "Amara Okafor"
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1023\",\"risk\":\"low\",\"title\":\"Structuring pattern across accounts\",\"status\":\"open\",\"analyst\":\"Amara Okafor\",\"dueDate\":\"2026-08-13\",\"category\":\"aml\",\"customer\":\"Meridian Health Supply\",\"amountUsd\":137400,\"riskScore\":28,\"openedDate\":\"2026-05-17\"},{\"id\":\"CASE-1117\",\"risk\":\"low\",\"title\":\"Rapid pass-through transfers\",\"status\":\"open\",\"analyst\":\"Amara Okafor\",\"dueDate\":\"2026-07-15\",\"",
+    "text": "Here's a look at Amara Okafor's 5 open cases. Most are low-risk AML and chargeback cases, with one medium-risk structuring case (CASE-1237) that has the highest risk score of 59. Note that CASE-1216 is overdue (due June 3) and CASE-1117 and CASE-1168 are due in the next week or so.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Give me a filterable view of escalated cases",
+    "expected": [
+      "FilterBar",
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "status": [
+            "escalated"
+          ]
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1002\",\"risk\":\"medium\",\"title\":\"Vessel screening alert\",\"status\":\"escalated\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2026-06-03\",\"category\":\"sanctions\",\"customer\":\"Kite & Anchor Imports\",\"amountUsd\":29000,\"riskScore\":38,\"openedDate\":\"2026-06-12\"},{\"id\":\"CASE-1004\",\"risk\":\"critical\",\"title\":\"Mismatched billing fingerprint\",\"status\":\"escalated\",\"analyst\":\"Priya Raman\",\"dueDate\":\"20",
+    "text": " ",
+    "stage": "STREAMING_RESPONSE"
+  },
+  {
+    "prompt": "Which analyst has the biggest open workload?",
+    "expected": [
+      "KpiCards",
+      "Graph",
+      "CasesTable"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "listAnalysts",
+        "args": {}
+      },
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "analyst",
+          "metric": "count",
+          "filter": {
+            "overdueOnly": false
+          }
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"bar\",\"labels\":[\"Jonas\",\"Amara\",\"Dmitri\",\"Lucía\",\"Omar\",\"Priya\",\"Sarah\",\"Kenji\"],\"datasets\":[{\"data\":[39,23,23,16,14,13,13,10],\"color\":\"#ef4444\",\"label\":\"Open Cases\"}]},\"size\":\"default\",\"title\":\"Open Cases by Analyst\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":false}",
+    "text": "Jonas leads by a significant margin — his 39 open cases top the list, with Amara Okafor and Dmitri Volkov tied for second at 23 each.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Show sanctions cases sorted by exposure, largest first",
+    "expected": [
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "category": [
+            "sanctions"
+          ],
+          "sortBy": "amountUsd",
+          "order": "desc",
+          "limit": 50
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1224\",\"risk\":\"low\",\"title\":\"Counterparty sanctions exposure\",\"status\":\"resolved\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2026-06-29\",\"category\":\"sanctions\",\"customer\":\"Northwind Traders\",\"amountUsd\":245600,\"riskScore\":12,\"openedDate\":\"2026-05-05\"},{\"id\":\"CASE-1066\",\"risk\":\"high\",\"title\":\"Counterparty sanctions exposure\",\"status\":\"escalated\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2",
+    "text": "Here are all **58 sanctions cases** sorted by exposure (largest first) — the table shows the top 50. The largest exposure is **CASE-1224** (Northwind Traders) at **$245,600**, with the list descending from there. You can scroll through the table to see all the details.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Kanban view of open and escalated cases by status",
+    "expected": [
+      "GroupedBoard"
+    ],
+    "component": "GroupedBoard",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "status": [
+            "open",
+            "escalated"
+          ]
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1001\",\"risk\":\"medium\",\"title\":\"Chargeback ratio breach\",\"status\":\"open\",\"analyst\":\"Jonas Lindqvist\",\"dueDate\":\"2026-08-01\",\"category\":\"chargeback\",\"customer\":\"Northwind Traders\",\"amountUsd\":196700,\"riskScore\":55,\"openedDate\":\"2026-05-11\"},{\"id\":\"CASE-1002\",\"risk\":\"medium\",\"title\":\"Vessel screening alert\",\"status\":\"escalated\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2026-06-03\",\"c",
+    "text": "Here's your Kanban board showing **50 cases** grouped into **Open** and **Escalated** columns. Each card includes the case title, risk level, analyst, due date, and amount — giving you a clear visual of what's in the pipeline and what's been escalated.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Average risk score by category",
+    "expected": [
+      "Graph",
+      "KpiCards"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "category",
+          "metric": "avgRiskScore",
+          "filter": {}
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"bar\",\"labels\":[\"Fraud\",\"KYC\",\"Chargeback\",\"AML\",\"Sanctions\"],\"datasets\":[{\"data\":[50.4,48.3,47.6,42.6,42.3],\"color\":\"#3b82f6\",\"label\":\"Avg Risk Score\"}]},\"size\":\"default\",\"title\":\"Average Risk Score by Category\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":false}",
+    "text": "Here's the average risk score by category. **Fraud** leads at 50.4, followed by **KYC** (48.3) and **Chargeback** (47.6), while **AML** (42.6) and **Sanctions** (42.3) are on the lower end.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Top 5 most urgent cases I should triage",
+    "expected": [
+      "CaseQueue",
+      "CasesTable"
+    ],
+    "component": "CaseQueue",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "status": [
+            "open",
+            "in_review",
+            "escalated"
+          ],
+          "sortBy": "riskScore",
+          "order": "desc",
+          "limit": 5
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1231\",\"risk\":\"critical\",\"title\":\"Duplicate dispute filings\",\"status\":\"in_review\",\"analyst\":\"Jonas Lindqvist\",\"dueDate\":\"2026-07-30\",\"category\":\"chargeback\",\"customer\":\"Acme Logistics\",\"amountUsd\":75900,\"riskScore\":100,\"openedDate\":\"2026-05-14\"},{\"id\":\"CASE-1004\",\"risk\":\"critical\",\"title\":\"Mismatched billing fingerprint\",\"status\":\"escalated\",\"analyst\":\"Priya Raman\",\"dueDate\":\"",
+    "text": "I've queued up the **5 most urgent cases** sorted by risk score for you to triage. Here's the quick rundown:\n\n1. **CASE-1231** — Duplicate dispute filings (Acme Logistics) — **Risk: 100** ⚠️\n2. **CASE-1004** — Mismatched billing fingerprint (Cobalt Mining Co) — **Risk: 99** — **Due tomorrow!** (Jul ",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Give me an overview of our current case load",
+    "expected": [
+      "KpiCards",
+      "Graph"
+    ],
+    "component": null,
+    "componentMatch": false,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "status",
+          "metric": "count",
+          "filter": {
+            "overdueOnly": true
+          }
+        }
+      }
+    ],
+    "propsPreview": null,
+    "text": " ",
+    "stage": "STREAMING_RESPONSE"
+  },
+  {
+    "prompt": "Show KYC cases due in the next 7 days",
+    "expected": [
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "category": [
+            "kyc"
+          ],
+          "dueAfter": "2026-07-05T19:32:08.687Z",
+          "dueBefore": "2026-07-12T19:32:08.687Z",
+          "sortBy": "dueDate",
+          "order": "asc",
+          "limit": 50
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1134\",\"risk\":\"medium\",\"title\":\"Expired identity documents\",\"status\":\"closed\",\"analyst\":\"Kenji Watanabe\",\"dueDate\":\"2026-07-06\",\"category\":\"kyc\",\"customer\":\"Aurora Fintech\",\"amountUsd\":192300,\"riskScore\":54,\"openedDate\":\"2026-05-24\"},{\"id\":\"CASE-1189\",\"risk\":\"medium\",\"title\":\"Document verification mismatch\",\"status\":\"closed\",\"analyst\":\"Amara Okafor\",\"dueDate\":\"2026-07-07\",\"cat",
+    "text": "Here are the **4 KYC cases due in the next 7 days** (by July 12, 2026):\n\n- **CASE-1134** — Expired identity documents (Aurora Fintech) — due tomorrow, Jul 6 — medium risk, already closed\n- **CASE-1189** — Document verification mismatch (Blue Harbor Capital) — due Jul 7 — medium risk, closed\n- **CASE",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "How are chargeback cases distributed across statuses?",
+    "expected": [
+      "Graph",
+      "GroupedBoard"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "status",
+          "metric": "count",
+          "filter": {
+            "category": [
+              "chargeback"
+            ]
+          }
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"bar\",\"labels\":[\"In Review\",\"Escalated\",\"Closed\",\"Open\",\"Resolved\"],\"datasets\":[{\"data\":[15,15,10,9,7],\"color\":\"#6366f1\",\"label\":\"Cases\"}]},\"size\":\"default\",\"title\":\"Chargeback Cases by Status\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":false}",
+    "text": "Here's the distribution of chargeback cases across statuses — **In Review** and **Escalated** tie for the most at 15 each, followed by **Closed** (10), **Open** (9), and **Resolved** (7). That's 56 chargeback cases total.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Who are our analysts and what does each specialize in?",
+    "expected": [
+      "CasesTable",
+      "KpiCards"
+    ],
+    "component": null,
+    "componentMatch": false,
+    "toolCalls": [
+      {
+        "tool": "listAnalysts",
+        "args": {}
+      }
+    ],
+    "propsPreview": null,
+    "text": "Here are your analysts and their specialties:\n\n| Analyst | Team | Specialty | Open Cases |\n|---|---|---|---|\n| **Jonas Lindqvist** | Fraud Ops | Chargeback | 39 |\n| **Amara Okafor** | Financial Crimes | AML (Anti-Money Laundering) | 23 |\n| **Dmitri Volkov** | Financial Crimes | Sanctions | 23 |\n| **",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Show low risk cases that are already resolved",
+    "expected": [
+      "CasesTable"
+    ],
+    "component": "CasesTable",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "risk": [
+            "low"
+          ],
+          "status": [
+            "resolved"
+          ]
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1017\",\"risk\":\"low\",\"title\":\"Counterparty sanctions exposure\",\"status\":\"resolved\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2026-07-29\",\"category\":\"sanctions\",\"customer\":\"Aurora Fintech\",\"amountUsd\":163200,\"riskScore\":2,\"openedDate\":\"2026-05-08\"},{\"id\":\"CASE-1058\",\"risk\":\"low\",\"title\":\"Counterparty sanctions exposure\",\"status\":\"resolved\",\"analyst\":\"Dmitri Volkov\",\"dueDate\":\"2026-07",
+    "text": "Here are all **11 low-risk resolved cases** — you can see the full list in the table above. They're spread across fraud, AML, KYC, sanctions, and chargeback categories, with a total exposure of about **$1.6M**.",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Build a triage queue of critical cases ordered by due date",
+    "expected": [
+      "CaseQueue"
+    ],
+    "component": "CaseQueue",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "searchCases",
+        "args": {
+          "risk": [
+            "critical"
+          ],
+          "sortBy": "dueDate",
+          "order": "asc",
+          "limit": 50
+        }
+      }
+    ],
+    "propsPreview": "{\"cases\":[{\"id\":\"CASE-1205\",\"risk\":\"critical\",\"title\":\"High-risk jurisdiction exposure\",\"status\":\"in_review\",\"analyst\":\"Amara Okafor\",\"dueDate\":\"2026-06-01\",\"category\":\"aml\",\"customer\":\"Juniper Marketplaces\",\"amountUsd\":218200,\"riskScore\":92,\"openedDate\":\"2026-05-02\"},{\"id\":\"CASE-1152\",\"risk\":\"critical\",\"title\":\"Friendly-fraud dispute cluster\",\"status\":\"open\",\"analyst\":\"Jonas Lindqvist\",\"dueDate\":",
+    "text": "Here's your **triage queue** — all 23 active critical cases sorted by due date (earliest first). The most urgent items are at the top, with several already past their due dates as of today (July 5, 2026):\n\n- 🔴 **5 overdue cases** — starting with High-risk jurisdiction exposure (due June 1), Friendl",
+    "stage": "COMPLETE"
+  },
+  {
+    "prompt": "Pie chart of cases by risk level",
+    "expected": [
+      "Graph"
+    ],
+    "component": "Graph",
+    "componentMatch": true,
+    "toolCalls": [
+      {
+        "tool": "aggregateCases",
+        "args": {
+          "groupBy": "risk",
+          "metric": "count",
+          "filter": {}
+        }
+      }
+    ],
+    "propsPreview": "{\"data\":{\"type\":\"pie\",\"labels\":[\"Low\",\"Medium\",\"High\",\"Critical\"],\"datasets\":[{\"data\":[81,76,49,34],\"color\":null,\"label\":\"Cases\"}]},\"size\":\"default\",\"title\":\"Cases by Risk Level\",\"variant\":\"default\",\"className\":\"\",\"showLegend\":true}",
+    "text": "Here's a pie chart of cases by risk level — 81 low, 76 medium, 49 high, and 34 critical cases.",
+    "stage": "COMPLETE"
+  }
+]

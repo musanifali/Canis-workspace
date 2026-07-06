@@ -1,0 +1,10 @@
+tambo/
+node_modules/
+.env.local
+.env
+*.log
+.DS_Store
+# Obsidian vault is versioned; ignore only per-machine editor state
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/cache

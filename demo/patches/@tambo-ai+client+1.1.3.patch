@@ -1,0 +1,26 @@
+diff --git a/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js b/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
+index 7483265..5d6a34e 100644
+--- a/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
++++ b/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
+@@ -627,7 +627,7 @@ function handleTextMessageContent(threadState, event) {
+ function handleTextMessageEnd(threadState, event) {
+     const activeMessageId = threadState.streaming.messageId;
+     if (activeMessageId && event.messageId !== activeMessageId) {
+-        throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
++        console.warn(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId} - reconciling (patched, see demo/patches)`);
+     }
+     return {
+         ...threadState,
+diff --git a/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js b/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
+index 4ef7673..139f1ff 100644
+--- a/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
++++ b/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
+@@ -627,7 +627,7 @@ function handleTextMessageContent(threadState, event) {
+ function handleTextMessageEnd(threadState, event) {
+     const activeMessageId = threadState.streaming.messageId;
+     if (activeMessageId && event.messageId !== activeMessageId) {
+-        throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
++        console.warn(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId} - reconciling (patched, see demo/patches)`);
+     }
+     return {
+         ...threadState,
