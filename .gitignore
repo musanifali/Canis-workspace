@@ -1,6 +1,8 @@
 tambo/
 node_modules/
 dist/
+.turbo/
+*.tsbuildinfo
 .env.local
 .env
 *.log
