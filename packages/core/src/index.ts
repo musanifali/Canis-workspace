@@ -51,6 +51,13 @@ export {
 } from "./spec/workspace.js";
 export { parseSpec, serializeSpec, SpecParseError } from "./spec/serde.js";
 export {
+  createMigrationRunner,
+  migrateSpec,
+  SpecMigrationError,
+  type SpecMigration,
+  type MigrationRunnerOptions,
+} from "./spec/migrate.js";
+export {
   defineEntity,
   ContractDefinitionError,
   type FieldKind,
