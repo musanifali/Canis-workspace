@@ -15,7 +15,8 @@ Vertical-slice demo for the Workspace Engine ("sentence → screen"). A Next.js 
 1. `cd ../tambo && git fetch && git log --oneline HEAD..origin/main` — review changes, especially `apps/api` and `react-sdk`.
 2. Check out the new commit, rebuild images: `./scripts/cloud/tambo-build.sh`, restart: `./scripts/cloud/tambo-start.sh`, re-run migrations: `./scripts/cloud/init-database.sh`.
 3. Bump `@tambo-ai/react` here to the version published from that commit (`npm pkg set dependencies.@tambo-ai/react=<version> && npm install`). Keep SDK and backend in lockstep — the SDK talks to the API the backend serves.
-4. Run the demo and the Phase 0 prompt log before considering the upgrade done.
+4. **Re-evaluate the `@tambo-ai/client` patch** in `patches/` (Trello card `mOMsEeE7`, upstream [tambo#2974](https://github.com/tambo-ai/tambo/issues/2974)): if upstream fixed the stream id handoff, delete `patches/` and the `postinstall` script; otherwise regenerate the patch against the new client version.
+5. Run `check-tools.mts`, the eval prompt log, and `record-demo.mts` before considering the upgrade done.
 
 ## Running the self-hosted stack
 

@@ -1,15 +1,25 @@
 ---
 tags: [ops, gotcha]
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-07
 ---
 
 # Known Issues & Gotchas
 
 ## 🔴 Action needed
 
-- **Rotate the OpenRouter key** — pasted in chat 2026-07-04. Same for the **Trello token** (pasted earlier). Both compromised-in-principle.
-- **OpenRouter budget decision** (`[review][P3]` card) — free tier is **50 requests/day** (resets midnight UTC; exhausted mid-eval on 2026-07-04). $10 credit → 1000/day. This is the only blocker for the ticket-#4 eval baseline ([[Phase 0 Status]]).
+- **Rotate keys pasted in chat** (all compromised-in-principle): Trello token, OpenRouter, Gemini, **DeepSeek** (2026-07-06).
+
+## 🟠 Active workaround: @tambo-ai/client patch (ADR-6)
+
+- **What**: patch-package on the pinned client SDK — `handleTextMessageEnd`
+  tolerates exactly the `message-*` → `msg_*` id handoff (warn + reconcile);
+  any other mismatch still throws. `demo/patches/@tambo-ai+client+1.1.3.patch`.
+- **Why**: pinned backend emits START with a temp id, END with the persisted id
+  (`transformEventMessageIds` early-return). Full context: [[ADR-6 SDK patch for stream id mismatch]].
+- **Upstream issue**: https://github.com/tambo-ai/tambo/issues/2974
+- **Remove/re-evaluate on every Tambo pin upgrade** — Trello card `mOMsEeE7`.
+- Phase 2 renderer must not silently inherit this tolerance.
 
 ## 🟡 Environment traps #gotcha
 
@@ -38,4 +48,8 @@ updated: 2026-07-04
 1. `cd tambo && git fetch && git log --oneline HEAD..origin/main` — review, esp. `apps/api` + `react-sdk`
 2. Check out new commit → `tambo-build.sh` → `tambo-start.sh` → `init-database.sh`
 3. Bump `@tambo-ai/react` in `demo/` to the matching version (lockstep!)
-4. Re-run demo + eval log before calling it done
+4. **Re-evaluate the ADR-6 client patch** (Trello `mOMsEeE7`): upstream issue
+   [#2974](https://github.com/tambo-ai/tambo/issues/2974) fixed → delete
+   `demo/patches/` + postinstall hook; not fixed → regenerate the patch against
+   the new client version (patch-package fails loudly on version bumps).
+5. Re-run `check-tools.mts`, the eval log, and `record-demo.mts` before calling it done

@@ -62,8 +62,20 @@ export const caseFilterSchema = z.object({
   status: z.array(caseStatusSchema).optional(),
   category: z.array(caseCategorySchema).optional(),
   analyst: z.string().optional().describe("Filter to one analyst by name"),
-  dueAfter: z.string().optional().describe("ISO date, inclusive"),
-  dueBefore: z.string().optional().describe("ISO date, inclusive"),
+  // Models sometimes send full datetimes for date fields; truncating keeps
+  // boundary comparisons against date-only dueDate values inclusive
+  dueAfter: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}/, "expected an ISO date (YYYY-MM-DD)")
+    .transform((value) => value.slice(0, 10))
+    .optional()
+    .describe("ISO date YYYY-MM-DD, inclusive"),
+  dueBefore: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}/, "expected an ISO date (YYYY-MM-DD)")
+    .transform((value) => value.slice(0, 10))
+    .optional()
+    .describe("ISO date YYYY-MM-DD, inclusive"),
   overdueOnly: z.boolean().optional(),
 });
 export type CaseFilter = z.infer<typeof caseFilterSchema>;

@@ -53,6 +53,25 @@ check(
 );
 check("todayIso is YYYY-MM-DD", /^\d{4}-\d{2}-\d{2}$/.test(todayIso()));
 
+// date filters: datetimes must normalize to dates so boundaries stay inclusive
+const someCase = searchCases({ limit: 1 }).cases[0];
+check(
+  "datetime dueAfter includes same-day case (inclusive boundary)",
+  searchCases({
+    dueAfter: `${someCase.dueDate}T19:32:08.687Z`,
+    dueBefore: someCase.dueDate,
+  }).cases.some((c) => c.id === someCase.id),
+);
+check(
+  "datetime and date dueBefore agree",
+  searchCases({ dueBefore: "2026-07-31T23:59:59Z" }).total ===
+    searchCases({ dueBefore: "2026-07-31" }).total,
+);
+check(
+  "non-date string rejected",
+  throws(() => searchCases({ dueAfter: "next tuesday" })),
+);
+
 // aggregation sanity
 const byRisk = aggregateCases({ groupBy: "risk" });
 check(

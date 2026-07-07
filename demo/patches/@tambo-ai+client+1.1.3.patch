@@ -1,26 +1,42 @@
 diff --git a/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js b/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
-index 7483265..5d6a34e 100644
+index 7483265..bfc4ac9 100644
 --- a/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
 +++ b/node_modules/@tambo-ai/client/dist/utils/event-accumulator.js
-@@ -627,7 +627,7 @@ function handleTextMessageContent(threadState, event) {
+@@ -627,7 +627,15 @@ function handleTextMessageContent(threadState, event) {
  function handleTextMessageEnd(threadState, event) {
      const activeMessageId = threadState.streaming.messageId;
      if (activeMessageId && event.messageId !== activeMessageId) {
 -        throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
-+        console.warn(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId} - reconciling (patched, see demo/patches)`);
++        if (activeMessageId.startsWith("message-") && event.messageId.startsWith("msg_")) {
++            // Patched (see demo/patches): pinned backend can emit START with a temp
++            // id and END with the persisted id when transformEventMessageIds has no
++            // real id yet; tolerate exactly that pattern.
++            console.warn(`TEXT_MESSAGE_END temp->persisted id handoff (thread ${threadState.thread.id}): ${activeMessageId} -> ${event.messageId} - reconciling`);
++        }
++        else {
++            throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
++        }
      }
      return {
          ...threadState,
 diff --git a/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js b/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
-index 4ef7673..139f1ff 100644
+index 4ef7673..87c7d3b 100644
 --- a/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
 +++ b/node_modules/@tambo-ai/client/esm/utils/event-accumulator.js
-@@ -627,7 +627,7 @@ function handleTextMessageContent(threadState, event) {
+@@ -627,7 +627,15 @@ function handleTextMessageContent(threadState, event) {
  function handleTextMessageEnd(threadState, event) {
      const activeMessageId = threadState.streaming.messageId;
      if (activeMessageId && event.messageId !== activeMessageId) {
 -        throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
-+        console.warn(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId} - reconciling (patched, see demo/patches)`);
++        if (activeMessageId.startsWith("message-") && event.messageId.startsWith("msg_")) {
++            // Patched (see demo/patches): pinned backend can emit START with a temp
++            // id and END with the persisted id when transformEventMessageIds has no
++            // real id yet; tolerate exactly that pattern.
++            console.warn(`TEXT_MESSAGE_END temp->persisted id handoff (thread ${threadState.thread.id}): ${activeMessageId} -> ${event.messageId} - reconciling`);
++        }
++        else {
++            throw new Error(`TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`);
++        }
      }
      return {
          ...threadState,

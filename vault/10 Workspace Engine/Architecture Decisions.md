@@ -43,3 +43,10 @@ Vendor `fetch()` executes with the end-user's token; we store specs, not data.
 ## ADR-5 · Build order: spec/validator → renderer → LLM generation #decision
 
 Phase 0 ([[Phase 0 Status]]) is the vertical-slice spike de-risking the Tambo integration before the spec core is built.
+
+## ADR-6 · patch-package on @tambo-ai/client (temporary) #decision
+
+Narrow consumption-layer patch for the pinned backend's stream id handoff bug —
+full write-up in [[ADR-6 SDK patch for stream id mismatch]]. Upstream:
+https://github.com/tambo-ai/tambo/issues/2974. Re-evaluate on every pin upgrade
+(Trello card mOMsEeE7).
