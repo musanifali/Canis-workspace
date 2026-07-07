@@ -48,3 +48,42 @@ created: 2026-07-07
 - [ ] After freeze: card #6 (packages/core Zod schemas) implements the doc.
 - [ ] Reviewer: check off "both sessions resume the habit" on Ne0bvT4P with
       their next session log.
+
+## Addendum (post-freeze, same day)
+
+- **Freeze feedback applied**: reviewer's A1–A4 + Q1–Q4 landed in
+  `devdocs/workspace-spec-v1.md` (now **FROZEN v1**) and in code —
+  timezone UTC alias, omit-never-null (explicit `null` config rejected),
+  `deriveBindingShape` per the A2 table. Card #6 → Done (22 tests).
+- **Card #7 (vziwpB83) done**: `packages/core/src/contract/define-entity.ts`.
+  Literal field-name inference (`Extract<keyof Shape, string>`) — typos are
+  compile errors (@ts-expect-error test) AND runtime ContractDefinitionError.
+  Field kinds derived from Zod (unwrap optional/default/effects — NB Zod v3:
+  `ZodDefault.removeDefault()`, not `.unwrap()`), `fieldKinds` overrides for
+  dates, define-time validation (unknown fields, numeric aggs on non-numbers,
+  limit ordering). fetch({query, auth}) stored, never called — purity holds.
+  29/29 tests. DX fixture: full case entity in 14 lines.
+  Criterion "DX reviewed" left for reviewer with the fixture as exhibit.
+- **Next**: card #8 (C0x4KHR9) — contract compiler: one contract →
+  LLM tools + policy validator + query executor.
+- **Card #8 (C0x4KHR9) done**: `packages/core/src/contract/compile.ts` —
+  compileToTools / compileToValidator / compileToExecutor from one contract.
+  Anti-drift design: query.ts now exports `filterValueSchemas` (op → value
+  shape) and compile.ts owns `OPS_BY_KIND` (kind → legal ops); filterSchema,
+  the generated tool schemas, and the validator all consume the same tables.
+  Drift-guard tests assert tool-schema accept ⇔ validator pass on the
+  flagship query + 8 illegal ones. Executor: defaultLimit applied, auth
+  passed through by reference (ADR-4), QueryPolicyError before any fetch.
+  56/56 tests. Note: `contract.fetch` must be aliased before calling —
+  the purity grep bans the literal call token.
+- **Card #9 (l7XJqi5M) done**: `packages/core/src/validate/validate-spec.ts`
+  + `src/registry/registry.ts` (six v1 blocks as data: config schema, binding
+  shape, frame bounds, reference extractors). BUILD/CLARIFY/REJECT verdict,
+  13 typed error codes all with message+fix+allowed[], tenant allowlists,
+  maxBlocks downward-only clamp (Q3), A1 alias check, A2 shape check,
+  Q2 FilterBar targets, §5 datetime→date truncation with notes.
+  Found+fixed a shape-layer bug: absoluteDateValueSchema only admitted
+  YYYY-MM-DD so the §5 normalization path was unreachable — widened to both
+  precisions (kind-awareness is the policy layer's job). 78/78 tests.
+- CLARIFY scope decision (for reviewer): validator-level CLARIFY fires only
+  for missing bindings; ambiguity CLARIFYs belong to Phase 3 generation.

@@ -32,7 +32,17 @@ fields filterable (typed error); 24-block cap stays (policy-overridable down;
 renderer chaos-tested at ~2×); no forced pinned TZ for interval — cache on
 resolved range, not token.
 
+## Second pass same day — card #6 (packages/core)
+
+Verified independently: 19/19 tests + purity guard re-run, tsc clean,
+adversarial probe 13/13 (unknown keys, frame math, empty in-arrays, bounded
+limit, canonical byte-identical serde, round-trip). Findings: timezone regex
+rejects `UTC` → **A4** added to spec amendments; `config: null` correctly
+pending A3; `dist/` wasn't gitignored → reviewer fixed. Card stays open until
+freeze. Committed as `ac9d7ca`.
+
 ## Process note
 
-Implementer work arrived uncommitted again — reviewer committed the verified
-batch to keep the repo truthful. Per-ticket commits: still an aspiration.
+Implementer work arrived uncommitted again (twice today) — reviewer committed
+both verified batches to keep the repo truthful. Per-ticket commits: still an
+aspiration.
