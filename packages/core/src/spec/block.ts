@@ -22,15 +22,16 @@ export const blockTypeSchema = z
 
 /**
  * Config values are plain JSON — never field references, never templates.
- * Depth validation against the registry's config schema is validator work;
- * here we constrain to JSON-serializable values.
+ * Null is excluded (A3): optional values are omitted, never null; an
+ * explicit null is a spec shape error. Depth validation against the
+ * registry's config schema is validator work; here we constrain to
+ * JSON-serializable, non-null values.
  */
 const jsonLiteralSchema: z.ZodType<unknown> = z.lazy(() =>
   z.union([
     z.string(),
     z.number(),
     z.boolean(),
-    z.null(),
     z.array(jsonLiteralSchema),
     z.record(jsonLiteralSchema),
   ]),

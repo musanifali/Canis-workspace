@@ -34,9 +34,14 @@ export const relativeTokenSchema = z.enum([
 ]);
 export type RelativeToken = z.infer<typeof relativeTokenSchema>;
 
-/** Absolute date value: `{ "abs": "2026-07-01" }`. */
+/**
+ * Absolute date value: `{ "abs": "2026-07-01" }` or a full datetime.
+ * Both precisions pass the SHAPE gate; whether a datetime is legal for the
+ * target field is the policy validator's call — it truncates a datetime sent
+ * against a day-precision `date` field and records a note (§5).
+ */
 export const absoluteDateValueSchema = z
-  .object({ abs: isoDateSchema })
+  .object({ abs: z.union([isoDateSchema, isoDateTimeSchema]) })
   .strict();
 
 /** Relative date value: `{ "rel": "this_month" }` or `{ "rel": "today", "offsetDays": 7 }`. */
@@ -54,12 +59,18 @@ export const dateValueSchema = z.union([
 ]);
 export type DateValue = z.infer<typeof dateValueSchema>;
 
-/** Workspace timezone policy: the single clock for relative-time resolution (§6). */
+/**
+ * Workspace timezone policy: the single clock for relative-time resolution (§6).
+ *
+ * Shape-only check (A4): "viewer", the "UTC" alias, or an Area/Location-shaped
+ * string. Whether a zone actually exists is enforced at execution via Intl —
+ * an invalid zone is a typed executor error, never a silent UTC fallback.
+ */
 export const timezoneSchema = z.union([
   z.literal("viewer"),
-  // IANA zone names: Area/Location with optional sub-location
+  z.literal("UTC"),
   z.string().regex(/^[A-Za-z_]+\/[A-Za-z_]+(\/[A-Za-z_]+)?$/, {
-    message: 'expected "viewer" or an IANA zone like "Europe/Berlin"',
+    message: 'expected "viewer", "UTC", or an IANA zone like "Europe/Berlin"',
   }),
 ]);
 export type Timezone = z.infer<typeof timezoneSchema>;

@@ -8,13 +8,40 @@
 import { z } from "zod";
 import { dateValueSchema } from "./time.js";
 
-const fieldNameSchema = z
+export const fieldNameSchema = z
   .string()
   .min(1)
   .max(64)
   .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, "expected a bare field name");
 
 const scalarSchema = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
+ * The op → value-shape table. filterSchema below and the contract compiler's
+ * generated tool schemas both consume THIS map, so grammar and generated
+ * tools cannot drift (card #8 requirement).
+ */
+export const filterValueSchemas = {
+  eq: scalarSchema,
+  neq: scalarSchema,
+  contains: z.string().min(1),
+  in: z.array(scalarSchema).nonempty(),
+  not_in: z.array(scalarSchema).nonempty(),
+  gt: z.number(),
+  gte: z.number(),
+  lt: z.number(),
+  lte: z.number(),
+  between: z.union([
+    z.tuple([z.number(), z.number()]),
+    z.tuple([dateValueSchema, dateValueSchema]),
+    // whole-period symbolic ranges: { rel: "this_month" }
+    dateValueSchema,
+  ]),
+  on: dateValueSchema,
+  before: dateValueSchema,
+  after: dateValueSchema,
+} as const;
+export type FilterOp = keyof typeof filterValueSchemas;
 
 /**
  * One filter condition. The op discriminates the value shape:
@@ -27,71 +54,94 @@ const scalarSchema = z.union([z.string(), z.number(), z.boolean()]);
  */
 export const filterSchema = z.discriminatedUnion("op", [
   z
-    .object({ field: fieldNameSchema, op: z.literal("eq"), value: scalarSchema })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("eq"),
+      value: filterValueSchemas.eq,
+    })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("neq"), value: scalarSchema })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("neq"),
+      value: filterValueSchemas.neq,
+    })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("contains"),
-      value: z.string().min(1),
+      value: filterValueSchemas.contains,
     })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("in"),
-      value: z.array(scalarSchema).nonempty(),
+      value: filterValueSchemas.in,
     })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("not_in"),
-      value: z.array(scalarSchema).nonempty(),
+      value: filterValueSchemas.not_in,
     })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("gt"), value: z.number() })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("gt"),
+      value: filterValueSchemas.gt,
+    })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("gte"), value: z.number() })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("gte"),
+      value: filterValueSchemas.gte,
+    })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("lt"), value: z.number() })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("lt"),
+      value: filterValueSchemas.lt,
+    })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("lte"), value: z.number() })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("lte"),
+      value: filterValueSchemas.lte,
+    })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("between"),
-      value: z.union([
-        z.tuple([z.number(), z.number()]),
-        z.tuple([dateValueSchema, dateValueSchema]),
-        // whole-period symbolic ranges: { rel: "this_month" }
-        dateValueSchema,
-      ]),
+      value: filterValueSchemas.between,
     })
     .strict(),
   z
-    .object({ field: fieldNameSchema, op: z.literal("on"), value: dateValueSchema })
+    .object({
+      field: fieldNameSchema,
+      op: z.literal("on"),
+      value: filterValueSchemas.on,
+    })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("before"),
-      value: dateValueSchema,
+      value: filterValueSchemas.before,
     })
     .strict(),
   z
     .object({
       field: fieldNameSchema,
       op: z.literal("after"),
-      value: dateValueSchema,
+      value: filterValueSchemas.after,
     })
     .strict(),
 ]);
@@ -116,6 +166,29 @@ export const aggregationSchema = z
     message: "every aggregation except count requires a field",
   });
 export type Aggregation = z.infer<typeof aggregationSchema>;
+
+/**
+ * A query's output shape, derived — never declared (Spec v1 §5 A2).
+ * `groups` sorts apply within each group; groupBy + aggregations yields
+ * one aggregate row per group.
+ */
+export type BindingShape = "rows" | "groups" | "aggregate";
+
+/**
+ * Derive the output shape of a query per the A2 table.
+ *
+ * @returns "rows" (no groupBy, no aggregations), "groups" (groupBy only),
+ *          or "aggregate" (aggregations with or without groupBy)
+ */
+export function deriveBindingShape(query: {
+  groupBy?: string | undefined;
+  aggregations?: readonly unknown[] | undefined;
+}): BindingShape {
+  const hasAggregations = (query.aggregations?.length ?? 0) > 0;
+  if (hasAggregations) return "aggregate";
+  if (query.groupBy !== undefined) return "groups";
+  return "rows";
+}
 
 export const querySpecSchema = z
   .object({

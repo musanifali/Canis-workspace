@@ -1,6 +1,8 @@
 # Workspace Spec v1
 
-**Status: DRAFT — awaiting review + freeze** (Trello card `qiLtVFPt`)
+**Status: FROZEN v1** (2026-07-07, review pass on Trello card `qiLtVFPt`;
+amendments A1–A4 applied). Changes from here require a `specVersion` bump and
+a migration per §9.
 **Owners:** Workspace Engine core
 **Last updated:** 2026-07-07
 
@@ -49,6 +51,11 @@ wins until the freeze, after which changes require a version bump.
 Unknown top-level keys → `REJECT` (`SpecShapeError`). `specVersion` above the
 validator's supported range → `REJECT` (`SpecVersionError`); below → lazy
 migration (§9).
+
+**Null handling (A3):** optional values are **omitted, never null**. An
+explicit `null` anywhere a value is optional → `REJECT` (`SpecShapeError`).
+The single exception is `binding: null`, which is not an omitted optional but
+the explicit discriminator for static (data-less) blocks (§4).
 
 ## 3. Layout model — 12-column grid
 
@@ -99,6 +106,27 @@ The split is the load-bearing rule of the block model:
 - A block with no binding (`"binding": null`) is legal for static blocks
   (v1: none in the default registry; the hook exists for headings/notes).
 
+**The alias↔config contract (A1):** the one sanctioned bridge between config
+and binding is the **aggregation alias**. A block that presents multiple
+metrics references them from config by alias, e.g.
+
+```jsonc
+"config": {
+  "cards": [
+    { "alias": "total", "label": "Open cases" },
+    { "alias": "exposure", "label": "Exposure (USD)", "intent": "negative" }
+  ]
+},
+"binding": { "entity": "case", "query": { "aggregations": [
+  { "fn": "count", "alias": "total" },
+  { "fn": "sum", "field": "amountUsd", "alias": "exposure" }
+] } }
+```
+
+The validator checks that **every alias referenced in config exists in
+`binding.query.aggregations`** → `AliasReferenceError {blockId, alias,
+declared[]}`. Aliases that are declared but unreferenced are legal.
+
 Why the split exists: config diffs are safe to auto-apply on edit; binding
 diffs re-trigger validation and permission checks. It also keeps the Phase 2
 renderer pure — `render(config, data)` with no query knowledge.
@@ -138,8 +166,22 @@ Rules the validator enforces (each with a typed error):
   layer strips empty-array filters *before* the spec is assembled (Phase 0
   lesson: models emit `[]` for unused filters).
 - `aggregations[].fn` ∈ contract's declared aggregations for that field
-  (`count` needs no field). `groupBy` + `aggregations` together produce the
-  `groups`/`aggregate` output shapes blocks bind to.
+  (`count` needs no field).
+
+### Output-shape derivation (A2)
+
+The query's output shape is **derived, never declared**:
+
+| `groupBy` | `aggregations` | Output shape |
+|---|---|---|
+| — | — | `rows` (flat records) |
+| — | ✓ | `aggregate` (a single row of aliases) |
+| ✓ | — | `groups` (grouped rows; `sort` applies **within** each group) |
+| ✓ | ✓ | `aggregate` (one row per group: group key + aliases) |
+
+The validator derives the shape from the query and matches it against the
+block type's declared binding shape → `BindingShapeError {blockId, expected,
+derived}`.
 - `limit` is a **required-bounded** integer: missing → contract default;
   out of `1..max` → `REJECT` (Phase 0 lesson: unbounded `limit: -1` silently
   returned 239/240 rows).
@@ -171,9 +213,16 @@ Date/datetime filter values are either **absolute** or **symbolic**:
   — a saved "due this month" workspace opened in August shows August. Never
   resolve at generation time.
 - Resolution uses **one clock**: the workspace `timezone` field — `"viewer"`
-  (default; the reading user's TZ) or a pinned IANA zone for team-shared
-  boards. Week start is Monday. (Phase 0 shipped two disagreeing clocks;
-  centralizing this is why the field exists.)
+  (default; the reading user's TZ), the alias `"UTC"`, or a pinned IANA zone
+  for team-shared boards. Week start is Monday. (Phase 0 shipped two
+  disagreeing clocks; centralizing this is why the field exists.)
+- **Schema checks shape only (A4)**: the schema accepts `"viewer"`, `"UTC"`,
+  and `Area/Location`-shaped strings; whether a zone actually exists is
+  enforced at execution via `Intl` — an invalid zone is a typed executor
+  error, never a silent UTC fallback.
+- Interval refresh does **not** force a pinned zone (Q4): resolution is per
+  execution context, and viewer-relative is correct per viewer. Caching
+  layers must key on the **resolved date range**, never the symbolic token.
 - The LLM must also receive `userTime` context at generation so its *choice*
   of token is right (Phase 0: without it the model guessed the wrong month) —
   but the stored value stays symbolic.
@@ -188,7 +237,11 @@ entry publishes: `type` name, config schema, binding shape
 
 v1 scope note: `FilterBar` binds to sibling blocks by `targets: [blockId]`
 in its config; cross-block filter *state* is a renderer concern and does not
-round-trip into the saved spec in v1.
+round-trip into the saved spec in v1. **Target rules (Q2):** every target id
+must exist in the spec, all targets must share one binding entity, and the
+FilterBar's configured filter fields must be `filterable` on that entity →
+`FilterTargetError {blockId, target, reason}`. Silent no-op filter chips
+would violate fail-fast.
 
 ## 8. Refresh policy
 
@@ -217,7 +270,10 @@ re-executes bindings only — never re-generation, never LLM involvement.
 - **BUILD** — spec is fully within contract + policy; renderer may proceed.
 - **CLARIFY** — spec is well-formed but under-determined in a way the LLM can
   fix with one more user answer (e.g. ambiguous entity, missing required
-  binding). Carries machine-readable questions.
+  binding). Carries machine-readable questions **and the draft spec as opaque
+  resume-context (Q1)** — never rendered, need not validate. Amendment beats
+  regeneration: cheaper, stable under the user's answer, and auditable as
+  question → answer → diff.
 - **REJECT** — contract/policy violation or malformed shape. Carries the typed
   error list; every error names what failed, why, and what is allowed
   (`{blockId, field, allowed[]}` style).
@@ -242,7 +298,7 @@ with feedback, not a render.
       "id": "blk_kpis",
       "type": "KpiCards",
       "frame": { "x": 0, "y": 0, "w": 12, "h": 2 },
-      "config": { "title": null },
+      "config": { "cards": [{ "alias": "total", "label": "High-risk due this month" }] },
       "binding": {
         "entity": "case",
         "query": {
@@ -284,13 +340,18 @@ with feedback, not a render.
 - Cross-block filter state persistence (FilterBar state is ephemeral).
 - Free-form text/markdown blocks (registry hook exists via `binding: null`).
 
-## 13. Open questions (to resolve before freeze)
+## 13. Resolved questions (freeze review, 2026-07-07)
 
-1. Should `CLARIFY` carry a partial spec the LLM amends, or only questions?
-2. `FilterBar.targets` — validate that targets share the same `entity`?
-3. Max blocks per workspace: 24 is a guess; check against renderer perf.
-4. Is `timezone: "viewer"` right for interval-refresh team dashboards, or
-   should `interval` force a pinned zone?
+1. **CLARIFY payload** → questions **and** the draft spec as opaque
+   resume-context (folded into §10).
+2. **FilterBar.targets** → validated: exist + one shared entity + filterable
+   fields, `FilterTargetError` (folded into §7).
+3. **Max blocks** → 24 stays as the v1 cap, tenant-policy overridable
+   **downward only**. The Phase 2 hostile-conditions work tests the renderer
+   at ~50 blocks ≈ 2× cap — the cap is a policy choice, not a perf cliff.
+4. **Timezone × interval refresh** → no forced pinned zone; caching keys on
+   the resolved range, not the token (folded into §6). A sharing-time warning
+   for `shared + interval + viewer` is Phase 4 UX, not v1 spec law.
 
 ---
 

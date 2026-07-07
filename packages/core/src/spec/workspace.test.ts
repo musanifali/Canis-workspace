@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { deriveBindingShape } from "./query.js";
 import { parseSpec, serializeSpec, SpecParseError } from "./serde.js";
 import { workspaceSpecSchema } from "./workspace.js";
 
@@ -14,7 +15,7 @@ const flagshipSpec = {
       id: "blk_kpis",
       type: "KpiCards",
       frame: { x: 0, y: 0, w: 12, h: 2 },
-      config: { title: null },
+      config: { cards: [{ alias: "total", label: "High-risk due this month" }] },
       binding: {
         entity: "case",
         query: {
@@ -190,6 +191,35 @@ describe("workspaceSpecSchema", () => {
     expect(() =>
       parseSpec({ ...flagshipSpec, timezone: "next tuesday" }),
     ).toThrow(SpecParseError);
+  });
+
+  it("accepts the UTC alias (A4)", () => {
+    const spec = parseSpec({ ...flagshipSpec, timezone: "UTC" });
+    expect(spec.timezone).toBe("UTC");
+  });
+
+  it("rejects explicit null config values (A3: omit, never null)", () => {
+    const bad = structuredClone(flagshipSpec) as {
+      blocks: { config?: Record<string, unknown> }[];
+    };
+    bad.blocks[0]!.config = { title: null };
+    expect(() => parseSpec(bad)).toThrow(SpecParseError);
+  });
+});
+
+describe("deriveBindingShape (A2)", () => {
+  it("derives rows / groups / aggregate per the spec table", () => {
+    expect(deriveBindingShape({})).toBe("rows");
+    expect(deriveBindingShape({ groupBy: "analyst" })).toBe("groups");
+    expect(
+      deriveBindingShape({ aggregations: [{ fn: "count", alias: "n" }] }),
+    ).toBe("aggregate");
+    expect(
+      deriveBindingShape({
+        groupBy: "analyst",
+        aggregations: [{ fn: "count", alias: "n" }],
+      }),
+    ).toBe("aggregate");
   });
 });
 
