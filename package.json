@@ -1,0 +1,17 @@
+{
+  "name": "workspace-engine",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Workspace Engine — natural language to safe, saved, native screens. Built on Tambo (consumed, never forked).",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "check-types": "npm run check-types --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

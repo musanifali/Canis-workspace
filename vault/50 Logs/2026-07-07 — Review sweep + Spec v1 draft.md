@@ -25,6 +25,13 @@ created: 2026-07-07
   at execution, BUILD/CLARIFY/REJECT, versioning, worked example, non-goals.
   3 of 4 card criteria checked; freeze awaits review.
 
+- **Card #6 (DUx7yjkT) implemented against the draft**: monorepo root scaffolded
+  (npm workspaces, `packages/*`; demo stays standalone) and
+  `packages/core` (@workspace-engine/core) — spec schemas 1:1 with the doc,
+  `parseSpec`/`serializeSpec` (canonical key order), 19 tests green incl. a
+  purity-guard test enforcing zod-as-only-dependency. "Matches frozen doc"
+  criterion stays open until freeze.
+
 ## Found / decided
 
 - Design doc lives in monorepo `devdocs/` (first file there), per Operating Model.

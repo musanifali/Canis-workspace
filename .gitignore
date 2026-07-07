@@ -1,5 +1,6 @@
 tambo/
 node_modules/
+dist/
 .env.local
 .env
 *.log
