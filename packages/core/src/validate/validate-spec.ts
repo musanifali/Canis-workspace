@@ -68,6 +68,7 @@ export type SpecValidationError = SpecErrorBase &
         field?: string | undefined;
         allowed: readonly string[];
       }
+    | { code: "LayoutOverlapError"; blockIds: readonly [string, string] }
     | { code: "BindingShapeError"; expected: string; derived: string }
     | { code: "AliasReferenceError"; alias: string; declared: readonly string[] }
     | { code: "FilterTargetError"; target?: string | undefined; reason: string }
@@ -140,6 +141,27 @@ export function validateSpec(
       message: `spec has ${spec.blocks.length} blocks; this tenant allows ${maxBlocks}`,
       fix: `remove ${spec.blocks.length - maxBlocks} block(s) or split into multiple workspaces`,
     });
+  }
+
+  // §3 no-overlap rule: frames may not intersect (touching edges are fine).
+  for (let i = 0; i < spec.blocks.length; i++) {
+    for (let j = i + 1; j < spec.blocks.length; j++) {
+      const a = spec.blocks[i]!;
+      const b = spec.blocks[j]!;
+      if (
+        a.frame.x < b.frame.x + b.frame.w &&
+        b.frame.x < a.frame.x + a.frame.w &&
+        a.frame.y < b.frame.y + b.frame.h &&
+        b.frame.y < a.frame.y + a.frame.h
+      ) {
+        errors.push({
+          code: "LayoutOverlapError",
+          blockIds: [a.id, b.id],
+          message: `blocks "${a.id}" and "${b.id}" have overlapping frames`,
+          fix: "move or resize one frame so the two rectangles do not intersect (gaps are allowed)",
+        });
+      }
+    }
   }
 
   const normalizedBlocks: WorkspaceSpec["blocks"][number][] = [];

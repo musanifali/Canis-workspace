@@ -206,6 +206,60 @@ describe("validateSpec — REJECT: registry & policy", () => {
     ).toBe("BUILD");
   });
 
+  it("rejects overlapping frames — the reviewer's probe case (§3)", () => {
+    const spec = {
+      specVersion: 1,
+      title: "Overlap",
+      blocks: [
+        {
+          id: "blk_a",
+          type: "CasesTable",
+          frame: { x: 0, y: 0, w: 6, h: 4 },
+          binding: { entity: "case", query: { filters: [] } },
+        },
+        {
+          id: "blk_b",
+          type: "CasesTable",
+          frame: { x: 3, y: 2, w: 6, h: 4 },
+          binding: { entity: "case", query: { filters: [] } },
+        },
+      ],
+    };
+    const verdict = validateSpec(spec, ctx);
+    expect(verdict.verdict).toBe("REJECT");
+    if (verdict.verdict !== "REJECT") return;
+    const error = verdict.errors.find((e) => e.code === "LayoutOverlapError")!;
+    expect(error).toMatchObject({ blockIds: ["blk_a", "blk_b"] });
+  });
+
+  it("allows frames that touch edges without intersecting", () => {
+    const spec = {
+      specVersion: 1,
+      title: "Adjacent",
+      blocks: [
+        {
+          id: "blk_a",
+          type: "CasesTable",
+          frame: { x: 0, y: 0, w: 6, h: 4 },
+          binding: { entity: "case", query: { filters: [] } },
+        },
+        {
+          id: "blk_b",
+          type: "CasesTable",
+          frame: { x: 6, y: 0, w: 6, h: 4 },
+          binding: { entity: "case", query: { filters: [] } },
+        },
+        {
+          id: "blk_c",
+          type: "CasesTable",
+          frame: { x: 0, y: 4, w: 12, h: 4 },
+          binding: { entity: "case", query: { filters: [] } },
+        },
+      ],
+    };
+    expect(validateSpec(spec, ctx).verdict).toBe("BUILD");
+  });
+
   it("rejects frames outside the block type's size bounds", () => {
     const spec = flagship();
     spec.blocks[1]!.frame = { x: 0, y: 2, w: 4, h: 8 }; // GroupedBoard min w=6

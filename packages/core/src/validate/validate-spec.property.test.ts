@@ -360,6 +360,64 @@ describe("validator invariants (property-based)", () => {
     );
   });
 
+  it("LAYOUT INVARIANT (§3): BUILD ⇔ all frame pairs disjoint", () => {
+    // Everything except geometry is held legal, so overlap is the only
+    // possible fault and the biconditional is exact in both directions.
+    const contract = buildContract({
+      fields: [{ name: "risk", kind: "enum" }],
+      filterable: ["risk"],
+      sortable: [],
+      groupable: [],
+      aggregations: {},
+      maxLimit: 100,
+    });
+    const frameArb = fc
+      .record({
+        x: fc.integer({ min: 0, max: 8 }),
+        y: fc.integer({ min: 0, max: 12 }),
+        w: fc.integer({ min: 4, max: 12 }),
+        h: fc.integer({ min: 3, max: 6 }),
+      })
+      .filter((frame) => frame.x + frame.w <= 12);
+    const layoutArb = fc
+      .array(frameArb, { minLength: 2, maxLength: 4 })
+      .map((frames) => ({
+        specVersion: 1,
+        title: "Layout",
+        blocks: frames.map((frame, i) => ({
+          id: `blk_${"abcd"[i]}`,
+          type: "CasesTable",
+          frame,
+          binding: { entity: "case", query: { filters: [] } },
+        })),
+      }));
+    const overlaps = (
+      a: { x: number; y: number; w: number; h: number },
+      b: { x: number; y: number; w: number; h: number },
+    ) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+    fc.assert(
+      fc.property(layoutArb, (spec) => {
+        const frames = spec.blocks.map((block) => block.frame);
+        const anyOverlap = frames.some((a, i) =>
+          frames.some((b, j) => j > i && overlaps(a, b)),
+        );
+        const verdict = validateSpec(spec, { contracts: { case: contract } });
+        if (anyOverlap) {
+          expect(verdict.verdict).toBe("REJECT");
+          if (verdict.verdict === "REJECT") {
+            expect(verdict.errors.map((e) => e.code)).toContain(
+              "LayoutOverlapError",
+            );
+          }
+        } else {
+          expect(verdict.verdict).toBe("BUILD");
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
+
   it("FUZZ: arbitrary values (including malformed JSON strings) never crash the validator", () => {
     const contract = buildContract({
       fields: [{ name: "risk", kind: "enum" }],
