@@ -41,6 +41,18 @@ rejects `UTC` → **A4** added to spec amendments; `config: null` correctly
 pending A3; `dist/` wasn't gitignored → reviewer fixed. Card stays open until
 freeze. Committed as `ac9d7ca`.
 
+## Third pass — cards #7–#10 (contracts, compiler, validator, property tests)
+
+Spec FROZEN with A1–A4 ✓. 82/82 tests re-run ✓. Adversarial probe **8/9**:
+alias contract (A1), FilterBar targets (Q2), datetime truncation w/ note,
+CLARIFY (questions+options+draft), REJECT>CLARIFY precedence — all correct.
+**1 confirmed P1: overlapping frames → BUILD.** §3 LayoutOverlapError never
+implemented; both schema files defer overlap to the validator, validator
+never picked it up — seam bug. The property suite (good arbitraries
+otherwise) never asserts layout geometry, so 82 green tests sailed over it.
+Filed [review][P1] with repro + the missing property ("BUILD ⇒ pairwise
+disjoint"). Implementer committed their own work this time (3 commits) ✓.
+
 ## Process note
 
 Implementer work arrived uncommitted again (twice today) — reviewer committed
