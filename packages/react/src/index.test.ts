@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SDK_VERSION } from "./index.js";
+import { SDK_VERSION } from "./index";
 
 describe("@workspace-engine/react entry point", () => {
   it("exposes a semver SDK version", () => {
