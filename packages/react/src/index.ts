@@ -39,4 +39,36 @@ export {
 export { resolveQueryDates, effectiveZone, type ResolveOptions } from "./query/resolve-dates";
 export { BindingFetchError } from "./query/errors";
 
+// Headless workspace hooks (#15) + persistence port
+export {
+  WorkspaceStoreProvider,
+  type WorkspaceStoreProviderProps,
+  useWorkspaceStore,
+  useWorkspaceValidationContext,
+} from "./workspace/context";
+export {
+  createInMemoryWorkspaceStore,
+  createBlankSpec,
+  WorkspaceNotFoundError,
+  type WorkspaceStore,
+  type WorkspaceRecord,
+  type WorkspaceSummary,
+} from "./workspace/store";
+export {
+  useWorkspaceList,
+  WORKSPACE_LIST_KEY,
+  type WorkspaceListState,
+} from "./workspace/useWorkspaceList";
+export {
+  useWorkspace,
+  workspaceKey,
+  type WorkspaceState,
+} from "./workspace/useWorkspace";
+export {
+  useWorkspaceEditor,
+  WorkspaceEditorSaveError,
+  type WorkspaceEditor,
+  type WorkspaceEditorParams,
+} from "./workspace/useWorkspaceEditor";
+
 export type { WorkspaceSpec } from "@workspace-engine/core";
