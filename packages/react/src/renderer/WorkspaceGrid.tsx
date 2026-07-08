@@ -1,12 +1,13 @@
 import type { CSSProperties, ErrorInfo, ReactElement } from "react";
 import { GRID_COLUMNS, type Block, type WorkspaceSpec } from "@workspace-engine/core";
-import type { BlockComponentRegistry } from "./types";
-import { BrokenBlock } from "./BrokenBlock";
-import { BlockErrorBoundary } from "./BlockErrorBoundary";
+import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
+import { BlockHost } from "./BlockHost";
 
 export interface WorkspaceGridProps {
   spec: WorkspaceSpec;
   components: BlockComponentRegistry;
+  /** Contracts + auth for bound blocks. Omit for a static (config-only) render. */
+  dataSource?: WorkspaceDataSource | undefined;
   /** Applied to the grid container. */
   className?: string | undefined;
   /** Height of one grid row unit, in px. Default 96. */
@@ -20,12 +21,14 @@ export interface WorkspaceGridProps {
 /**
  * Positions every block on the fixed 12-column grid using CSS Grid — no layout
  * library, SSR-safe, deterministic. A block's frame maps directly to grid
- * lines: `x`/`w` to columns, `y`/`h` to rows (both 1-indexed in CSS). The spec
- * is assumed already validated (write-time gate); this component only renders.
+ * lines: `x`/`w` to columns, `y`/`h` to rows (both 1-indexed in CSS). Each cell
+ * delegates to BlockHost, which handles data, loading, and broken states. The
+ * spec is assumed already validated (write-time gate); this only renders.
  */
 export function WorkspaceGrid({
   spec,
   components,
+  dataSource,
   className,
   rowHeight = 96,
   gap = 16,
@@ -48,7 +51,6 @@ export function WorkspaceGrid({
           minWidth: 0,
           minHeight: 0,
         };
-        const Component = components[block.type];
         return (
           <div
             key={block.id}
@@ -57,17 +59,14 @@ export function WorkspaceGrid({
             data-block-type={block.type}
             style={cellStyle}
           >
-            {Component ? (
-              <BlockErrorBoundary block={block} onBlockError={onBlockError}>
-                <Component block={block} />
-              </BlockErrorBoundary>
-            ) : (
-              <BrokenBlock
-                blockId={block.id}
-                blockType={block.type}
-                reason={`No component is registered for block type “${block.type}”.`}
-              />
-            )}
+            <BlockHost
+              block={block}
+              components={components}
+              dataSource={dataSource}
+              timeZone={spec.timezone}
+              refresh={spec.refresh}
+              onBlockError={onBlockError}
+            />
           </div>
         );
       })}

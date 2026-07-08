@@ -30,6 +30,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.60.0",
     "@workspace-engine/core": "0.1.0"
   },
   "peerDependencies": {
@@ -45,6 +46,7 @@
     "react-dom": "^19.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.6.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "zod": "^3.25.0"
   }
 }
