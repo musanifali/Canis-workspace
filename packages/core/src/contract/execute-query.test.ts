@@ -51,6 +51,15 @@ describe("executeQuery — rows", () => {
   });
 });
 
+describe("executeQuery — malformed response", () => {
+  it("throws a clear TypeError when the vendor returns a non-array", () => {
+    // @ts-expect-error deliberately malformed input
+    expect(() => executeQuery({ oops: true }, q({}))).toThrow(/array of rows/);
+    // @ts-expect-error deliberately malformed input
+    expect(() => executeQuery(null, q({}))).toThrow(/array of rows/);
+  });
+});
+
 describe("executeQuery — sort with null/undefined fields (review #68)", () => {
   const NULLABLE = [
     { id: "a", n: 5 },

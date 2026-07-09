@@ -81,6 +81,16 @@ export function executeQuery(
   query: QuerySpec,
   options: ExecuteQueryOptions = {},
 ): unknown[] {
+  if (!Array.isArray(rows)) {
+    // A misbehaving vendor fetch returned a non-array (an error object, null,
+    // a bare object). Fail with a clear message; the executor wraps this as a
+    // BindingFetchError so the block degrades gracefully instead of throwing a
+    // cryptic "rows.filter is not a function" deep in the engine.
+    throw new TypeError(
+      `query executor expected the vendor fetch to return an array of rows, got ${rows === null ? "null" : typeof rows}`,
+    );
+  }
+
   const exec = { ...DEFAULT_EXECUTION, ...options.execution };
   const cap = options.maxRows ?? DEFAULT_MAX_CLIENT_ROWS;
 
