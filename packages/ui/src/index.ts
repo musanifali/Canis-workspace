@@ -11,3 +11,7 @@ export { defaultBlocks } from "./blocks";
 export { Table, KpiCards, Queue, Board, Graph } from "./blocks/data-blocks";
 export { FilterBar } from "./blocks/filter-bar";
 export { tokens, TOKEN_NAMES } from "./theme";
+
+// devMode sandbox (card #40): zero-config live workspace against a bundled sample.
+export { WorkspaceSandbox, type WorkspaceSandboxProps } from "./sandbox";
+export { sampleContract, sampleSpec, SAMPLE_ROWS, type SampleRow } from "./sample";

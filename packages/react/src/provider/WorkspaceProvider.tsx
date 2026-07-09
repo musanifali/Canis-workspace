@@ -1,4 +1,4 @@
-import { useMemo, type ReactElement, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type ReactElement, type ReactNode } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   DEFAULT_REGISTRY,
@@ -15,14 +15,21 @@ import { buildBlockRegistry, type BlockDefinition } from "./defineBlock";
 import { WorkspaceConfigContext, type WorkspaceConfig } from "./config-context";
 
 export interface WorkspaceProviderProps {
-  /** Platform API key for the Workspace Service (used from Phase 4). */
-  apiKey: string;
+  /** Platform API key for the Workspace Service (used from Phase 4). Optional in devMode. */
+  apiKey?: string | undefined;
   /** End-user auth, passed UNCHANGED to every contract's vendor fetch (ADR-4). */
-  userToken: unknown;
+  userToken?: unknown;
   /** Entity contracts (defineEntity); indexed by name for bindings + validation. */
-  contracts: readonly EntityContract[];
+  contracts?: readonly EntityContract[] | undefined;
   /** Registered blocks (defineBlock); validated against the registry here. */
-  blocks: readonly BlockDefinition[];
+  blocks?: readonly BlockDefinition[] | undefined;
+  /**
+   * Developer sandbox mode: makes apiKey/userToken/contracts/blocks optional and
+   * prints a next-step banner to the console. Pair with @workspace-engine/ui's
+   * WorkspaceSandbox (or defaultBlocks + a bundled sample contract) to get a live
+   * screen before writing a single contract.
+   */
+  devMode?: boolean | undefined;
   /** Persistence for saved workspaces; defaults to an in-memory store. */
   store?: WorkspaceStore | undefined;
   /** Block registry override; defaults to the v1 DEFAULT_REGISTRY. */
@@ -46,17 +53,21 @@ export interface WorkspaceProviderProps {
  */
 export function WorkspaceProvider({
   apiKey,
-  userToken,
-  contracts,
-  blocks,
+  userToken = null,
+  contracts = [],
+  blocks = [],
   store,
   registry,
   policy,
   queryClient,
   onBlockDegraded,
+  devMode = false,
   children,
 }: WorkspaceProviderProps): ReactElement {
   const resolvedRegistry = registry ?? DEFAULT_REGISTRY;
+  const resolvedApiKey = apiKey ?? (devMode ? "dev-mode" : "");
+
+  useDevModeBanner(devMode);
 
   const contractsByName = useMemo(
     () => Object.fromEntries(contracts.map((c) => [c.name, c])),
@@ -87,10 +98,10 @@ export function WorkspaceProvider({
       components,
       dataSource: { contracts: contractsByName, auth: userToken },
       validation,
-      apiKey,
+      apiKey: resolvedApiKey,
       ...(onBlockDegraded ? { onBlockDegraded } : {}),
     }),
-    [components, contractsByName, userToken, validation, apiKey, onBlockDegraded],
+    [components, contractsByName, userToken, validation, resolvedApiKey, onBlockDegraded],
   );
 
   return (
@@ -102,4 +113,20 @@ export function WorkspaceProvider({
       </WorkspaceStoreProvider>
     </WorkspaceQueryClientProvider>
   );
+}
+
+/** Print the devMode next-step banner once per mount (never during render/SSR). */
+function useDevModeBanner(devMode: boolean): void {
+  const printed = useRef(false);
+  useEffect(() => {
+    if (!devMode || printed.current || typeof console === "undefined") return;
+    printed.current = true;
+    console.info(
+      "%c[workspace-engine] devMode",
+      "font-weight:bold",
+      "\nRendering against a bundled sample contract — no data of yours is used.\n" +
+        "Next step: define your first entity with defineEntity() and pass it via `contracts`,\n" +
+        "then register your blocks (or keep @workspace-engine/ui's defaultBlocks).",
+    );
+  }, [devMode]);
 }

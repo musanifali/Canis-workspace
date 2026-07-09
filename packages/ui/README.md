@@ -7,6 +7,38 @@ Table, KPIs, queue, board, filter bar, chart — one per registry block type.
 Native controls throughout (real `<table>`, `<form>`, `<button>`, `<label>`) — no
 clickable divs, no ARIA gymnastics.
 
+## Quickstart — a live screen in under 10 minutes
+
+Zero contracts, zero blocks, zero network. Drop one component into your app:
+
+```bash
+npm install @workspace-engine/react @workspace-engine/ui
+```
+
+```tsx
+import { WorkspaceSandbox } from "@workspace-engine/ui";
+
+export default function Page() {
+  return <WorkspaceSandbox />;
+}
+```
+
+You now have a live, data-backed workspace inside your own app shell, rendered
+against a bundled sample contract with seeded data. The console prints your next
+step:
+
+> **Next step:** define your first entity with `defineEntity()` and pass it via
+> `contracts`, then register your blocks (or keep `defaultBlocks`).
+
+When you're ready, replace the sandbox with the real thing — same blocks, your
+data:
+
+```tsx
+<WorkspaceProvider apiKey={apiKey} userToken={userToken} contracts={[myEntity]} blocks={defaultBlocks}>
+  <WorkspaceRenderer spec={spec} />
+</WorkspaceProvider>
+```
+
 ## Day 1 — works before you customize
 
 ```tsx

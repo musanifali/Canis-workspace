@@ -3,6 +3,7 @@ import { cleanup, render, waitFor } from "@testing-library/react";
 import { z } from "zod";
 import { defineEntity, parseSpec, type EntityContract, type WorkspaceSpec } from "@workspace-engine/core";
 import { WorkspaceProvider } from "./WorkspaceProvider";
+import { useWorkspaceConfig } from "./config-context";
 import { defineBlock, buildBlockRegistry, BlockRegistrationError } from "./defineBlock";
 import { WorkspaceRenderer } from "../renderer/WorkspaceRenderer";
 import type { BlockComponentProps } from "../renderer/types";
@@ -102,6 +103,26 @@ describe("WorkspaceProvider", () => {
       ),
     ).toThrow(BlockRegistrationError);
     spy.mockRestore();
+  });
+});
+
+describe("devMode", () => {
+  function ApiKeyProbe() {
+    return <span data-testid="apikey">{useWorkspaceConfig().apiKey}</span>;
+  }
+
+  it("makes apiKey/contracts/blocks optional and prints a next-step banner", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const { getByTestId } = render(
+      <WorkspaceProvider devMode>
+        <ApiKeyProbe />
+      </WorkspaceProvider>,
+    );
+    // No apiKey/contracts/blocks passed, yet it mounts.
+    expect(getByTestId("apikey").textContent).toBe("dev-mode");
+    await waitFor(() => expect(info).toHaveBeenCalled());
+    expect(info.mock.calls.flat().join(" ")).toMatch(/define your first entity/);
+    info.mockRestore();
   });
 });
 
