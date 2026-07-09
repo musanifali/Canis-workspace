@@ -100,6 +100,17 @@ export function WorkspaceGrid({
  * blank the workspace — only the blocks that actually reference missing data
  * degrade; the rest render. Returns an empty map when no validation context is
  * supplied (standalone use), where a drifted block instead fails at fetch.
+ *
+ * Only errors with a singular `blockId` degrade a block. The two non-block-
+ * scoped REJECT variants are intentionally NOT enforced retroactively on a
+ * saved spec (review #67):
+ *  - LayoutOverlapError — can't arise at read time: a saved spec passed
+ *    validateSpec:BUILD at save, and contract drift never introduces overlaps.
+ *  - BlockCountError — only from tenant-policy TIGHTENING (an admin lowering
+ *    maxBlocks below a board's existing count). We deliberately render the
+ *    board as authored rather than hiding end-users' blocks because an admin
+ *    changed a cap after the fact; surfacing that to admins is a Phase 4 concern
+ *    (revisit when real tenant policy is wired).
  */
 function buildDriftMap(
   spec: WorkspaceSpec,

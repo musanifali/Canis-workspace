@@ -166,6 +166,30 @@ describe("graceful degradation", () => {
     );
   });
 
+  it("does NOT retroactively enforce a tightened block cap on a saved spec (review #67)", async () => {
+    // Two valid static blocks, but a policy that now allows only one.
+    const spec = parseSpec({
+      specVersion: 1,
+      title: "t",
+      blocks: [
+        { id: "blk_1", type: "Note", frame: { x: 0, y: 0, w: 6, h: 2 }, binding: null },
+        { id: "blk_2", type: "Note", frame: { x: 6, y: 0, w: 6, h: 2 }, binding: null },
+      ],
+    });
+    const onBlockDegraded = vi.fn();
+    // validateSpec REJECTs with a (non-block-scoped) BlockCountError, which we
+    // intentionally drop: the board renders as authored, nothing degrades.
+    const { container } = renderGrid(spec, {
+      validation: { contracts: {}, policy: { maxBlocks: 1 } },
+      comps: { Note },
+      onBlockDegraded,
+    });
+
+    expect(container.querySelectorAll('[data-testid="note"]')).toHaveLength(2);
+    expect(container.querySelector("[data-workspace-broken-block]")).toBeNull();
+    await waitFor(() => expect(onBlockDegraded).not.toHaveBeenCalled());
+  });
+
   it("fires render-error telemetry when a block component throws", async () => {
     const spec = parseSpec({
       specVersion: 1,
