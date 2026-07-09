@@ -57,11 +57,14 @@ export function useBlockQuery(params: UseBlockQueryParams): BlockDataState {
   const query = useQuery<unknown[], BindingFetchError>({
     queryKey: ["workspace-block", block.id, binding.entity, binding.query, zone],
     queryFn: async () => {
-      const resolved = resolveQueryDates(binding.query, {
-        now: new Date(),
-        timeZone: zone,
-      });
       try {
+        // Resolution is inside the try: an invalid IANA zone throws a
+        // RangeError, which A4 requires we surface as a TYPED executor error
+        // (BindingFetchError), not a raw one.
+        const resolved = resolveQueryDates(binding.query, {
+          now: new Date(),
+          timeZone: zone,
+        });
         return await executor({ query: resolved, auth });
       } catch (cause) {
         throw toBindingFetchError(cause, block);
@@ -83,7 +86,11 @@ export function useBlockQuery(params: UseBlockQueryParams): BlockDataState {
   return {
     status,
     data: query.data,
-    error: query.error ?? null,
+    // Honors the doc contract: error is set only on terminal failure (no data
+    // to fall back on), so `status === "error" ⟺ error !== null`. A refetch that
+    // fails while stale data is shown keeps status "success" with error null;
+    // surfacing that "stale + last refresh failed" state is card #17's job.
+    error: status === "error" ? (query.error ?? null) : null,
     isFetching: query.isFetching,
     dataUpdatedAt: query.dataUpdatedAt || null,
     refetch: () => {

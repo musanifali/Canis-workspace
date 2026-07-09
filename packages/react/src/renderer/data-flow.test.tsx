@@ -59,12 +59,14 @@ function makeSpec(refresh?: WorkspaceSpec["refresh"]): WorkspaceSpec {
   });
 }
 
-function Rows({ data, refetch, isFetching }: BlockComponentProps) {
+function Rows({ data, refetch, isFetching, status, error }: BlockComponentProps) {
   const rows = (data as unknown[] | undefined) ?? [];
   return (
     <div>
       <span data-testid="rows">{rows.length}</span>
       <span data-testid="fetching">{String(isFetching)}</span>
+      <span data-testid="status">{status}</span>
+      <span data-testid="haserror">{String(error != null)}</span>
       <button data-testid="refetch" onClick={refetch}>
         refetch
       </button>
@@ -171,6 +173,70 @@ describe("query executor + data flow", () => {
 
     fireEvent.click(getByTestId("refetch"));
     await waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+  });
+
+  it("wraps an invalid timezone as a typed BindingFetchError (A4), siblings render", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(ROWS);
+    const dataSource: WorkspaceDataSource = { contracts: { case: makeContract(fetchImpl) }, auth: {} };
+    // Shape-valid IANA string that no runtime zone matches → Intl throws RangeError.
+    const spec = parseSpec({
+      specVersion: 1,
+      title: "Cases",
+      timezone: "Mars/Phobos",
+      blocks: [
+        {
+          id: "blk_a1",
+          type: "CasesTable",
+          frame: { x: 0, y: 0, w: 6, h: 4 },
+          config: { title: "Cases" },
+          binding: { entity: "case", query: { filters: [{ field: "due", op: "between", value: { rel: "this_month" } }] } },
+        },
+        // Static sibling: no binding → no date resolution → must still render.
+        { id: "blk_c3", type: "Note", frame: { x: 6, y: 0, w: 6, h: 2 }, binding: null },
+      ],
+    });
+    const withSibling = { ...components, Note: () => <div data-testid="sibling">ok</div> };
+
+    const { container, getByTestId } = render(
+      <WorkspaceQueryClientProvider client={noRetryClient()}>
+        <WorkspaceGrid spec={spec} components={withSibling} dataSource={dataSource} />
+      </WorkspaceQueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector("[data-workspace-broken-block]")).not.toBeNull();
+    });
+    // A raw RangeError would read "Invalid time zone specified…"; the typed error
+    // is scoped to the block ("binding for block \"blk_a1\"…").
+    const detail = container
+      .querySelector("[data-workspace-broken-block] [data-broken-detail]")
+      ?.textContent;
+    expect(detail).toContain('binding for block "blk_a1"');
+    expect(getByTestId("sibling")).not.toBeNull(); // healthy sibling unaffected
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("keeps status success + error null when a refetch fails but stale data remains", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(ROWS)
+      .mockRejectedValue(new Error("refetch failed"));
+    const dataSource: WorkspaceDataSource = { contracts: { case: makeContract(fetchImpl) }, auth: {} };
+
+    const { getByTestId } = render(
+      <WorkspaceQueryClientProvider client={noRetryClient()}>
+        <WorkspaceGrid spec={makeSpec({ mode: "manual" })} components={components} dataSource={dataSource} />
+      </WorkspaceQueryClientProvider>,
+    );
+    await waitFor(() => expect(getByTestId("rows").textContent).toBe("2"));
+
+    fireEvent.click(getByTestId("refetch"));
+    await waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+
+    // Stale data is still shown: success, no error exposed (per the doc contract).
+    expect(getByTestId("rows").textContent).toBe("2");
+    expect(getByTestId("status").textContent).toBe("success");
+    expect(getByTestId("haserror").textContent).toBe("false");
   });
 
   it("interval refresh refetches on the configured interval", async () => {

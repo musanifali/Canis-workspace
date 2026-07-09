@@ -209,6 +209,14 @@ Date/datetime filter values are either **absolute** or **symbolic**:
 - Symbolic tokens v1: `today`, `yesterday`, `tomorrow`, `this_week`,
   `last_week`, `this_month`, `last_month`, `this_quarter`, `this_year`,
   plus `offsetDays: int` applicable to any point token.
+- **Every token resolves to a `[start, end]` inclusive day range** in the
+  workspace zone. Point tokens (`today`/`yesterday`/`tomorrow`) collapse to one
+  day (`start == end`); period tokens span their calendar period (weeks are
+  Monday-start). Ops consume the range by their arity: `between` uses the whole
+  `[start, end]`; single-sided ops anchor to one edge — `on`/`before` → `start`,
+  `after` → `end`. `offsetDays` shifts both edges. *(Clarification 2026-07-09:
+  §6 previously left single-sided ops against a period token undefined; this
+  codifies the resolver's behavior and is not a shape change.)*
 - **Symbolic values are stored symbolically and resolved at query execution**
   — a saved "due this month" workspace opened in August shows August. Never
   resolve at generation time.
