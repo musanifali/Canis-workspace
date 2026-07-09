@@ -27,7 +27,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test-types": "vitest --typecheck.only run"
   },
   "dependencies": {
     "zod": "^3.25.0"

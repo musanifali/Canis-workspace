@@ -26,3 +26,22 @@ jobs:
       - run: npm run build
       - run: npm run verify:artifacts
       - run: npm run size
+
+  type-tests:
+    # defineEntity's literal-type inference is a product feature; verify it across
+    # every TypeScript version we claim to support (core devDep is ^5.6).
+    name: type tests (TS ${{ matrix.ts }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ts: ["5.6", "5.7", "5.8", "5.9"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save typescript@${{ matrix.ts }} -w @workspace-engine/core
+      - run: npm run test-types -w @workspace-engine/core
