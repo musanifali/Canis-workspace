@@ -48,3 +48,8 @@ next-env.d.ts
 
 # agents
 .agents/
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

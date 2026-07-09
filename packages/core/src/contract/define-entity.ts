@@ -181,30 +181,54 @@ function deriveFieldKinds<Shape extends z.ZodRawShape>(
   return kinds;
 }
 
+/**
+ * Zod's stable internal type tag. We detect field types by `_def.typeName`
+ * rather than `instanceof z.ZodX` because a vendor almost always builds their
+ * entity schema with THEIR copy of zod, not ours — and `instanceof` compares
+ * class identity across copies, so it silently fails. The typeName string is
+ * identical across every zod 3.x install.
+ */
+function typeName(type: z.ZodTypeAny): string | undefined {
+  const def = (type as { _def?: { typeName?: string } })._def;
+  return def?.typeName;
+}
+
 function unwrap(type: z.ZodTypeAny): z.ZodTypeAny {
   let current = type;
   for (;;) {
-    if (current instanceof z.ZodOptional || current instanceof z.ZodNullable) {
-      current = current.unwrap() as z.ZodTypeAny;
-    } else if (current instanceof z.ZodDefault) {
-      current = current.removeDefault() as z.ZodTypeAny;
-    } else if (current instanceof z.ZodEffects) {
-      current = current.innerType() as z.ZodTypeAny;
-    } else {
-      return current;
+    const def = (current as { _def?: { innerType?: z.ZodTypeAny; schema?: z.ZodTypeAny } })._def;
+    switch (typeName(current)) {
+      case "ZodOptional":
+      case "ZodNullable":
+      case "ZodDefault":
+        if (!def?.innerType) return current;
+        current = def.innerType;
+        break;
+      case "ZodEffects":
+        if (!def?.schema) return current;
+        current = def.schema;
+        break;
+      default:
+        return current;
     }
   }
 }
 
 function deriveKind(type: z.ZodTypeAny): FieldKind {
-  if (type instanceof z.ZodEnum || type instanceof z.ZodNativeEnum) {
-    return "enum";
+  switch (typeName(type)) {
+    case "ZodEnum":
+    case "ZodNativeEnum":
+      return "enum";
+    case "ZodNumber":
+      return "number";
+    case "ZodBoolean":
+      return "boolean";
+    case "ZodString":
+      return "string";
+    default:
+      throw new ContractDefinitionError(
+        "(schema)",
+        `unsupported field type ${type.constructor.name} — v1 contracts support string/number/boolean/enum (mark dates via fieldKinds)`,
+      );
   }
-  if (type instanceof z.ZodNumber) return "number";
-  if (type instanceof z.ZodBoolean) return "boolean";
-  if (type instanceof z.ZodString) return "string";
-  throw new ContractDefinitionError(
-    "(schema)",
-    `unsupported field type ${type.constructor.name} — v1 contracts support string/number/boolean/enum (mark dates via fieldKinds)`,
-  );
 }
