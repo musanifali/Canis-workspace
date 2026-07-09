@@ -77,6 +77,15 @@ export {
   type PolicyViolationCode,
 } from "./contract/compile.js";
 export {
+  executeQuery,
+  RowCapExceededError,
+  DEFAULT_EXECUTION,
+  DEFAULT_MAX_CLIENT_ROWS,
+  type ExecutionMode,
+  type ExecutionModes,
+  type ExecuteQueryOptions,
+} from "./contract/execute-query.js";
+export {
   DEFAULT_REGISTRY,
   type BlockRegistry,
   type BlockRegistryEntry,

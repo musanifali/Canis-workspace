@@ -12,6 +12,11 @@
  */
 import { z } from "zod";
 import type { QuerySpec } from "../spec/query.js";
+import {
+  DEFAULT_EXECUTION,
+  DEFAULT_MAX_CLIENT_ROWS,
+  type ExecutionModes,
+} from "./execute-query.js";
 
 /** Field kinds the query grammar distinguishes (Spec v1 §5). */
 export type FieldKind =
@@ -40,6 +45,14 @@ export interface EntityCapabilities<Shape extends z.ZodRawShape> {
   defaultLimit?: number;
   /** Hard row-limit ceiling for this entity. */
   maxLimit?: number;
+  /**
+   * Which query operations the vendor runs server-side vs. the SDK runs
+   * client-side over the returned rows (card #38). Default: all "client" — the
+   * vendor `fetch` just returns rows and we do filter/sort/group/aggregate.
+   */
+  execution?: Partial<ExecutionModes>;
+  /** Row cap for client-side execution (default 10 000). */
+  maxClientRows?: number;
 }
 
 export interface DefineEntityArgs<Shape extends z.ZodRawShape> {
@@ -72,6 +85,8 @@ export interface EntityContract<Shape extends z.ZodRawShape = z.ZodRawShape> {
     readonly aggregations: Readonly<Record<string, readonly AggregationFn[]>>;
     readonly defaultLimit: number;
     readonly maxLimit: number;
+    readonly execution: ExecutionModes;
+    readonly maxClientRows: number;
   };
   readonly fetch: (args: {
     query: QuerySpec;
@@ -153,6 +168,14 @@ export function defineEntity<Shape extends z.ZodRawShape>(
     );
   }
 
+  const maxClientRows = capabilities.maxClientRows ?? DEFAULT_MAX_CLIENT_ROWS;
+  if (!Number.isInteger(maxClientRows) || maxClientRows < 1) {
+    throw new ContractDefinitionError(
+      name,
+      `maxClientRows must be a positive integer, got ${maxClientRows}`,
+    );
+  }
+
   return {
     name,
     schema,
@@ -164,6 +187,8 @@ export function defineEntity<Shape extends z.ZodRawShape>(
       aggregations,
       defaultLimit,
       maxLimit,
+      execution: { ...DEFAULT_EXECUTION, ...(capabilities.execution ?? {}) },
+      maxClientRows,
     },
     fetch: args.fetch,
   };

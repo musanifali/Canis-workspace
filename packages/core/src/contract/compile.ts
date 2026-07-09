@@ -21,6 +21,7 @@ import {
   type QuerySpec,
 } from "../spec/query.js";
 import type { AggregationFn, EntityContract, FieldKind } from "./define-entity.js";
+import { executeQuery } from "./execute-query.js";
 
 /** Which filter ops the query grammar allows per field kind (Spec v1 §5). */
 export const OPS_BY_KIND: Readonly<Record<FieldKind, readonly FilterOp[]>> = {
@@ -197,7 +198,14 @@ export function compileToExecutor(
       ...query,
       limit: query.limit ?? contract.capabilities.defaultLimit,
     };
-    return run({ query: bounded, auth });
+    // The vendor fetch returns rows; the client-side engine applies the ops the
+    // vendor didn't (filter/sort/group/aggregate), per the contract's execution
+    // modes, and shapes the result (card #38).
+    const rows = await run({ query: bounded, auth });
+    return executeQuery(rows, bounded, {
+      execution: contract.capabilities.execution,
+      maxRows: contract.capabilities.maxClientRows,
+    });
   };
 }
 
