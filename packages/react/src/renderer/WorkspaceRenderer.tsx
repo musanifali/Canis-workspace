@@ -1,6 +1,7 @@
 import { useContext, type ErrorInfo, type ReactElement } from "react";
-import type { Block, WorkspaceSpec } from "@workspace-engine/core";
+import type { Block, ValidationContext, WorkspaceSpec } from "@workspace-engine/core";
 import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
+import type { OnBlockDegraded } from "./degradation";
 import { WorkspaceGrid } from "./WorkspaceGrid";
 import { WorkspaceQueryClientProvider } from "../query/client";
 import { WorkspaceConfigContext } from "../provider/config-context";
@@ -11,32 +12,40 @@ export interface WorkspaceRendererProps {
   components?: BlockComponentRegistry | undefined;
   /** Contracts + auth; omit to use the WorkspaceProvider's data source. */
   dataSource?: WorkspaceDataSource | undefined;
+  /** Enables read-time contract-drift detection; omit to use the provider's. */
+  validation?: ValidationContext | undefined;
   className?: string | undefined;
   rowHeight?: number | undefined;
   gap?: number | undefined;
   onBlockError?: ((block: Block, error: Error, info: ErrorInfo) => void) | undefined;
+  /** Telemetry: fires once when any block renders degraded. */
+  onBlockDegraded?: OnBlockDegraded | undefined;
 }
 
 /**
  * The read-time entry point: turn a validated WorkspaceSpec into a live screen
  * with zero LLM involvement. Inside a WorkspaceProvider (card #16) it reads the
- * registered components + data source from context, so `<WorkspaceRenderer
- * spec={…} />` is all a consumer writes. Used standalone (no provider) it takes
- * `components`/`dataSource` as props and mounts its own internal React Query
- * client when a data source is present.
+ * registered components, data source, validation context, and degradation
+ * telemetry from context, so `<WorkspaceRenderer spec={…} />` is all a consumer
+ * writes. Used standalone it takes them as props and mounts its own internal
+ * React Query client when a data source is present.
  */
 export function WorkspaceRenderer({
   spec,
   components: componentsProp,
   dataSource: dataSourceProp,
+  validation: validationProp,
   className,
   rowHeight,
   gap,
   onBlockError,
+  onBlockDegraded: onBlockDegradedProp,
 }: WorkspaceRendererProps): ReactElement {
   const config = useContext(WorkspaceConfigContext);
   const components = componentsProp ?? config?.components;
   const dataSource = dataSourceProp ?? config?.dataSource;
+  const validation = validationProp ?? config?.validation;
+  const onBlockDegraded = onBlockDegradedProp ?? config?.onBlockDegraded;
 
   if (!components) {
     throw new Error(
@@ -49,10 +58,12 @@ export function WorkspaceRenderer({
       spec={spec}
       components={components}
       dataSource={dataSource}
+      validation={validation}
       className={className}
       rowHeight={rowHeight}
       gap={gap}
       onBlockError={onBlockError}
+      onBlockDegraded={onBlockDegraded}
     />
   );
 

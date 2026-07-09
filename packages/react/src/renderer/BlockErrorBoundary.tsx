@@ -1,12 +1,15 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import type { Block } from "@workspace-engine/core";
 import { BrokenBlock } from "./BrokenBlock";
+import type { OnBlockDegraded } from "./degradation";
 
 interface BlockErrorBoundaryProps {
   block: Block;
   children: ReactNode;
   /** Notified when a block throws, so hosts can log/report. Must not throw. */
   onBlockError?: ((block: Block, error: Error, info: ErrorInfo) => void) | undefined;
+  /** Unified degradation telemetry (fires with reason "render-error"). */
+  onBlockDegraded?: OnBlockDegraded | undefined;
 }
 
 interface BlockErrorBoundaryState {
@@ -29,7 +32,15 @@ export class BlockErrorBoundary extends Component<
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    this.props.onBlockError?.(this.props.block, error, info);
+    const { block, onBlockError, onBlockDegraded } = this.props;
+    onBlockError?.(block, error, info);
+    onBlockDegraded?.({
+      blockId: block.id,
+      blockType: block.type,
+      reason: "render-error",
+      message: "This block ran into an error while rendering.",
+      detail: error.message,
+    });
   }
 
   override render(): ReactNode {

@@ -10,6 +10,7 @@ import {
 import { WorkspaceQueryClientProvider } from "../query/client";
 import { WorkspaceStoreProvider } from "../workspace/context";
 import { createInMemoryWorkspaceStore, type WorkspaceStore } from "../workspace/store";
+import type { OnBlockDegraded } from "../renderer/degradation";
 import { buildBlockRegistry, type BlockDefinition } from "./defineBlock";
 import { WorkspaceConfigContext, type WorkspaceConfig } from "./config-context";
 
@@ -30,6 +31,8 @@ export interface WorkspaceProviderProps {
   policy?: TenantPolicy | undefined;
   /** Share an existing QueryClient; defaults to an internal one. */
   queryClient?: QueryClient | undefined;
+  /** Telemetry: fires once whenever any block renders in a degraded state. */
+  onBlockDegraded?: OnBlockDegraded | undefined;
   children: ReactNode;
 }
 
@@ -50,6 +53,7 @@ export function WorkspaceProvider({
   registry,
   policy,
   queryClient,
+  onBlockDegraded,
   children,
 }: WorkspaceProviderProps): ReactElement {
   const resolvedRegistry = registry ?? DEFAULT_REGISTRY;
@@ -82,9 +86,11 @@ export function WorkspaceProvider({
     () => ({
       components,
       dataSource: { contracts: contractsByName, auth: userToken },
+      validation,
       apiKey,
+      ...(onBlockDegraded ? { onBlockDegraded } : {}),
     }),
-    [components, contractsByName, userToken, apiKey],
+    [components, contractsByName, userToken, validation, apiKey, onBlockDegraded],
   );
 
   return (

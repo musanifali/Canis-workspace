@@ -31,7 +31,12 @@ export {
 // Renderer
 export { WorkspaceRenderer, type WorkspaceRendererProps } from "./renderer/WorkspaceRenderer";
 export { WorkspaceGrid, type WorkspaceGridProps } from "./renderer/WorkspaceGrid";
-export { BlockHost, type BlockHostProps } from "./renderer/BlockHost";
+export { BlockHost, type BlockHostProps, type BlockDriftError } from "./renderer/BlockHost";
+export {
+  type BlockDegradationEvent,
+  type BlockDegradationReason,
+  type OnBlockDegraded,
+} from "./renderer/degradation";
 export { BrokenBlock, type BrokenBlockProps } from "./renderer/BrokenBlock";
 export { BlockSkeleton, type BlockSkeletonProps } from "./renderer/BlockSkeleton";
 export { BlockErrorBoundary } from "./renderer/BlockErrorBoundary";

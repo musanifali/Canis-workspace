@@ -1,39 +1,57 @@
-import type { CSSProperties, ErrorInfo, ReactElement } from "react";
-import { GRID_COLUMNS, type Block, type WorkspaceSpec } from "@workspace-engine/core";
+import { useMemo, type CSSProperties, type ErrorInfo, type ReactElement } from "react";
+import {
+  GRID_COLUMNS,
+  validateSpec,
+  type Block,
+  type ValidationContext,
+  type WorkspaceSpec,
+} from "@workspace-engine/core";
 import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
-import { BlockHost } from "./BlockHost";
+import { BlockHost, type BlockDriftError } from "./BlockHost";
+import type { OnBlockDegraded } from "./degradation";
 
 export interface WorkspaceGridProps {
   spec: WorkspaceSpec;
   components: BlockComponentRegistry;
   /** Contracts + auth for bound blocks. Omit for a static (config-only) render. */
   dataSource?: WorkspaceDataSource | undefined;
+  /** Enables read-time contract-drift detection (re-validates the saved spec). */
+  validation?: ValidationContext | undefined;
   /** Applied to the grid container. */
   className?: string | undefined;
   /** Height of one grid row unit, in px. Default 96. */
   rowHeight?: number | undefined;
   /** Gap between cells, in px. Default 16. */
   gap?: number | undefined;
-  /** Forwarded to each block's error boundary. */
   onBlockError?: ((block: Block, error: Error, info: ErrorInfo) => void) | undefined;
+  /** Telemetry: fires once when any block renders degraded. */
+  onBlockDegraded?: OnBlockDegraded | undefined;
 }
 
 /**
- * Positions every block on the fixed 12-column grid using CSS Grid — no layout
- * library, SSR-safe, deterministic. A block's frame maps directly to grid
- * lines: `x`/`w` to columns, `y`/`h` to rows (both 1-indexed in CSS). Each cell
- * delegates to BlockHost, which handles data, loading, and broken states. The
- * spec is assumed already validated (write-time gate); this only renders.
+ * Positions every block on the fixed 12-column grid (CSS Grid, no layout
+ * library, SSR-safe) and delegates each cell to BlockHost. When a validation
+ * context is present it re-validates the saved spec once and maps each block's
+ * error, so a workspace whose contract drifted since save renders every healthy
+ * block plus an explicit broken state on the one that references data that no
+ * longer exists — never a white screen, never a silent drop.
  */
 export function WorkspaceGrid({
   spec,
   components,
   dataSource,
+  validation,
   className,
   rowHeight = 96,
   gap = 16,
   onBlockError,
+  onBlockDegraded,
 }: WorkspaceGridProps): ReactElement {
+  const driftByBlock = useMemo(
+    () => buildDriftMap(spec, validation),
+    [spec, validation],
+  );
+
   const gridStyle: CSSProperties = {
     display: "grid",
     gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
@@ -63,13 +81,40 @@ export function WorkspaceGrid({
               block={block}
               components={components}
               dataSource={dataSource}
+              driftError={driftByBlock.get(block.id)}
               timeZone={spec.timezone}
               refresh={spec.refresh}
               onBlockError={onBlockError}
+              onBlockDegraded={onBlockDegraded}
             />
           </div>
         );
       })}
     </div>
   );
+}
+
+/**
+ * Re-validate the saved spec against the current contracts/registry/policy and
+ * collect the first block-scoped error per block. An overall REJECT doesn't
+ * blank the workspace — only the blocks that actually reference missing data
+ * degrade; the rest render. Returns an empty map when no validation context is
+ * supplied (standalone use), where a drifted block instead fails at fetch.
+ */
+function buildDriftMap(
+  spec: WorkspaceSpec,
+  validation: ValidationContext | undefined,
+): Map<string, BlockDriftError> {
+  const map = new Map<string, BlockDriftError>();
+  if (!validation) return map;
+
+  const verdict = validateSpec(spec, validation);
+  if (verdict.verdict === "REJECT") {
+    for (const error of verdict.errors) {
+      if (error.blockId && !map.has(error.blockId)) {
+        map.set(error.blockId, { message: error.message, fix: error.fix });
+      }
+    }
+  }
+  return map;
 }
