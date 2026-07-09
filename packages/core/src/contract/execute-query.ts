@@ -180,7 +180,19 @@ function sortRows(rows: Row[], sorts: readonly Sort[]): Row[] {
     for (const sort of sorts) {
       const l = a[sort.field];
       const r = b[sort.field];
+
+      // Null/undefined handling FIRST, before direction is applied, so nulls
+      // sort last in both asc and desc — and, critically, so the comparator is
+      // never self-contradictory. A naive `(l < r) ? -1 : 1` returns 1 for both
+      // orderings of a null pair (every `<`/`>` is false), which makes V8's sort
+      // corrupt the ordering of the well-defined values too (review #68).
+      const lNil = l === null || l === undefined;
+      const rNil = r === null || r === undefined;
+      if (lNil && rNil) continue;
+      if (lNil) return 1;
+      if (rNil) return -1;
       if (l === r) continue;
+
       const cmp = (l as never) < (r as never) ? -1 : 1;
       return sort.dir === "desc" ? -cmp : cmp;
     }

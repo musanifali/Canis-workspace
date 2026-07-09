@@ -51,6 +51,34 @@ describe("executeQuery — rows", () => {
   });
 });
 
+describe("executeQuery — sort with null/undefined fields (review #68)", () => {
+  const NULLABLE = [
+    { id: "a", n: 5 },
+    { id: "b", n: undefined },
+    { id: "c", n: 3 },
+    { id: "d", n: null },
+    { id: "e", n: 8 },
+  ];
+
+  it("keeps valid values correctly ordered asc and sinks nils to the end", () => {
+    const out = executeQuery(NULLABLE, q({ sort: [{ field: "n", dir: "asc" }] }));
+    expect(out.map((r) => (r as { n: unknown }).n)).toEqual([3, 5, 8, undefined, null]);
+  });
+
+  it("keeps valid values correctly ordered desc, nils still last", () => {
+    const out = executeQuery(NULLABLE, q({ sort: [{ field: "n", dir: "desc" }] }));
+    expect(out.map((r) => (r as { n: unknown }).n)).toEqual([8, 5, 3, undefined, null]);
+  });
+
+  it("does not reverse well-defined values when a nil sits between them (the repro)", () => {
+    const out = executeQuery(
+      [{ id: "a", n: 5 }, { id: "b", n: undefined }, { id: "c", n: 3 }],
+      q({ sort: [{ field: "n", dir: "asc" }] }),
+    );
+    expect(out.map((r) => (r as { id: string }).id)).toEqual(["c", "a", "b"]);
+  });
+});
+
 describe("executeQuery — groups", () => {
   it("groups rows by a field", () => {
     const out = executeQuery(ROWS, q({ groupBy: "risk" })) as { group: string; rows: unknown[] }[];
