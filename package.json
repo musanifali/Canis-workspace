@@ -12,7 +12,8 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "build": "turbo run build",
-    "verify:artifacts": "node scripts/smoke-artifacts.mjs"
+    "verify:artifacts": "node scripts/smoke-artifacts.mjs",
+    "size": "npm run size --workspace=@workspace-engine/react"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

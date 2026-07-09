@@ -1,0 +1,23 @@
+[
+  {
+    "name": "full import (all exports)",
+    "path": "dist/index.js",
+    "import": "*",
+    "ignore": ["react", "react-dom"],
+    "limit": "40 KB"
+  },
+  {
+    "name": "renderer + provider (the common integration path)",
+    "path": "dist/index.js",
+    "import": "{ WorkspaceProvider, WorkspaceRenderer }",
+    "ignore": ["react", "react-dom"],
+    "limit": "40 KB"
+  },
+  {
+    "name": "date resolver only — tree-shakes react-query + zod away",
+    "path": "dist/index.js",
+    "import": "{ resolveQueryDates }",
+    "ignore": ["react", "react-dom"],
+    "limit": "2 KB"
+  }
+]
