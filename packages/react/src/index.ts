@@ -60,6 +60,11 @@ export {
   type UseBlockQueryParams,
 } from "./query/useBlockQuery";
 export { resolveQueryDates, effectiveZone, type ResolveOptions } from "./query/resolve-dates";
+export {
+  WorkspaceFilterProvider,
+  useWorkspaceFilters,
+  useRuntimeFilters,
+} from "./query/filters";
 
 // Headless workspace hooks (#15) + persistence port
 export {

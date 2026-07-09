@@ -5,6 +5,7 @@ import {
   type Binding,
   type Block,
   type EntityContract,
+  type Filter,
   type RefreshPolicy,
 } from "@workspace-engine/core";
 import { effectiveZone, resolveQueryDates } from "./resolve-dates";
@@ -35,6 +36,8 @@ export interface UseBlockQueryParams {
   timeZone: string;
   /** Workspace refresh policy (spec.refresh). */
   refresh: RefreshPolicy;
+  /** Runtime filters (from a FilterBar) merged into the query before execution. */
+  runtimeFilters?: readonly Filter[] | undefined;
 }
 
 /**
@@ -48,20 +51,26 @@ export interface UseBlockQueryParams {
  * and matching staleTime; `manual` never auto-refetches (only user `refetch`).
  */
 export function useBlockQuery(params: UseBlockQueryParams): BlockDataState {
-  const { block, binding, contract, auth, timeZone, refresh } = params;
+  const { block, binding, contract, auth, timeZone, refresh, runtimeFilters } = params;
 
   const executor = useMemo(() => compileToExecutor(contract), [contract]);
   const zone = effectiveZone(timeZone);
   const interval = refresh.mode === "interval" ? refresh.seconds * 1000 : false;
 
+  // Runtime filters (from a FilterBar) are appended to the saved query — never
+  // mutating the stored spec, and gated by the same contract validator.
+  const effectiveQuery = runtimeFilters && runtimeFilters.length > 0
+    ? { ...binding.query, filters: [...binding.query.filters, ...runtimeFilters] }
+    : binding.query;
+
   const query = useQuery<unknown[], BindingFetchError>({
-    queryKey: ["workspace-block", block.id, binding.entity, binding.query, zone],
+    queryKey: ["workspace-block", block.id, binding.entity, effectiveQuery, zone],
     queryFn: async () => {
       try {
         // Resolution is inside the try: an invalid IANA zone throws a
         // RangeError, which A4 requires we surface as a TYPED executor error
         // (BindingFetchError), not a raw one.
-        const resolved = resolveQueryDates(binding.query, {
+        const resolved = resolveQueryDates(effectiveQuery, {
           now: new Date(),
           timeZone: zone,
         });

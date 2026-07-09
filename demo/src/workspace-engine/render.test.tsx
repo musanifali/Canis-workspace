@@ -19,8 +19,8 @@ describe("demo workspaces render live against the case contract", () => {
       await waitFor(() => {
         expect(container.querySelector("[data-workspace-broken-block]")).toBeNull();
         expect(container.querySelector("[data-workspace-skeleton]")).toBeNull();
-        // At least one real block body rendered.
-        expect(container.querySelector("[data-block]")).not.toBeNull();
+        // At least one real @workspace-engine/ui block body rendered.
+        expect(container.querySelector('[data-testid^="ui-"]')).not.toBeNull();
       });
 
       expect(container.querySelector("[data-workspace-grid]")).not.toBeNull();
@@ -34,7 +34,7 @@ describe("demo workspaces render live against the case contract", () => {
         <WorkspaceRenderer spec={demoWorkspaces[0]!.spec} />
       </WorkspaceProvider>,
     );
-    await waitFor(() => expect(container.querySelector('[data-block="KpiCards"]')).not.toBeNull());
-    expect(container.querySelector('[data-block="CasesTable"]')).not.toBeNull();
+    await waitFor(() => expect(container.querySelector('[data-testid="ui-kpis"]')).not.toBeNull());
+    expect(container.querySelector('[data-testid="ui-table"]')).not.toBeNull();
   });
 });

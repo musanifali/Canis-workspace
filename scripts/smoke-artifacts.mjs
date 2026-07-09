@@ -14,7 +14,11 @@ import assert from "node:assert/strict";
 
 const require = createRequire(import.meta.url);
 
-const PACKAGES = ["@workspace-engine/core", "@workspace-engine/react"];
+const PACKAGES = [
+  "@workspace-engine/core",
+  "@workspace-engine/react",
+  "@workspace-engine/ui",
+];
 
 let failed = false;
 

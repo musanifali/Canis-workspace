@@ -6,6 +6,7 @@ import type {
   RefreshPolicy,
 } from "@workspace-engine/core";
 import { useBlockQuery, type BlockDataState } from "../query/useBlockQuery";
+import { useRuntimeFilters } from "../query/filters";
 import type {
   BlockComponent,
   BlockComponentRegistry,
@@ -171,7 +172,8 @@ function BoundBlockHost({
   onBlockError,
   onBlockDegraded,
 }: BoundBlockHostProps): ReactElement {
-  const state = useBlockQuery({ block, binding, contract, auth, timeZone, refresh });
+  const runtimeFilters = useRuntimeFilters(block.id);
+  const state = useBlockQuery({ block, binding, contract, auth, timeZone, refresh, runtimeFilters });
 
   const degradation: BlockDegradationEvent | null =
     state.status === "error"

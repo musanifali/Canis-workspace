@@ -4,6 +4,7 @@ import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
 import type { OnBlockDegraded } from "./degradation";
 import { WorkspaceGrid } from "./WorkspaceGrid";
 import { WorkspaceQueryClientProvider } from "../query/client";
+import { WorkspaceFilterProvider } from "../query/filters";
 import { WorkspaceConfigContext } from "../provider/config-context";
 
 export interface WorkspaceRendererProps {
@@ -54,17 +55,19 @@ export function WorkspaceRenderer({
   }
 
   const grid = (
-    <WorkspaceGrid
-      spec={spec}
-      components={components}
-      dataSource={dataSource}
-      validation={validation}
-      className={className}
-      rowHeight={rowHeight}
-      gap={gap}
-      onBlockError={onBlockError}
-      onBlockDegraded={onBlockDegraded}
-    />
+    <WorkspaceFilterProvider>
+      <WorkspaceGrid
+        spec={spec}
+        components={components}
+        dataSource={dataSource}
+        validation={validation}
+        className={className}
+        rowHeight={rowHeight}
+        gap={gap}
+        onBlockError={onBlockError}
+        onBlockDegraded={onBlockDegraded}
+      />
+    </WorkspaceFilterProvider>
   );
 
   // Inside a WorkspaceProvider the query client is already mounted; only
