@@ -3,10 +3,9 @@
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useMcpServers } from "@/components/tambo/mcp-config-modal";
 import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
-import {
-  GeneratedWorkspace,
-  generatedWorkspaceSchema,
-} from "@/components/workspace/generated-workspace";
+import { generatedWorkspaceSchema } from "@/components/workspace/generated-workspace";
+import { InteractableGeneratedWorkspace } from "@/components/workspace/interactable-workspace";
+import { WorkspaceSaveBar } from "@/components/workspace/save-bar";
 import { workspaceGuideContextHelper } from "@/workspace-engine/system-prompt";
 import { contractContextHelper } from "@/workspace-engine/agent-tools";
 import { contracts } from "@/workspace-engine/kit";
@@ -43,7 +42,7 @@ const components: TamboComponent[] = [
       "Renders a WorkspaceSpec as a live, data-backed screen. Pass your spec as the `spec` " +
       "prop. It validates the spec against the data contracts first: valid specs render; " +
       "invalid ones show what to fix. This is the only way to put a workspace on screen.",
-    component: GeneratedWorkspace,
+    component: InteractableGeneratedWorkspace,
     propsSchema: generatedWorkspaceSchema,
   },
 ];
@@ -70,8 +69,9 @@ export default function CreateWorkspace() {
       // DeepSeek's thinking mode rejects the tool_choice the name generator uses.
       autoGenerateThreadName={false}
     >
-      <div className="h-screen">
-        <MessageThreadFull className="max-w-4xl mx-auto" />
+      <div className="flex h-screen flex-col">
+        <WorkspaceSaveBar />
+        <MessageThreadFull className="max-w-4xl mx-auto flex-1" />
       </div>
     </TamboProvider>
   );

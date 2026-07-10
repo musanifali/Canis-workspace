@@ -32,25 +32,11 @@ export const generatedWorkspaceSchema = z.object({
   ),
 });
 
-/** Top-level keys the spec root accepts; anything else the strict schema rejects. */
-const SPEC_ROOT_KEYS = ["specVersion", "title", "timezone", "refresh", "layout", "blocks"];
-
-/** Drop stray top-level keys a model may add (the spec root is `.strict()`). */
-function stripSpecRoot(spec: unknown): unknown {
-  if (spec == null || typeof spec !== "object" || Array.isArray(spec)) return spec;
-  const src = spec as Record<string, unknown>;
-  const out: Record<string, unknown> = {};
-  for (const k of SPEC_ROOT_KEYS) if (k in src) out[k] = src[k];
-  return out;
-}
-
 export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactElement {
   // Re-gate on every prop change; while streaming, `spec` is partial and the
-  // gate simply won't say "build" yet. First strip any extra top-level keys the
-  // model added (the spec root is .strict(), so a stray "description"/"id" would
-  // fail an otherwise-fine spec) — harmless normalization, not hiding an error.
+  // gate simply won't say "build" yet (gatePlan strips stray top-level keys).
   const outcome = useMemo(
-    () => (spec == null ? null : gatePlan(stripSpecRoot(spec), validationContext)),
+    () => (spec == null ? null : gatePlan(spec, validationContext)),
     [spec],
   );
 

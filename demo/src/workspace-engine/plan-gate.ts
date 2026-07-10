@@ -26,6 +26,23 @@ import {
   type WorkspaceSpec,
 } from "@workspace-engine/core";
 
+/** Top-level keys the spec root accepts; anything else its strict schema rejects. */
+const SPEC_ROOT_KEYS = ["specVersion", "title", "timezone", "refresh", "layout", "blocks"];
+
+/**
+ * Drop stray top-level keys before gating. The spec root is `.strict()`, so a
+ * model that adds "description"/"id"/etc. would fail an otherwise-valid spec.
+ * Harmless normalization applied uniformly (render gate + save/lift), not a way
+ * to hide errors — nested shape/contract problems still reach validateSpec.
+ */
+export function stripSpecRoot(spec: unknown): unknown {
+  if (spec == null || typeof spec !== "object" || Array.isArray(spec)) return spec;
+  const src = spec as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of SPEC_ROOT_KEYS) if (k in src) out[k] = src[k];
+  return out;
+}
+
 export type PlanOutcome =
   | { status: "build"; spec: WorkspaceSpec }
   | {
@@ -51,7 +68,7 @@ export function gatePlan(
   candidate: unknown,
   ctx: ValidationContext,
 ): PlanOutcome {
-  const verdict = validateSpec(candidate, ctx);
+  const verdict = validateSpec(stripSpecRoot(candidate), ctx);
 
   if (verdict.verdict === "BUILD") {
     return { status: "build", spec: verdict.spec };
