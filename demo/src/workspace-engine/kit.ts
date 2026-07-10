@@ -9,8 +9,18 @@
  * block with a design-system component (see the ui package's SWAP-PATH doc).
  */
 import { defaultBlocks } from "@workspace-engine/ui";
+import type { ValidationContext } from "@workspace-engine/core";
 import { caseContract } from "./case-contract";
 
 export const contracts = [caseContract];
 
 export const blocks = defaultBlocks;
+
+/**
+ * The validation context (contracts keyed by entity name) that both the
+ * generation gate (Phase A) and the renderer (Phase B) validate against — one
+ * source of truth so a spec that passes the gate is a spec the renderer accepts.
+ */
+export const validationContext: ValidationContext = {
+  contracts: Object.fromEntries(contracts.map((c) => [c.name, c])),
+};

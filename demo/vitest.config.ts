@@ -14,8 +14,12 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    // Only the Workspace Engine kit has unit/snapshot tests; the Tambo chat flow
-    // is exercised manually / via the LLM eval harness.
-    include: ["src/workspace-engine/**/*.test.{ts,tsx}"],
+    // The Workspace Engine kit + its workspace-rendering components have unit/
+    // snapshot tests; the Tambo chat flow is exercised manually / via the LLM
+    // eval harness.
+    include: [
+      "src/workspace-engine/**/*.test.{ts,tsx}",
+      "src/components/workspace/**/*.test.{ts,tsx}",
+    ],
   },
 });

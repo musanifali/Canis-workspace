@@ -22,9 +22,11 @@ import {
   compileToExecutor,
   compileToTools,
   type EntityContract,
+  type ValidationContext,
 } from "@workspace-engine/core";
 import type { TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
+import { gatePlan } from "./plan-gate";
 
 /** Query results are rows, groups, or aggregate objects — all keyed records. */
 const queryResultSchema = z.array(z.record(z.string(), z.unknown()));
@@ -56,4 +58,66 @@ export function toGroundedTools(
       }),
     );
   });
+}
+
+/**
+ * Two-phase generation, Phase A as a Tambo tool (card #20).
+ *
+ * The model calls this with its candidate WorkspaceSpec (the "plan") BEFORE
+ * rendering anything. The tool runs the pure validator gate and returns one of
+ * three verdicts:
+ *   - build   → the normalized spec; the model then renders <GeneratedWorkspace>.
+ *   - clarify → one targeted question the model relays to the user (no UI).
+ *   - reject  → a contract-referencing explanation the model relays (no UI).
+ *
+ * So a hallucinated field never reaches the screen — it comes back as a tool
+ * result the model answers in words. The input schema is the real spec schema,
+ * which both shapes the model's plan and lets Tambo pre-parse it; the gate's
+ * `validateSpec` is still the single authority on contracts and policy.
+ */
+export function proposeWorkspaceTool(ctx: ValidationContext): TamboTool {
+  return {
+    name: "proposeWorkspace",
+    description:
+      "Validate a candidate WorkspaceSpec against the data contracts BEFORE rendering. " +
+      "Always call this first with your full spec. Returns { status }: 'build' with the " +
+      "spec to render, 'clarify' with one question to ask the user, or 'reject' with an " +
+      "explanation to relay. Never render a workspace you have not validated here.",
+    // A WorkspaceSpec block's `config` is a dynamic-key record, which Tambo
+    // won't accept in a tool inputSchema. So the spec rides as a described `any`
+    // and the gate's `validateSpec` (below) is the real, precise contract check.
+    inputSchema: z.object({
+      spec: z
+        .any()
+        .describe(
+          'A complete WorkspaceSpec. Shape: { "specVersion": 1, "title": string, ' +
+            '"blocks": [ { "id": string, "type": "CasesTable"|"KpiCards"|"CaseQueue"|' +
+            '"FilterBar"|"GroupedBoard"|"Graph", "frame": { "x","y","w","h": number }, ' +
+            '"config": object, "binding": { "entity": string, "query": { "filters": [], ' +
+            '"sort": [], "groupBy"?, "aggregations"? } } | null } ] }. Blocks must not overlap.',
+        ),
+    }),
+    outputSchema: z.object({
+      status: z.enum(["build", "clarify", "reject"]),
+      spec: z.unknown().optional(),
+      question: z.string().optional(),
+      options: z.array(z.string()).optional(),
+      explanation: z.string().optional(),
+    }),
+    tool: async ({ spec }: { spec: unknown }) => {
+      const outcome = gatePlan(spec, ctx);
+      switch (outcome.status) {
+        case "build":
+          return { status: "build" as const, spec: outcome.spec };
+        case "clarify":
+          return {
+            status: "clarify" as const,
+            question: outcome.question,
+            ...(outcome.options ? { options: outcome.options } : {}),
+          };
+        case "reject":
+          return { status: "reject" as const, explanation: outcome.explanation };
+      }
+    },
+  };
 }

@@ -2,32 +2,54 @@
 
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useMcpServers } from "@/components/tambo/mcp-config-modal";
-import { components } from "@/lib/tambo";
 import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
-import { contracts } from "@/workspace-engine/kit";
-import { toGroundedTools } from "@/workspace-engine/agent-tools";
+import {
+  GeneratedWorkspace,
+  generatedWorkspaceSchema,
+} from "@/components/workspace/generated-workspace";
+import { contracts, validationContext } from "@/workspace-engine/kit";
+import { proposeWorkspaceTool, toGroundedTools } from "@/workspace-engine/agent-tools";
 import { workspaceGuideContextHelper } from "@/workspace-engine/system-prompt";
-import { currentTimeContextHelper, TamboProvider } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  TamboProvider,
+  type TamboComponent,
+} from "@tambo-ai/react";
 import { useMemo } from "react";
 
 /**
- * Phase 3 creation surface (card #19): natural language → a live workspace.
+ * Phase 3 creation surface — natural language → a validated, live workspace
+ * (cards #19 + #20). The two-phase loop:
  *
- * The difference from /chat is grounding. Instead of hand-written tools whose
- * descriptions can drift from what the data actually allows, the agent is given
- * `toGroundedTools(contracts)` — query_* tools compiled straight from the case
- * contract, so the model can only reference contracted entities and fields. The
- * versioned authoring instructions ride in as an AdditionalContext helper. The
- * registered blocks stream in as interactables as the agent composes the screen.
+ *   1. The model authors a WorkspaceSpec and calls `proposeWorkspace`, which
+ *      runs the validator gate (Phase A) — clarify/reject are caught here, while
+ *      the screen is still blank.
+ *   2. On "build" the model renders <GeneratedWorkspace>, the ONLY registered
+ *      component, which mounts the real renderer over the validated spec
+ *      (Phase B). The LLM emits spec JSON only; it cannot render anything else.
  *
- * (Two-phase plan→validate→stream of a real WorkspaceSpec is card #20; this card
- * lands the grounded loop + versioned prompt + the streaming creation UX.)
+ * The grounded `query_*` tools (#19) stay available so the model can inspect
+ * what data exists while reasoning — but they can't put pixels on screen. The
+ * versioned authoring guide rides in as an AdditionalContext helper.
  */
+const components: TamboComponent[] = [
+  {
+    name: "GeneratedWorkspace",
+    description:
+      "Renders a validated WorkspaceSpec as a live, data-backed screen. Only render this " +
+      "after proposeWorkspace returns status 'build', passing that spec through unchanged.",
+    component: GeneratedWorkspace,
+    propsSchema: generatedWorkspaceSchema,
+  },
+];
+
 export default function CreateWorkspace() {
   const mcpServers = useMcpServers();
   const userKey = useAnonymousUserKey();
-  // Contracts are module constants; compile the grounded tools once.
-  const tools = useMemo(() => toGroundedTools(contracts), []);
+  const tools = useMemo(
+    () => [...toGroundedTools(contracts), proposeWorkspaceTool(validationContext)],
+    [],
+  );
 
   return (
     <TamboProvider
@@ -37,9 +59,6 @@ export default function CreateWorkspace() {
       tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
       mcpServers={mcpServers}
       userKey={userKey}
-      // Relative dates ("this month", "overdue") resolve against real time, and
-      // the versioned workspace-authoring guide grounds behavior — both delivered
-      // as AdditionalContext (the SDK's sanctioned client-side channel).
       contextHelpers={{
         userTime: currentTimeContextHelper,
         workspaceGuide: workspaceGuideContextHelper,
