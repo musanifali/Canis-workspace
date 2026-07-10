@@ -369,9 +369,23 @@ describe("validateSpec — REJECT: FilterBar targets (Q2)", () => {
     ],
   });
 
-  it("accepts a FilterBar over same-entity siblings with filterable fields", () => {
-    const verdict = validateSpec(withFilterBar(["blk_q1", "blk_q2"], ["risk"]), ctx);
+  it("accepts a FilterBar over same-entity siblings with text-filterable fields", () => {
+    // analyst is a string field → the bar's `contains` op is legal on it.
+    const verdict = validateSpec(withFilterBar(["blk_q1", "blk_q2"], ["analyst"]), ctx);
     expect(verdict.verdict).toBe("BUILD");
+  });
+
+  it("rejects a FilterBar over an enum field (kind-blind contains probe, card #69)", () => {
+    // `risk` is filterable but enum-kind. The ui FilterBar emits `contains` on
+    // first keystroke, which is illegal on enum — so a BUILD here would produce
+    // an approved spec that breaks its target block the moment the user types.
+    // v1 rule: reject at save; kind-aware controls come later.
+    const verdict = validateSpec(withFilterBar(["blk_q1", "blk_q2"], ["risk"]), ctx);
+    expect(verdict.verdict).toBe("REJECT");
+    if (verdict.verdict !== "REJECT") return;
+    const error = verdict.errors.find((e) => e.code === "FilterTargetError");
+    expect(error).toBeDefined();
+    expect(error!.message).toMatch(/enum field/);
   });
 
   it("rejects targets that do not exist", () => {

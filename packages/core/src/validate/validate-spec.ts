@@ -432,14 +432,16 @@ function validateTargets(
   ctx: ValidationContext,
   errors: SpecValidationError[],
 ) {
-  const flag = (reason: string, target?: string) =>
+  const flag = (reason: string, target?: string, fix?: string) =>
     errors.push({
       code: "FilterTargetError",
       blockId,
       target,
       reason,
       message: `block "${blockId}": ${reason}`,
-      fix: "target sibling blocks that bind one shared entity, filtering only its filterable fields",
+      fix:
+        fix ??
+        "target sibling blocks that bind one shared entity, filtering only its filterable fields",
     });
 
   const entities = new Set<string>();
@@ -462,10 +464,24 @@ function validateTargets(
     const entity = [...entities][0]!;
     const contract = ctx.contracts[entity];
     if (contract) {
+      // Q2 (v1): a field the FilterBar drives must be filterable AND text-kind.
+      // The bar emits `contains` per keystroke, and `contains` is legal only on
+      // string fields (§5). An enum/number/date field passes `filterable` at
+      // save but breaks the target block at the first keystroke — reject it here
+      // instead. Kind-aware controls (enum→select, number→range) are a later card.
+      const textFilterable = [...contract.capabilities.filterable].filter((f) =>
+        OPS_BY_KIND[contract.fields[f]!].includes("contains"),
+      );
       for (const field of entry.referencedFields?.(config) ?? []) {
         if (!contract.capabilities.filterable.has(field)) {
           flag(
             `field "${field}" is not filterable on "${entity}" (filterable: ${[...contract.capabilities.filterable].join(", ")})`,
+          );
+        } else if (!OPS_BY_KIND[contract.fields[field]!].includes("contains")) {
+          flag(
+            `field "${field}" is a ${contract.fields[field]} field; the v1 FilterBar filters text only (contains), so it can only target string-kind fields (available on "${entity}": ${textFilterable.join(", ") || "(none)"})`,
+            undefined,
+            "filter only string-kind fields in v1; kind-aware FilterBar controls (enum/number/date) are a later card",
           );
         }
       }

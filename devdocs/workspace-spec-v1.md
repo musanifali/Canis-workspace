@@ -246,10 +246,16 @@ entry publishes: `type` name, config schema, binding shape
 v1 scope note: `FilterBar` binds to sibling blocks by `targets: [blockId]`
 in its config; cross-block filter *state* is a renderer concern and does not
 round-trip into the saved spec in v1. **Target rules (Q2):** every target id
-must exist in the spec, all targets must share one binding entity, and the
-FilterBar's configured filter fields must be `filterable` on that entity →
-`FilterTargetError {blockId, target, reason}`. Silent no-op filter chips
-would violate fail-fast.
+must exist in the spec, all targets must share one binding entity, and each of
+the FilterBar's configured filter fields must be `filterable` **and string-kind**
+on that entity → `FilterTargetError {blockId, target, reason}`. The string-kind
+requirement is not cosmetic: the v1 FilterBar emits a `contains` filter per
+keystroke, and `contains` is legal only on string fields (§5). Allowing an
+enum/number/date field would pass validation at save but break the target block
+at the first keystroke (`op "contains" not allowed on enum field`) — an approved
+spec that self-destructs. Kind-aware controls (enum→`select` emitting `in`,
+number→range emitting `between`, date→picker) are a post-v1 follow-up that will
+relax this rule. Silent no-op filter chips would violate fail-fast.
 
 ## 8. Refresh policy
 
