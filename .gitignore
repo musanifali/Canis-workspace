@@ -1,4 +1,5 @@
-tambo/
+# the vendored Tambo clone at the repo root ONLY (anchored: demo/src/components/tambo must stay tracked)
+/tambo/
 node_modules/
 dist/
 .turbo/
