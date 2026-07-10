@@ -20,26 +20,37 @@ import { z } from "zod";
 import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
 import { blocks, contracts, validationContext } from "@/workspace-engine/kit";
 import { gatePlan } from "@/workspace-engine/plan-gate";
+import { specPropSchema } from "@/workspace-engine/spec-prop-schema";
 
-// Deliberately loose: a WorkspaceSpec's block `config` is a dynamic-key record,
-// which Tambo won't accept in a *component* propsSchema (its streaming prop-diff
-// needs explicit keys). We don't need the shape here anyway — the model receives
-// the validated spec from proposeWorkspace and passes it through, and the gate
-// below re-validates it. The full spec schema still shapes proposeWorkspace's
-// tool input (tools do allow records).
+// A STRUCTURED schema (explicit keys, Tambo-safe) is what makes the model emit a
+// valid-shape spec reliably — a permissive `any` left first-attempt validity
+// ~40% (P1 #70). validateSpec (in the gate below) remains the deep authority on
+// contracts; this schema just constrains the shape the model generates.
 export const generatedWorkspaceSchema = z.object({
-  spec: z
-    .any()
-    .describe(
-      "The WorkspaceSpec returned as 'build' by proposeWorkspace. Pass it through unchanged.",
-    ),
+  spec: specPropSchema.describe(
+    "The WorkspaceSpec to render. Use the exact entity/field names and per-kind operators from the contracts context.",
+  ),
 });
+
+/** Top-level keys the spec root accepts; anything else the strict schema rejects. */
+const SPEC_ROOT_KEYS = ["specVersion", "title", "timezone", "refresh", "layout", "blocks"];
+
+/** Drop stray top-level keys a model may add (the spec root is `.strict()`). */
+function stripSpecRoot(spec: unknown): unknown {
+  if (spec == null || typeof spec !== "object" || Array.isArray(spec)) return spec;
+  const src = spec as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of SPEC_ROOT_KEYS) if (k in src) out[k] = src[k];
+  return out;
+}
 
 export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactElement {
   // Re-gate on every prop change; while streaming, `spec` is partial and the
-  // gate simply won't say "build" yet.
+  // gate simply won't say "build" yet. First strip any extra top-level keys the
+  // model added (the spec root is .strict(), so a stray "description"/"id" would
+  // fail an otherwise-fine spec) — harmless normalization, not hiding an error.
   const outcome = useMemo(
-    () => (spec == null ? null : gatePlan(spec, validationContext)),
+    () => (spec == null ? null : gatePlan(stripSpecRoot(spec), validationContext)),
     [spec],
   );
 
@@ -59,8 +70,17 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
   }
 
   // Streaming or not-yet-valid: a calm placeholder, never a broken tree.
+  // A spec prop arrives incrementally (JSON Patch), so mid-stream it's shape-
+  // incomplete — a missing id/version is "still composing", not a real problem.
+  // Only a SEMANTIC reject (unknown field, unsupported grouping) on an otherwise
+  // shape-complete spec is worth surfacing to the user.
+  const isStructuralOnly =
+    outcome?.status === "reject" &&
+    outcome.errors.every(
+      (e) => e.code === "SpecShapeError" || e.code === "SpecVersionError",
+    );
   const note =
-    outcome?.status === "reject"
+    outcome?.status === "reject" && !isStructuralOnly
       ? outcome.explanation
       : outcome?.status === "clarify"
         ? outcome.question

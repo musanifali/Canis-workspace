@@ -32,6 +32,31 @@ import { gatePlan } from "./plan-gate";
 const queryResultSchema = z.array(z.record(z.string(), z.unknown()));
 
 /**
+ * Contract-grounding context helper (review P1 #70).
+ *
+ * When the model authors a spec directly (the streaming creation loop carries no
+ * query_* tools, to avoid the tool-args truncation that dead-ended the turn), it
+ * still needs the EXACT entity names, fields, kinds, and legal operators — or it
+ * guesses ("cases", "risk_level", "due_date", eq-on-a-date) and every spec fails
+ * validation. We reuse `compileToTools`' capability description — the same
+ * grounding string the removed tools carried — as an AdditionalContext, so the
+ * grounding survives the transport change. Derived from the contract, so it can't
+ * drift from what validateSpec enforces.
+ */
+export function contractContextHelper(contracts: readonly EntityContract[]) {
+  const contractSummary = contracts
+    .map((c) => compileToTools(c).map((t) => t.description).join(" "))
+    .join("\n\n");
+  return () => ({
+    note:
+      "Bind blocks to these entities and their fields ONLY. Use the exact entity/field names, " +
+      "and only the operators listed for each field's kind. Filters, sort, and groupBy go in " +
+      "binding.query — never in a block's config.",
+    contracts: contractSummary,
+  });
+}
+
+/**
  * Adapt data contracts into Tambo tools the agent loop can call.
  *
  * @param contracts The vendor's `defineEntity` contracts (grounds the model).
