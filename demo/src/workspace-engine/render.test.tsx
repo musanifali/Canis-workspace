@@ -1,10 +1,20 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
 import { blocks, contracts } from "./kit";
 import { demoWorkspaces } from "./specs";
 
-afterEach(cleanup);
+// Relative-date filters ("overdue", "this month") resolve against the clock at
+// fetch time, so these snapshots would drift every day. Pin only Date (leave
+// timers real so waitFor still works) to a fixed "today".
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-07-15T12:00:00Z"));
+});
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("demo workspaces render live against the case contract", () => {
   for (const workspace of demoWorkspaces) {

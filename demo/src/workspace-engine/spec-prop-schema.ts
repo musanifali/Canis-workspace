@@ -56,8 +56,19 @@ const kpiCard = z.object({
   intent: z.enum(["positive", "negative", "neutral"]).optional(),
 });
 
+/** Block types the mirror admits — must stay ⊇ the core registry (see #71 test). */
+export const BLOCK_TYPES = [
+  "CasesTable",
+  "KpiCards",
+  "CaseQueue",
+  "FilterBar",
+  "GroupedBoard",
+  "Graph",
+] as const;
+
 // The union of every default block's config keys — all optional, explicit keys.
-const config = z.object({
+// Must stay ⊇ the union of every registry configSchema's keys (see #71 test).
+export const configSchema = z.object({
   title: z.string().optional(),
   columns: z.array(z.string()).optional(),
   emptyMessage: z.string().optional(),
@@ -71,21 +82,14 @@ const binding = z.object({ entity: z.string(), query });
 
 const block = z.object({
   id: z.string(),
-  type: z.enum([
-    "CasesTable",
-    "KpiCards",
-    "CaseQueue",
-    "FilterBar",
-    "GroupedBoard",
-    "Graph",
-  ]),
+  type: z.enum(BLOCK_TYPES),
   frame: z.object({
     x: z.number(),
     y: z.number(),
     w: z.number(),
     h: z.number(),
   }),
-  config,
+  config: configSchema,
   binding: binding.nullable(),
 });
 
