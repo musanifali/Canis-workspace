@@ -35,6 +35,17 @@ describe("computeMetrics + thresholds (card #22)", () => {
     expect(checkThresholds(m).violations.join()).not.toMatch(/false-build/);
   });
 
+  it("excludes infra timeouts from valid-spec (a stack dip isn't a quality failure)", () => {
+    const m = computeMetrics([
+      run("build", "build", true),
+      run("build", "build", true),
+      run("build", "timeout"), // stack hiccup — not counted against valid-spec
+    ]);
+    expect(m.validSpecRate).toBe(1); // 2/2 measured, not 2/3
+    expect(m.counts.infraTimeouts).toBe(1);
+    expect(m.counts.buildMeasured).toBe(2);
+  });
+
   it("parse-failure rate spans every category", () => {
     const m = computeMetrics([
       run("build", "parse_failure"),

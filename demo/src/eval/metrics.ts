@@ -33,12 +33,14 @@ export interface Metrics {
   clarifyRate: number;
   counts: {
     buildExpected: number;
+    buildMeasured: number; // build-expected minus infra timeouts
     builtValid: number;
     refuseExpected: number; // reject + adversarial
     falseBuilds: number;
     clarifyExpected: number;
     clarifiedOk: number;
     parseFailures: number;
+    infraTimeouts: number;
   };
 }
 
@@ -51,9 +53,14 @@ export function computeMetrics(runs: readonly CaseRun[]): Metrics {
   const isRefuse = (c: EvalCategory) => c === "reject" || c === "adversarial";
 
   const buildExpected = runs.filter((r) => r.category === "build");
-  const builtValid = buildExpected.filter(
+  // A "timeout" is an infra hiccup (the self-hosted stack dipped, the page never
+  // loaded) — not a generation failure. Exclude it from the valid-spec rate so a
+  // stack dip doesn't masquerade as a quality regression; count it separately.
+  const buildMeasured = buildExpected.filter((r) => r.outcomeKind !== "timeout");
+  const builtValid = buildMeasured.filter(
     (r) => r.outcomeKind === "build" && r.assertPass === true,
   ).length;
+  const infraTimeouts = runs.filter((r) => r.outcomeKind === "timeout").length;
 
   const refuseExpected = runs.filter((r) => isRefuse(r.category));
   const falseBuilds = refuseExpected.filter((r) => r.outcomeKind === "build").length;
@@ -65,18 +72,20 @@ export function computeMetrics(runs: readonly CaseRun[]): Metrics {
 
   return {
     total: runs.length,
-    validSpecRate: rate(builtValid, buildExpected.length),
+    validSpecRate: rate(builtValid, buildMeasured.length),
     falseBuildRate: badRate(falseBuilds, refuseExpected.length),
     parseFailureRate: badRate(parseFailures, runs.length),
     clarifyRate: rate(clarifiedOk, clarifyExpected.length),
     counts: {
       buildExpected: buildExpected.length,
+      buildMeasured: buildMeasured.length,
       builtValid,
       refuseExpected: refuseExpected.length,
       falseBuilds,
       clarifyExpected: clarifyExpected.length,
       clarifiedOk,
       parseFailures,
+      infraTimeouts,
     },
   };
 }
