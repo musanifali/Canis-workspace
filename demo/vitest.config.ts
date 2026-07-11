@@ -20,6 +20,7 @@ export default defineConfig({
     include: [
       "src/workspace-engine/**/*.test.{ts,tsx}",
       "src/components/workspace/**/*.test.{ts,tsx}",
+      "src/eval/**/*.test.{ts,tsx}",
     ],
   },
 });

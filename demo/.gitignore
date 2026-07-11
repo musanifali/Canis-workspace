@@ -53,3 +53,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Per-run eval detail (the committed dashboard is eval/trend.md)
+eval/reports/

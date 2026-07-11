@@ -1,0 +1,1 @@
+{"at":"2026-07-11T01:11:36.375Z","promptVersion":"2026-07-10.7","metrics":{"total":4,"validSpecRate":1,"falseBuildRate":0,"parseFailureRate":0,"clarifyRate":1,"counts":{"buildExpected":2,"builtValid":2,"refuseExpected":2,"falseBuilds":0,"clarifyExpected":0,"clarifiedOk":0,"parseFailures":0}}}

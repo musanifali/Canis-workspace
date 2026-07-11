@@ -15,7 +15,7 @@
  * bad spec degrades to a message instead of a broken workspace. Everything
  * reaches the renderer through validateSpec, by construction.
  */
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { z } from "zod";
 import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
 import { blocks, contracts, validationContext } from "@/workspace-engine/kit";
@@ -39,6 +39,14 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
     () => (spec == null ? null : gatePlan(spec, validationContext)),
     [spec],
   );
+
+  // Eval hook (#22): expose the last built spec so the headless harness can
+  // assert on it. Harmless in the browser; never referenced by app logic.
+  useEffect(() => {
+    if (typeof window !== "undefined" && outcome?.status === "build") {
+      (window as unknown as { __weLastSpec?: unknown }).__weLastSpec = outcome.spec;
+    }
+  }, [outcome]);
 
   if (outcome?.status === "build") {
     return (
