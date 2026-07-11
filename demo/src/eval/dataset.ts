@@ -251,12 +251,16 @@ export const GOLDEN: readonly EvalCase[] = [
     expected: { verdict: "reject", because: "no industry field" } },
   { id: "rj-11", category: "reject", prompt: "Sort cases by last contact date",
     expected: { verdict: "reject", because: "no last-contact field" } },
-  { id: "rj-12", category: "reject", prompt: "Show cases tagged urgent",
-    expected: { verdict: "reject", because: "no tags field" } },
+  // NB: reject cases must be UNAMBIGUOUSLY out-of-contract — a missing field
+  // with no reasonable mapping. "tagged urgent" (→risk) and "refunds" (→amountUsd)
+  // were interpretable and the model reasonably built substitutes (P2 #72 full
+  // run), so they're rephrased to clearly-unmappable fields.
+  { id: "rj-12", category: "reject", prompt: "Group cases by product line",
+    expected: { verdict: "reject", because: "no product-line field" } },
   { id: "rj-13", category: "reject", prompt: "Group cases by escalation reason",
     expected: { verdict: "reject", because: "no escalation-reason field" } },
-  { id: "rj-14", category: "reject", prompt: "Total refunds issued per case",
-    expected: { verdict: "reject", because: "no refunds field" } },
+  { id: "rj-14", category: "reject", prompt: "List the documents attached to each case",
+    expected: { verdict: "reject", because: "no documents field" } },
   { id: "rj-15", category: "reject", prompt: "Cases by the reviewing manager",
     expected: { verdict: "reject", because: "no manager field" } },
 
