@@ -17,9 +17,15 @@ describe("golden dataset well-formedness (card #22)", () => {
     }
   });
 
-  it("every asserted block type and field exists in the registry / contract", () => {
+  it("has at least 100 cases (review P2 #72)", () => {
+    expect(GOLDEN.length).toBeGreaterThanOrEqual(100);
+  });
+
+  it("every build assertion respects the contract's CAPABILITIES, not just field existence", () => {
+    // A build expectation that asserts an illegal filter/groupBy/sort/aggregation
+    // could never pass live (the gate would reject it) — catch it here.
     const registryTypes = new Set(Object.keys(DEFAULT_REGISTRY));
-    const contractFields = new Set(Object.keys(caseContract.fields));
+    const caps = caseContract.capabilities;
     for (const c of GOLDEN) {
       if (c.expected.verdict !== "build") continue;
       const a = c.expected.assert;
@@ -27,10 +33,17 @@ describe("golden dataset well-formedness (card #22)", () => {
         expect(registryTypes, `${c.id} blockType ${t}`).toContain(t);
       }
       const q = a.query;
-      for (const f of q?.filters ?? []) expect(contractFields, `${c.id} filter ${f.field}`).toContain(f.field);
-      if (q?.groupBy) expect(contractFields, `${c.id} groupBy`).toContain(q.groupBy);
-      for (const s of q?.sorts ?? []) expect(contractFields, `${c.id} sort ${s.field}`).toContain(s.field);
-      for (const ag of q?.aggregates ?? []) if (ag.field) expect(contractFields, `${c.id} agg ${ag.field}`).toContain(ag.field);
+      for (const f of q?.filters ?? [])
+        expect(caps.filterable.has(f.field), `${c.id} filter "${f.field}" not filterable`).toBe(true);
+      if (q?.groupBy)
+        expect(caps.groupable.has(q.groupBy), `${c.id} groupBy "${q.groupBy}" not groupable`).toBe(true);
+      for (const s of q?.sorts ?? [])
+        expect(caps.sortable.has(s.field), `${c.id} sort "${s.field}" not sortable`).toBe(true);
+      for (const ag of q?.aggregates ?? []) {
+        if (ag.fn === "count") continue; // field-less count always allowed
+        const grants: readonly string[] = caps.aggregations[ag.field ?? ""] ?? [];
+        expect(grants.includes(ag.fn), `${c.id} aggregation ${ag.fn}(${ag.field}) not granted`).toBe(true);
+      }
     }
   });
 
