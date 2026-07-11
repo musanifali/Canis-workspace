@@ -79,7 +79,12 @@ export const GOLDEN: readonly EvalCase[] = [
   { id: "p0-20", category: "build", prompt: "Peak risk score per analyst",
     expected: build({ query: { groupBy: "analyst", aggregates: [{ fn: "max", field: "riskScore" }] } }) },
 
-  // ---- Reject: out-of-contract fields (false-build guard) -----------------
+  // ---- Reject: the CORE of the ask needs a missing field ------------------
+  // Rule (matches system-prompt v2026-07-11.1): when the grouping / metric /
+  // sort key / primary subject is a field the contract lacks, the model must
+  // REFUSE, not substitute a lookalike (intent-substitution — review P2 #72,
+  // rj-02). A merely-droppable extra column would be a lenient build instead;
+  // every case here is core-missing, so all expect no-build.
   { id: "rj-01", category: "reject", prompt: "Show each case's customer sentiment score",
     expected: { verdict: "reject", because: "no sentiment field on the case contract" } },
   { id: "rj-02", category: "reject", prompt: "Group cases by the assigned lawyer",

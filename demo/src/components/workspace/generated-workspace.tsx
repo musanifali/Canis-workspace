@@ -40,13 +40,22 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
     [spec],
   );
 
-  // Eval hook (#22): expose the last built spec so the headless harness can
-  // assert on it. Harmless in the browser; never referenced by app logic.
+  // Eval hook (#22): expose the last built spec (for assertions) and the last
+  // gate outcome (for diagnosing no-builds). Harmless; never read by app logic.
   useEffect(() => {
-    if (typeof window !== "undefined" && outcome?.status === "build") {
-      (window as unknown as { __weLastSpec?: unknown }).__weLastSpec = outcome.spec;
-    }
-  }, [outcome]);
+    if (typeof window === "undefined") return;
+    const w = window as unknown as { __weLastSpec?: unknown; __weLastGate?: unknown };
+    if (outcome?.status === "build") w.__weLastSpec = outcome.spec;
+    w.__weLastGate = {
+      status: outcome?.status ?? "null",
+      codes: outcome?.status === "reject" ? outcome.errors.map((e) => e.code) : [],
+      paths:
+        outcome?.status === "reject"
+          ? outcome.errors.map((e) => ("path" in e ? e.path : e.code)).slice(0, 8)
+          : [],
+      spec,
+    };
+  }, [outcome, spec]);
 
   if (outcome?.status === "build") {
     return (

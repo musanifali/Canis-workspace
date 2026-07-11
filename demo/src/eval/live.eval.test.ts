@@ -21,7 +21,7 @@ import {
   type CaseRun,
   type OutcomeKind,
 } from "./metrics";
-import { recordRun } from "./report";
+import { recordRun, subsetLabel } from "./report";
 import { SYSTEM_PROMPT_VERSION } from "@/workspace-engine/system-prompt";
 import type { WorkspaceSpec } from "@workspace-engine/core";
 
@@ -106,7 +106,13 @@ describe.skipIf(!LIVE)("live generation eval — golden dataset (card #22)", () 
 
       const metrics = computeMetrics(runs);
       recordRun(
-        { at: new Date().toISOString(), promptVersion: SYSTEM_PROMPT_VERSION, metrics, runs },
+        {
+          at: new Date().toISOString(),
+          promptVersion: SYSTEM_PROMPT_VERSION,
+          subset: subsetLabel(cases.map((c) => c.id), GOLDEN.length),
+          metrics,
+          runs,
+        },
         {
           reportPath: `${EVAL_DIR}/reports/last-report.json`,
           trendPath: `${EVAL_DIR}/trend.jsonl`,

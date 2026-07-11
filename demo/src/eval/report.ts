@@ -20,7 +20,17 @@ import { pct, type CaseRun, type Metrics } from "./metrics";
 export interface TrendEntry {
   at: string;
   promptVersion: string;
+  /** Which cases ran — "full(30)" or "ids:p0-01,rj-02…" — so a smoke and a
+   * full run are never mistaken for each other on the dashboard (review P2 #72). */
+  subset: string;
   metrics: Metrics;
+}
+
+/** Label a run by the case ids it covered vs the full corpus. */
+export function subsetLabel(ranIds: readonly string[], corpusSize: number): string {
+  if (ranIds.length === corpusSize) return `full(${corpusSize})`;
+  const shown = ranIds.slice(0, 6).join(",");
+  return `ids:${shown}${ranIds.length > 6 ? `+${ranIds.length - 6}` : ""} (${ranIds.length}/${corpusSize})`;
 }
 
 export interface RunReport extends TrendEntry {
@@ -55,16 +65,17 @@ export function readTrend(path: string): TrendEntry[] {
 export function renderDashboard(trend: readonly TrendEntry[]): string {
   const rows = trend.map(
     (e) =>
-      `| ${e.at} | \`${e.promptVersion}\` | ${pct(e.metrics.validSpecRate)} | ${pct(e.metrics.falseBuildRate)} | ${pct(e.metrics.parseFailureRate)} | ${pct(e.metrics.clarifyRate)} | ${e.metrics.total} |`,
+      `| ${e.at} | \`${e.promptVersion}\` | ${e.subset ?? "?"} | ${pct(e.metrics.validSpecRate)} | ${pct(e.metrics.falseBuildRate)} | ${pct(e.metrics.parseFailureRate)} | ${pct(e.metrics.clarifyRate)} | ${e.metrics.total} |`,
   );
   return [
     "# Generation eval — metric trend (card #22)",
     "",
     "Appended by `npm run eval` (headline metrics from `src/eval/metrics.ts`).",
-    "Newest run last. Valid-spec and parse-failure track review P1 #70.",
+    "Newest run last. Valid-spec and parse-failure track review P1 #70. The Subset",
+    "column names which cases ran — a smoke and a full run are not comparable (P2 #72).",
     "",
-    "| Run (UTC) | Prompt | Valid-spec | False-build | Parse-fail | Clarify | N |",
-    "| --- | --- | --- | --- | --- | --- | --- |",
+    "| Run (UTC) | Prompt | Subset | Valid-spec | False-build | Parse-fail | Clarify | N |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ...rows,
     "",
   ].join("\n");
