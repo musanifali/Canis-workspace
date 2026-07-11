@@ -21,6 +21,7 @@ import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
 import { blocks, contracts, validationContext } from "@/workspace-engine/kit";
 import { gatePlan } from "@/workspace-engine/plan-gate";
 import { specPropSchema } from "@/workspace-engine/spec-prop-schema";
+import { ClarifyNotice, RejectNotice } from "./notices";
 
 // A STRUCTURED schema (explicit keys, Tambo-safe) is what makes the model emit a
 // valid-shape spec reliably — a permissive `any` left first-attempt validity
@@ -72,28 +73,37 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
     );
   }
 
-  // Streaming or not-yet-valid: a calm placeholder, never a broken tree.
   // A spec prop arrives incrementally (JSON Patch), so mid-stream it's shape-
   // incomplete — a missing id/version is "still composing", not a real problem.
   // Only a SEMANTIC reject (unknown field, unsupported grouping) on an otherwise
-  // shape-complete spec is worth surfacing to the user.
+  // shape-complete spec is worth surfacing as a reject to the user (card #23).
   const isStructuralOnly =
     outcome?.status === "reject" &&
     outcome.errors.every(
       (e) => e.code === "SpecShapeError" || e.code === "SpecVersionError",
     );
-  const note =
-    outcome?.status === "reject" && !isStructuralOnly
-      ? outcome.explanation
-      : outcome?.status === "clarify"
-        ? outcome.question
-        : "Composing workspace…";
+
+  if (outcome?.status === "reject" && !isStructuralOnly) {
+    return (
+      <div data-testid="generated-workspace-pending" className="w-full">
+        <RejectNotice explanation={outcome.explanation} errors={outcome.errors} />
+      </div>
+    );
+  }
+  if (outcome?.status === "clarify") {
+    return (
+      <div data-testid="generated-workspace-pending" className="w-full">
+        <ClarifyNotice question={outcome.question} options={outcome.options} />
+      </div>
+    );
+  }
+  // Streaming / structurally-incomplete: a calm placeholder, never a broken tree.
   return (
     <div
       data-testid="generated-workspace-pending"
       className="rounded-md border border-black/10 p-4 text-sm text-black/60"
     >
-      {note}
+      Composing workspace…
     </div>
   );
 }

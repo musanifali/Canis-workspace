@@ -14,6 +14,9 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Pin the clock before any module loads (the seeded dataset bakes in dates at
+    // import time) so snapshots + date filters are deterministic — not daily-drift.
+    setupFiles: ["./vitest.setup.ts"],
     // The Workspace Engine kit + its workspace-rendering components have unit/
     // snapshot tests; the Tambo chat flow is exercised manually / via the LLM
     // eval harness.
