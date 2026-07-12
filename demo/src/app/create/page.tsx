@@ -6,6 +6,7 @@ import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
 import { generatedWorkspaceSchema } from "@/components/workspace/generated-workspace";
 import { InteractableGeneratedWorkspace } from "@/components/workspace/interactable-workspace";
 import { WorkspaceSaveBar } from "@/components/workspace/save-bar";
+import { WorkspaceDevtools } from "@workspace-engine/devtools";
 import { workspaceGuideContextHelper } from "@/workspace-engine/system-prompt";
 import { contractContextHelper } from "@/workspace-engine/agent-tools";
 import { contracts } from "@/workspace-engine/kit";
@@ -73,6 +74,10 @@ export default function CreateWorkspace() {
         <WorkspaceSaveBar />
         <MessageThreadFull className="max-w-4xl mx-auto flex-1" />
       </div>
+      {/* Dev-only inspector (#44): spec + verdicts + query timeline. The NODE_ENV
+          guard is dead-code-eliminated in prod so the package leaves the bundle
+          (belt-and-suspenders with WorkspaceDevtools' own prod null-return). */}
+      {process.env.NODE_ENV !== "production" && <WorkspaceDevtools />}
     </TamboProvider>
   );
 }

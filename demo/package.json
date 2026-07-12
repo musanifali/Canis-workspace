@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@workspace-engine/core": "file:../packages/core",
+    "@workspace-engine/devtools": "file:../packages/devtools",
     "@workspace-engine/react": "file:../packages/react",
     "@workspace-engine/ui": "file:../packages/ui",
     "@radix-ui/react-dropdown-menu": "^2.1.16",

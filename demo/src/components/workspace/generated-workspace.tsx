@@ -15,9 +15,14 @@
  * bad spec degrades to a message instead of a broken workspace. Everything
  * reaches the renderer through validateSpec, by construction.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { z } from "zod";
 import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import {
+  DevtoolsQueryReporter,
+  recordSpec,
+  recordVerdict,
+} from "@workspace-engine/devtools";
 import { blocks, contracts, validationContext } from "@/workspace-engine/kit";
 import { gatePlan } from "@/workspace-engine/plan-gate";
 import { specPropSchema } from "@/workspace-engine/spec-prop-schema";
@@ -40,6 +45,38 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
     () => (spec == null ? null : gatePlan(spec, validationContext)),
     [spec],
   );
+  const lastRecorded = useRef<string>("");
+
+  // Devtools (#44): report meaningful gate verdicts + built specs to the bus,
+  // deduped so streaming re-gates don't flood the log. Shape-only "composing"
+  // rejects (mid-stream) are skipped — only build / semantic reject / clarify.
+  useEffect(() => {
+    if (!outcome) return;
+    const isStructural =
+      outcome.status === "reject" &&
+      outcome.errors.every((e) => e.code === "SpecShapeError" || e.code === "SpecVersionError");
+    if (isStructural) return;
+    const sig = JSON.stringify([outcome.status, outcome.status === "build" ? outcome.spec : outcome]);
+    if (sig === lastRecorded.current) return;
+    lastRecorded.current = sig;
+    if (outcome.status === "build") {
+      recordSpec(outcome.spec, outcome.spec.title, outcome.spec.blocks.length);
+      recordVerdict("build", `${outcome.spec.title} — ${outcome.spec.blocks.length} block(s)`);
+    } else if (outcome.status === "clarify") {
+      recordVerdict("clarify", outcome.question);
+    } else {
+      recordVerdict(
+        "reject",
+        outcome.explanation.split("\n")[0] ?? "rejected",
+        outcome.errors.map((e) => ({
+          code: e.code,
+          path: "path" in e ? e.path : undefined,
+          message: e.message,
+          fix: e.fix,
+        })),
+      );
+    }
+  }, [outcome]);
 
   // Eval hook (#22): expose the last built spec (for assertions) and the last
   // gate outcome (for diagnosing no-builds). Harmless; never read by app logic.
@@ -68,6 +105,8 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
           blocks={blocks}
         >
           <WorkspaceRenderer spec={outcome.spec} rowHeight={72} />
+          {/* Feeds the query timeline (binding → fetch → rows) to devtools (#44). */}
+          <DevtoolsQueryReporter />
         </WorkspaceProvider>
       </div>
     );
