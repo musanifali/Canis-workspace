@@ -56,3 +56,6 @@ next-env.d.ts
 
 # Per-run eval detail (the committed dashboard is eval/trend.md)
 eval/reports/
+
+# Vendor eval failure dump (per-run, replayable locally)
+eval/vendor-fixtures.json
