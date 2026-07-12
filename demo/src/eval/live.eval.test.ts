@@ -11,7 +11,7 @@
  *
  * EVAL_LIMIT caps the number of prompts (for a quick smoke of the harness).
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { resolve } from "node:path";
 import { GOLDEN } from "./dataset";
 import { assertSpec } from "./assert";
@@ -35,6 +35,20 @@ describe.skipIf(!LIVE)("live generation eval — golden dataset (card #22)", () 
   it(
     "meets the metric thresholds",
     async () => {
+      // The runner classifies no_build by a wall-clock deadline (Date.now() <
+      // deadline). vitest.setup.ts freezes Date for snapshot determinism, which
+      // would make that deadline never expire → every refusal case hangs until
+      // the outer timeout (review P1 #73). This suite drives a real browser over
+      // real time, so restore the real clock — and CANARY it so a future freeze
+      // fails fast (in ms) instead of hanging the whole run for hours.
+      vi.useRealTimers();
+      const canaryStart = Date.now();
+      await new Promise((r) => setTimeout(r, 15));
+      expect(
+        Date.now(),
+        "Date.now() is frozen — the deadline logic would hang (see review P1 #73)",
+      ).toBeGreaterThan(canaryStart);
+
       // Dynamic import so a normal `npm test` never loads playwright.
       const { chromium } = await import("playwright");
       const ids = process.env.EVAL_IDS?.split(",").map((s) => s.trim());
