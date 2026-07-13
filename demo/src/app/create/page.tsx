@@ -6,16 +6,17 @@ import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
 import { generatedWorkspaceSchema } from "@/components/workspace/generated-workspace";
 import { InteractableGeneratedWorkspace } from "@/components/workspace/interactable-workspace";
 import { WorkspaceSaveBar } from "@/components/workspace/save-bar";
+import { ColdStartSuggestions } from "@/components/workspace/cold-start-suggestions";
 import { WorkspaceDevtools } from "@workspace-engine/devtools";
 import { workspaceGuideContextHelper } from "@/workspace-engine/system-prompt";
 import { contractContextHelper } from "@/workspace-engine/agent-tools";
-import { contracts } from "@/workspace-engine/kit";
+import { contracts, curatedSuggestions } from "@/workspace-engine/kit";
 import {
   currentTimeContextHelper,
   TamboProvider,
   type TamboComponent,
 } from "@tambo-ai/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 /**
  * Phase 3 creation surface — natural language → a validated, live workspace
@@ -55,6 +56,16 @@ export default function CreateWorkspace() {
   // names/kinds/ops now that no query_* tool carries them (P1 #70).
   const workspaceContracts = useMemo(() => contractContextHelper(contracts), []);
 
+  // Which curated chip set to lead with. Read once from ?role= (default the
+  // analyst persona). A lazy initializer keeps it SSR-safe (no window on the
+  // server) and avoids useSearchParams, which would force the whole route to
+  // client-render.
+  const [role] = useState(() =>
+    typeof window === "undefined"
+      ? "analyst"
+      : new URLSearchParams(window.location.search).get("role") ?? "analyst",
+  );
+
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
@@ -72,6 +83,14 @@ export default function CreateWorkspace() {
     >
       <div className="flex h-screen flex-col">
         <WorkspaceSaveBar />
+        {/* Cold-start chips (#46): seeded from contracts + curated per role;
+            self-hides once the thread has a message. Clicking one sends its
+            prompt through the normal generation gate. */}
+        <ColdStartSuggestions
+          contracts={contracts}
+          role={role}
+          curated={curatedSuggestions}
+        />
         <MessageThreadFull className="max-w-4xl mx-auto flex-1" />
       </div>
       {/* Dev-only inspector (#44): spec + verdicts + query timeline. The NODE_ENV
