@@ -12,6 +12,9 @@
     "test:e2e": "playwright test",
     "eval": "EVAL_LIVE=1 vitest run src/eval/live.eval.test.ts",
     "eval:vendor": "EVAL_VENDOR=1 vitest run src/eval/vendor/run.eval.test.ts",
+    "eval:redteam": "vitest run src/eval/redteam/redteam.test.ts",
+    "eval:redteam:live": "EVAL_REDTEAM=1 vitest run src/eval/redteam/redteam.eval.test.ts",
+    "eval:drift": "EVAL_DRIFT=1 vitest run src/eval/drift-check.eval.test.ts",
     "init": "npx tambo init",
     "postinstall": "patch-package"
   },

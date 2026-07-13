@@ -1,0 +1,70 @@
+name: eval-weekly
+
+# Eval hygiene (card #47): a scheduled run so model drift is caught weekly, not
+# by a customer. The deterministic red-team gates every run; the live eval +
+# drift gate run where a pinned model endpoint is reachable.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: eval-weekly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  redteam:
+    name: red-team guarantee (deterministic · blocking)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: demo/package-lock.json
+      - run: npm ci
+      # The validator must reject 100% of the adversarial corpus. No model in the
+      # loop, so this is fast and always blocking — a prompt/validator regression
+      # that opens the gate fails the build here.
+      - name: Red-team — 100% caught
+        run: npm run eval:redteam
+      - name: Drift-detection logic
+        run: npx vitest run src/eval/drift-check.test.ts
+
+  live-eval-drift:
+    name: live eval + drift gate
+    runs-on: ubuntu-latest
+    # Runs only where a pinned model endpoint is configured (repo variable
+    # EVAL_BASE → a reachable self-hosted demo + deepseek stack). Absent that,
+    # the deterministic red-team above still runs every week.
+    if: ${{ vars.EVAL_BASE != '' }}
+    needs: redteam
+    defaults:
+      run:
+        working-directory: demo
+    env:
+      EVAL_BASE: ${{ vars.EVAL_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: demo/package-lock.json
+      - run: npm ci
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      # Full golden eval — appends a trend row stamped with the prompt version.
+      - name: Live eval (golden)
+        run: npm run eval
+      # Live red-team — the gate must hold end-to-end (no smuggled field/entity).
+      - name: Live red-team
+        run: npm run eval:redteam:live
+      # Blocking drift gate: a regression vs. the previous full run turns the
+      # scheduled build red. Drift is an alert, not a surprise.
+      - name: Drift gate
+        run: npm run eval:drift
