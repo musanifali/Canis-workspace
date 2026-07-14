@@ -6,8 +6,11 @@
  * deterministic read path as /workspaces (WorkspaceProvider + WorkspaceRenderer),
  * so a reloaded workspace is byte-identical to the one that was generated, with
  * live data. Persistence is localStorage, so this survives a full page reload.
+ *
+ * Demo Polish (#79): a friendly empty state + a demo-only "Load demo examples"
+ * action so a cold machine can show the grid + reload story immediately.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   WorkspaceProvider,
@@ -17,12 +20,14 @@ import {
 } from "@workspace-engine/react";
 import { blocks, contracts } from "@/workspace-engine/kit";
 import { createLocalStorageWorkspaceStore } from "@/workspace-engine/workspace-store";
+import { seedSavedWorkspaces } from "@/workspace-engine/seed-saved";
 
 export default function SavedWorkspacesPage() {
   const store = useMemo(() => createLocalStorageWorkspaceStore(), []);
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>([]);
   const [active, setActive] = useState<WorkspaceRecord | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [seeding, setSeeding] = useState(false);
 
   // Load the list on mount and after a delete; setState happens inside the async
   // IIFE (deferred, not synchronous in the effect body). Default to the newest.
@@ -45,21 +50,65 @@ export default function SavedWorkspacesPage() {
     await store.remove(id);
     setReloadKey((k) => k + 1);
   };
+  const loadExamples = useCallback(async () => {
+    setSeeding(true);
+    try {
+      await seedSavedWorkspaces(store);
+      setReloadKey((k) => k + 1);
+    } finally {
+      setSeeding(false);
+    }
+  }, [store]);
 
   return (
     <main className="mx-auto max-w-6xl p-6" data-testid="saved-page">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Saved workspaces</h1>
-        <Link href="/create" className="text-sm underline">
-          ← Back to create
-        </Link>
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-sentient text-2xl tracking-tight text-foreground">
+            Saved workspaces
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Workspaces you saved from Create, reloaded with live data.
+          </p>
+        </div>
+        {summaries.length > 0 && (
+          <button
+            type="button"
+            onClick={loadExamples}
+            disabled={seeding}
+            className="shrink-0 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-card disabled:opacity-50"
+          >
+            {seeding ? "Loading…" : "Load demo examples"}
+          </button>
+        )}
       </div>
 
       {summaries.length === 0 ? (
-        <p data-testid="saved-empty" className="text-sm text-black/50">
-          No saved workspaces yet. Generate one on{" "}
-          <Link href="/create" className="underline">/create</Link> and press “Save workspace”.
-        </p>
+        <div
+          data-testid="saved-empty"
+          className="rounded-lg border border-border bg-card p-10 text-center"
+        >
+          <h2 className="font-sentient text-xl text-foreground">
+            No saved workspaces yet
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Generate one on{" "}
+            <Link href="/create" className="text-primary hover:underline">
+              Create
+            </Link>{" "}
+            and press “Save workspace” — it’ll reload here with live data. Or
+            load a few curated examples to see it right away.
+          </p>
+          <button
+            type="button"
+            onClick={loadExamples}
+            disabled={seeding}
+            data-testid="saved-seed"
+            className="mt-5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:opacity-90 disabled:opacity-50"
+          >
+            {seeding ? "Loading…" : "Load demo examples"}
+          </button>
+        </div>
       ) : (
         <div className="flex gap-6">
           <ul className="w-64 shrink-0 space-y-1" data-testid="saved-list">
@@ -68,8 +117,10 @@ export default function SavedWorkspacesPage() {
                 <button
                   type="button"
                   onClick={() => open(s.id)}
-                  className={`flex-1 truncate rounded-md px-2 py-1 text-left text-sm hover:bg-black/5 ${
-                    active?.id === s.id ? "bg-black/10 font-medium" : ""
+                  className={`flex-1 truncate rounded-md px-2 py-1.5 text-left text-sm transition-colors duration-150 hover:bg-card ${
+                    active?.id === s.id
+                      ? "bg-card font-medium text-foreground"
+                      : "text-muted-foreground"
                   }`}
                   title={s.title}
                 >
@@ -79,7 +130,7 @@ export default function SavedWorkspacesPage() {
                   type="button"
                   onClick={() => remove(s.id)}
                   aria-label={`Delete ${s.title}`}
-                  className="text-black/30 hover:text-red-600"
+                  className="text-muted-foreground transition-colors hover:text-destructive"
                 >
                   ×
                 </button>
