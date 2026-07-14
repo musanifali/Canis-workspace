@@ -81,7 +81,7 @@ export default function CreateWorkspace() {
       // DeepSeek's thinking mode rejects the tool_choice the name generator uses.
       autoGenerateThreadName={false}
     >
-      <div className="flex h-screen flex-col">
+      <div className="flex h-full flex-col">
         <WorkspaceSaveBar />
         {/* Cold-start chips (#46): seeded from contracts + curated per role;
             self-hides once the thread has a message. Clicking one sends its
