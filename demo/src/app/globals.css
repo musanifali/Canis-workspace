@@ -95,24 +95,27 @@
 
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --success: #16a34a;
+  --success: #15803d;
   --success-foreground: #ffffff;
 
-  /* Risk tiers */
-  --risk-low: #16a34a;
+  /* Risk tiers — solid values are WCAG AA (4.5:1+) against both their own
+     *-bg tint (chip text) and against white (block text), verified in the
+     card #82 contrast check. Deliberately darker than the raw Tailwind
+     500-shade equivalents, which fail AA on their 100-shade tints. */
+  --risk-low: #15803d;
   --risk-low-bg: #dcfce7;
-  --risk-medium: #d97706;
+  --risk-medium: #b45309;
   --risk-medium-bg: #fef3c7;
-  --risk-high: #ea580c;
+  --risk-high: #c2410c;
   --risk-high-bg: #ffedd5;
-  --risk-critical: #dc2626;
+  --risk-critical: #b91c1c;
   --risk-critical-bg: #fee2e2;
 
   /* Charts — on-brand, reuse the same accent/risk vocabulary */
   --chart-1: #33389e;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
-  --chart-4: #dc2626;
+  --chart-2: #15803d;
+  --chart-3: #b45309;
+  --chart-4: #b91c1c;
   --chart-5: #5c6864;
 
   /* Tambo Specific Variables needed for tambo components */

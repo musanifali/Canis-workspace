@@ -43,12 +43,16 @@ usable as `bg-background`, `text-foreground`, `border-border`, etc.
 | `--primary` / `--accent` | `#33389E` ("Canis Indigo") | Brand accent, CTAs, focus ring |
 | `--secondary` | `#E8E9F5` on `#33389E` | Low-emphasis brand surface |
 | `--destructive` | `#DC2626` | Errors, destructive actions |
-| `--success` | `#16A34A` | Confirmations (distinct from risk-low; e.g. "saved") |
+| `--success` | `#15803D` | Confirmations (distinct from risk-low; e.g. "saved") |
 
 **Risk tiers** — the domain's own status vocabulary, each with a solid and a
-tint-background variant for chips: `--risk-low` (`#16A34A`), `--risk-medium`
-(`#D97706`), `--risk-high` (`#EA580C`), `--risk-critical` (`#DC2626`), each
-paired with `--risk-*-bg` for badge backgrounds.
+tint-background variant for chips: `--risk-low` (`#15803D`), `--risk-medium`
+(`#B45309`), `--risk-high` (`#C2410C`), `--risk-critical` (`#B91C1C`), each
+paired with `--risk-*-bg` for badge backgrounds. The solid values are
+deliberately a shade darker than the obvious Tailwind 500-tier equivalents
+(`#16A34A`/`#D97706`/`#EA580C`/`#DC2626`) — those fail WCAG AA (4.5:1) against
+both their own light `-bg` tint and white block backgrounds; verified by
+computing contrast ratios directly (see card #82).
 
 **Open decision (flagged, not blocking — see card #82 comment):** the accent
 is a recommendation, not a final brand ruling. Tambo-green kinship was
