@@ -2,8 +2,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Canis design tokens. See demo/DESIGN.md for the documented system this
+ * layer implements (color, type, spacing, radius, motion, --we-* baseline).
+ * Trust-forward minimalism: kinship with Tambo's palette/type, but a
+ * restrained institutional accent instead of Tambo's marketing green (green
+ * is reserved for status/risk here).
+ */
 @theme inline {
-  /* Tailwind CSS Variables customized with tambo colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -19,6 +25,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -28,82 +37,113 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* Risk tiers — the domain's own status vocabulary, kept distinct from --primary/--accent */
+  --color-risk-low: var(--risk-low);
+  --color-risk-low-bg: var(--risk-low-bg);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-medium-bg: var(--risk-medium-bg);
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-bg: var(--risk-high-bg);
+  --color-risk-critical: var(--risk-critical);
+  --color-risk-critical-bg: var(--risk-critical-bg);
+
   /* Tambo Specific Variables needed for tambo components */
   --color-container: var(--container);
   --color-backdrop: var(--backdrop);
   --color-muted-backdrop: var(--muted-backdrop);
+
+  /* Type */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-sentient: var(--font-sentient), Georgia, serif;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  /* Radius scale, keyed off the single --radius token */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 :root {
-  /* Default Tailwind CSS Variables customized with tambo colors */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.14 0 285);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.14 0 285);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.14 0 285);
-  --primary: oklch(0.31 0.02 281);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.54 0.027 261);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.92 0 260);
-  --muted-foreground: oklch(0.73 0.022 260);
-  --accent: oklch(0.97 0 286);
-  --accent-foreground: oklch(0.21 0 286);
-  --destructive: oklch(0.64 0.2 25);
-  --border: oklch(0.93 0 242);
-  --input: oklch(0.92 0 286);
-  --ring: oklch(0.14 0 285);
-  --chart-1: oklch(0.72 0.15 60);
-  --chart-2: oklch(0.62 0.2 6);
-  --chart-3: oklch(0.53 0.2 262);
-  --chart-4: oklch(0.7 0.13 165);
-  --chart-5: oklch(0.62 0.2 313);
+  /* Neutrals — cool, barely-tinted, institutional (sober app surfaces) */
+  --background: #fafcfb;
+  --foreground: #0f1a17;
+  --card: #f2f5f4;
+  --card-foreground: #0f1a17;
+  --popover: #ffffff;
+  --popover-foreground: #0f1a17;
+  --muted: #eef2f1;
+  --muted-foreground: #5c6864;
+  --border: #e1e7e5;
+  --input: #e1e7e5;
+
+  /* Brand — Canis Indigo. Deliberately NOT Tambo's marketing green: green is
+     reserved for the valid/allowed/low-risk status tier in this domain, so
+     reusing it as the brand accent would read as a status signal. Flagged on
+     Trello card #82 as a recommendation, not a blocker. */
+  --primary: #33389e;
+  --primary-foreground: #ffffff;
+  --accent: #33389e;
+  --accent-foreground: #ffffff;
+  --secondary: #e8e9f5;
+  --secondary-foreground: #33389e;
+  --ring: #33389e;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+
+  /* Risk tiers */
+  --risk-low: #16a34a;
+  --risk-low-bg: #dcfce7;
+  --risk-medium: #d97706;
+  --risk-medium-bg: #fef3c7;
+  --risk-high: #ea580c;
+  --risk-high-bg: #ffedd5;
+  --risk-critical: #dc2626;
+  --risk-critical-bg: #fee2e2;
+
+  /* Charts — on-brand, reuse the same accent/risk vocabulary */
+  --chart-1: #33389e;
+  --chart-2: #16a34a;
+  --chart-3: #d97706;
+  --chart-4: #dc2626;
+  --chart-5: #5c6864;
 
   /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
-  --backdrop: oklch(0.25 0.07 252 / 0.25);
-  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --container: #f2f5f4;
+  --backdrop: rgb(15 26 23 / 0.25);
+  --muted-backdrop: rgb(15 26 23 / 0.1);
   --radius: 0.5rem;
   --panel-left-width: 500px;
   --panel-right-width: 500px;
   --sidebar-width: 3rem;
-}
 
-.dark {
-  /* Dark Mode Tailwind CSS Variables customized with tambo colors */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.72 0.15 60);
-  --chart-2: oklch(0.62 0.2 6);
-  --chart-3: oklch(0.53 0.2 262);
-  --chart-4: oklch(0.7 0.13 165);
-  --chart-5: oklch(0.62 0.2 313);
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
 
-  /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
-  --backdrop: oklch(0.25 0.07 252 / 0.25);
-  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
-  --radius: 0.5rem;
-  --panel-left-width: 500px;
-  --panel-right-width: 500px;
-  --sidebar-width: 3rem;
+  /* @workspace-engine/ui block theming — see packages/ui/src/theme.ts.
+     Baseline only; ticket #80 does the screenshot-verified tuning pass. */
+  --we-bg: #ffffff;
+  --we-surface: var(--muted);
+  --we-fg: var(--foreground);
+  --we-muted: var(--muted-foreground);
+  --we-border: var(--border);
+  --we-accent: var(--primary);
+  --we-positive: var(--risk-low);
+  --we-negative: var(--destructive);
+  --we-radius: 8px;
+  --we-gap: 6px;
+  --we-pad: 8px;
+  --we-font-size: 13px;
+  --we-font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 @layer base {
@@ -111,8 +151,18 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: Arial, Helvetica, sans-serif;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
