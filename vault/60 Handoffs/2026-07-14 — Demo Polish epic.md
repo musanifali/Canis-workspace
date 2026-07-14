@@ -32,8 +32,25 @@ overrides). A change that wants to reach into a package is a separate product
 card with its own reviewer pass. The ui-block QA ticket especially: tune the
 DEMO's `--we-*` token overrides, never the package source.
 
-## Tickets (suggested order)
+## Design direction (POV — see the DESIGN FOUNDATION ticket)
 
+**Trust-forward minimalism, Tambo-adjacent.** Built on Tambo, so keep the
+kinship — but the product's surfaces get shown to banks/compliance teams, so
+dial Tambo's developer-playfulness DOWN (no mascot, restrained single accent)
+and data-precision UP (denser, calmer app surfaces). Landing can be
+expressive; app surfaces sober. References: Tambo (kinship) + Linear (calm
+density) + Vercel (typographic clarity) + Stripe (financial trust) + shadcn/ui
+(tokens). Tambo's real system is in the vendored clone: `tambo/apps/web/app/
+globals.css` (shadcn HSL tokens, radius 0.5rem), mint marketing palette
+(#F2F8F6 / #0E1A17 / #E5F0ED, green primary), fonts **Sentient** (display) /
+**Geist Sans** (body) / **Geist Mono** (data). User is sharing the Tambo
+landing repo for exact component + motion patterns.
+
+## Tickets (order — FOUNDATION first)
+
+0. **DESIGN FOUNDATION** — design system (principles, color/type/spacing/
+   radius/elevation/motion tokens, primitives) as `demo/DESIGN.md` + a demo
+   token layer. Prerequisite for 1/2/3/5.
 1. Product landing page (replace scaffold) + fix app title/favicon/meta.
 2. Unified demo shell + top nav across create/workspaces/saved/sandbox.
 3. Polish the /create generation surface (strip template chrome, product
