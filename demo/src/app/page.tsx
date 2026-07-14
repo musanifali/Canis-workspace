@@ -1,137 +1,128 @@
-import { ApiKeyCheck } from "@/components/ApiKeyCheck";
-import Image from "next/image";
+import Link from "next/link";
+import { brand } from "@/lib/brand";
 
-const KeyFilesSection = () => (
-  <div className="bg-white px-8 py-4">
-    <h2 className="text-xl font-semibold mb-4">How it works:</h2>
-    <ul className="space-y-4 text-gray-600">
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium">src/app/layout.tsx</code> - Main layout
-          with TamboProvider
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium font-mono">src/app/chat/page.tsx</code> -
-          Chat page with TamboProvider and MCP integration
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium font-mono">
-            src/app/interactables/page.tsx
-          </code>{" "}
-          - Interactive demo page with tools and components
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium font-mono">
-            src/components/tambo/message-thread-full.tsx
-          </code>{" "}
-          - Chat UI
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium font-mono">
-            src/components/tambo/graph.tsx
-          </code>{" "}
-          - A generative graph component
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span>📄</span>
-        <span>
-          <code className="font-medium font-mono">
-            src/services/case-management.ts
-          </code>{" "}
-          - Case dataset + search/aggregate/analyst tools
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span className="text-blue-500">📄</span>
-        <span>
-          <code className="font-medium font-mono">src/lib/tambo.ts</code> -
-          Component and tool registration
-        </span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span className="text-blue-500">📄</span>
-        <span>
-          <code className="font-medium font-mono">README.md</code> - For more
-          details check out the README
-        </span>
-      </li>
-    </ul>
-    <div className="flex gap-4 flex-wrap mt-4">
-      <a
-        href="https://docs.tambo.co"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-6 py-3 rounded-md font-medium transition-colors text-lg mt-4 border border-gray-300 hover:bg-gray-50"
-      >
-        View Docs
-      </a>
-      <a
-        href="https://tambo.co/dashboard"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-6 py-3 rounded-md font-medium transition-colors text-lg mt-4 border border-gray-300 hover:bg-gray-50"
-      >
-        Dashboard
-      </a>
-    </div>
-  </div>
-);
+const valueProps = [
+  {
+    label: "Grounded",
+    body: "Every field maps to a real data contract. The model can't invent a column that isn't there.",
+  },
+  {
+    label: "Validated",
+    body: "Specs are gated before a single pixel renders. Invalid or out-of-scope requests get a grounded refusal, not a guess.",
+  },
+  {
+    label: "Native",
+    body: "Save a generated workspace and reload it later — it's a first-class screen, not an export.",
+  },
+];
+
+const entryPoints = [
+  {
+    href: "/create",
+    title: "Create",
+    body: "Describe a workspace in plain language and watch it stream in live.",
+    cta: "Open Create",
+  },
+  {
+    href: "/workspaces",
+    title: "Workspaces",
+    body: "Curated, hand-written specs rendered deterministically against the demo case contract.",
+    cta: "Browse workspaces",
+  },
+  {
+    href: "/sandbox",
+    title: "Sandbox",
+    body: "A live, data-backed workspace with zero config — no contracts, no network.",
+    cta: "Open sandbox",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center justify-center font-[family-name:var(--font-geist-sans)]">
-      <main className="max-w-2xl w-full space-y-8">
-        <div className="flex flex-col items-center">
-          <a href="https://tambo.co" target="_blank" rel="noopener noreferrer">
-            <Image
-              src="/Octo-Icon.svg"
-              alt="Tambo AI Logo"
-              width={80}
-              height={80}
-              className="mb-4"
-            />
-          </a>
-          <h1 className="text-4xl text-center">tambo-ai chat template</h1>
-        </div>
+    <main className="min-h-screen bg-background">
+      <header className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-6 sm:px-10">
+        <span className="font-sentient text-xl tracking-tight text-foreground">
+          {brand.name}
+        </span>
+        <Link
+          href="/create"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:opacity-90"
+        >
+          Open Create
+        </Link>
+      </header>
 
-        <div className="w-full space-y-8">
-          <div className="bg-white px-8 py-4">
-            <h2 className="text-xl font-semibold mb-4">Setup Checklist</h2>
-            <ApiKeyCheck>
-              <div className="flex gap-4 flex-wrap">
-                <a
-                  href="/chat"
-                  className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
-                >
-                  Go to Chat →
-                </a>
-                <a
-                  href="/interactables"
-                  className="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#FFE17F] hover:bg-[#f5d570] text-gray-800"
-                >
-                  Interactables Demo →
-                </a>
-              </div>
-            </ApiKeyCheck>
-          </div>
-
-          <KeyFilesSection />
+      <section className="mx-auto max-w-[1440px] px-6 pb-20 pt-12 sm:px-10 sm:pb-28 sm:pt-20">
+        <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+          Natural language workspaces
+        </p>
+        <h1 className="mt-4 max-w-3xl font-sentient text-4xl leading-[1.1] tracking-tight text-foreground sm:text-6xl">
+          {brand.tagline}
+        </h1>
+        <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          {brand.description}
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Link
+            href="/create"
+            className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:opacity-90"
+          >
+            Open Create
+          </Link>
+          <Link
+            href="/workspaces"
+            className="rounded-md border border-border bg-transparent px-5 py-3 text-sm font-medium text-foreground transition-colors duration-150 hover:bg-card"
+          >
+            Browse workspaces
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="border-t border-border bg-card">
+        <div className="mx-auto grid max-w-[1440px] gap-8 px-6 py-16 sm:grid-cols-3 sm:px-10 sm:py-20">
+          {valueProps.map((item) => (
+            <div key={item.label}>
+              <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-primary">
+                {item.label}
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-foreground sm:text-base">
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 sm:py-20">
+        <h2 className="font-sentient text-2xl text-foreground sm:text-3xl">
+          Three ways in
+        </h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          {entryPoints.map((entry) => (
+            <Link
+              key={entry.href}
+              href={entry.href}
+              className="group flex flex-col rounded-lg border border-border bg-popover p-6 transition-colors duration-150 hover:border-primary"
+            >
+              <h3 className="text-base font-medium text-foreground">
+                {entry.title}
+              </h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                {entry.body}
+              </p>
+              <span className="mt-4 text-sm font-medium text-primary">
+                {entry.cta} →
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-border px-6 py-8 sm:px-10">
+        <p className="font-mono text-xs text-muted-foreground">
+          {brand.name} — built on Tambo.
+        </p>
+      </footer>
+    </main>
   );
 }
