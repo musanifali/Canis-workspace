@@ -94,6 +94,14 @@ export interface Thresholds {
   minValidSpecRate: number;
   maxFalseBuildRate: number;
   maxParseFailureRate: number;
+  /**
+   * Minimum fraction of the selected cases that must actually be measured
+   * (outcomeKind !== "timeout") for a run to say anything at all. Below this,
+   * every metric's denominator is starved and the vacuous-perfect convention
+   * in `rate()` (0/0 → 1) turns a dead stack into a green run (review P2 #74:
+   * a down demo server → every case "timeout" → PASS in 695ms, 0 measured).
+   */
+  minMeasuredFraction: number;
 }
 
 /** CI gate defaults — anchored to the P1 #70 result (100% first-attempt). */
@@ -101,12 +109,38 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   minValidSpecRate: 0.9,
   maxFalseBuildRate: 0, // the worst failure is non-negotiable
   maxParseFailureRate: 0.1,
+  minMeasuredFraction: 0.5,
 };
+
+export interface ThresholdVerdict {
+  pass: boolean;
+  /**
+   * True when too few cases were measured to say anything — infra was down or
+   * flaky, not a generation-quality result. Distinct from a genuine threshold
+   * breach (review P2 #74 acceptance criterion): callers must not report this
+   * as a normal FAIL, and drift baselines must not treat it as a real run.
+   */
+  inconclusive: boolean;
+  violations: string[];
+}
 
 export function checkThresholds(
   m: Metrics,
   t: Thresholds = DEFAULT_THRESHOLDS,
-): { pass: boolean; violations: string[] } {
+): ThresholdVerdict {
+  const measured = m.total - m.counts.infraTimeouts;
+  const measuredFraction = m.total === 0 ? 0 : measured / m.total;
+  if (m.total === 0 || measuredFraction < t.minMeasuredFraction) {
+    return {
+      pass: false,
+      inconclusive: true,
+      violations: [
+        `eval inconclusive: infrastructure unavailable (${measured}/${m.total} cases measured, ` +
+          `need ≥${pct(t.minMeasuredFraction)})`,
+      ],
+    };
+  }
+
   const violations: string[] = [];
   if (m.validSpecRate < t.minValidSpecRate)
     violations.push(`valid-spec rate ${pct(m.validSpecRate)} < ${pct(t.minValidSpecRate)}`);
@@ -114,7 +148,7 @@ export function checkThresholds(
     violations.push(`false-build rate ${pct(m.falseBuildRate)} > ${pct(t.maxFalseBuildRate)}`);
   if (m.parseFailureRate > t.maxParseFailureRate)
     violations.push(`parse-failure rate ${pct(m.parseFailureRate)} > ${pct(t.maxParseFailureRate)}`);
-  return { pass: violations.length === 0, violations };
+  return { pass: violations.length === 0, inconclusive: false, violations };
 }
 
 export const pct = (n: number) => `${(n * 100).toFixed(1)}%`;

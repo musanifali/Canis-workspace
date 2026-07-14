@@ -6,6 +6,7 @@ const entry = (at: string, subset = "full(2)"): TrendEntry => ({
   at,
   promptVersion: "2026-07-10.7",
   subset,
+  inconclusive: false,
   metrics: computeMetrics([
     { id: "a", category: "build", outcomeKind: "build", assertPass: true },
     { id: "b", category: "reject", outcomeKind: "no_build" },
@@ -37,5 +38,11 @@ describe("renderDashboard (card #22)", () => {
     const md = renderDashboard([entry("2026-07-11T00:00:00Z", "ids:p0-01 (1/30)")]);
     expect(md).toMatch(/\| Subset \|/);
     expect(md).toContain("ids:p0-01 (1/30)");
+  });
+
+  it("marks an inconclusive run distinctly instead of a percentage (review P2 #74)", () => {
+    const md = renderDashboard([{ ...entry("2026-07-13T00:00:00Z"), inconclusive: true }]);
+    expect(md).toMatch(/INCONCLUSIVE/);
+    expect(md).not.toContain("100.0%");
   });
 });

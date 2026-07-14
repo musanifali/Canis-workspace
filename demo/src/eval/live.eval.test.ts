@@ -81,9 +81,15 @@ describe.skipIf(!LIVE)("live generation eval — golden dataset (card #22)", () 
         },
       );
 
-      const { pass, violations } = checkThresholds(metrics);
+      const { pass, inconclusive, violations } = checkThresholds(metrics);
       // eslint-disable-next-line no-console
-      console.log("METRICS", JSON.stringify(metrics.counts), "→", pass ? "PASS" : violations.join("; "));
+      console.log(
+        "METRICS",
+        JSON.stringify(metrics.counts),
+        "→",
+        inconclusive ? "INCONCLUSIVE" : pass ? "PASS" : "FAIL",
+        violations.join("; "),
+      );
       expect(pass, violations.join("; ")).toBe(true);
     },
     LIMIT * PER_PROMPT_MS + 60_000,

@@ -34,8 +34,13 @@ const DEFAULTS: Required<DriftOptions> = {
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
-/** Only full-corpus runs are comparable — a smoke subset must never trip drift. */
-const isFull = (e: TrendEntry) => e.subset.startsWith("full(");
+/**
+ * Only full-corpus runs are comparable — a smoke subset must never trip drift.
+ * An inconclusive run (infra was down, review P2 #74) attempted the full
+ * corpus but measured almost none of it, so it is excluded here too: it must
+ * never become the "latest" or "previous" baseline for a real comparison.
+ */
+const isFull = (e: TrendEntry) => e.subset.startsWith("full(") && !e.inconclusive;
 
 /**
  * Verdict on the most recent full run. Regression if it breaches the absolute
@@ -43,16 +48,29 @@ const isFull = (e: TrendEntry) => e.subset.startsWith("full(");
  */
 export function detectDrift(trend: readonly TrendEntry[], opts: DriftOptions = {}): DriftVerdict {
   const o = { ...DEFAULTS, ...opts };
-  const full = trend.filter(isFull);
+  const attempted = trend.filter((e) => e.subset.startsWith("full("));
+  const full = attempted.filter(isFull);
 
   if (full.length === 0) {
+    // Distinguish "never attempted" (benign — nothing to compare yet) from
+    // "attempted but every full-corpus run came back inconclusive" (infra was
+    // down every time) — the latter must red the gate, not report clean
+    // (review P2 #74: a live eval run failing on its own doesn't help if a
+    // later, standalone `eval:drift` invocation reads a dead trend as fine).
+    if (attempted.some((e) => e.inconclusive)) {
+      return {
+        regressed: true,
+        reasons: ["latest full-corpus attempt was inconclusive — infrastructure unavailable (review P2 #74)"],
+      };
+    }
     return { regressed: false, reasons: ["no full-corpus run recorded yet"] };
   }
 
   const latest = full[full.length - 1]!;
   const reasons: string[] = [];
 
-  // 1) Absolute floor — the same thresholds the live run gates on.
+  // 1) Absolute floor — the same thresholds the live run gates on. `isFull`
+  // already excludes inconclusive entries, so this is always a genuine breach.
   const { pass, violations } = checkThresholds(latest.metrics);
   if (!pass) reasons.push(...violations.map((v) => `threshold: ${v}`));
 

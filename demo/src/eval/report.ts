@@ -15,7 +15,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname } from "node:path";
-import { pct, type CaseRun, type Metrics } from "./metrics";
+import { checkThresholds, pct, type CaseRun, type Metrics } from "./metrics";
 
 export interface TrendEntry {
   at: string;
@@ -24,6 +24,10 @@ export interface TrendEntry {
    * full run are never mistaken for each other on the dashboard (review P2 #72). */
   subset: string;
   metrics: Metrics;
+  /** Too few cases were measured (infra down/flaky) — see review P2 #74.
+   * Recorded so a dead run is visible on the dashboard and never mistaken for
+   * a real full-corpus result by the drift baseline. */
+  inconclusive: boolean;
 }
 
 /** Label a run by the case ids it covered vs the full corpus. */
@@ -33,7 +37,8 @@ export function subsetLabel(ranIds: readonly string[], corpusSize: number): stri
   return `ids:${shown}${ranIds.length > 6 ? `+${ranIds.length - 6}` : ""} (${ranIds.length}/${corpusSize})`;
 }
 
-export interface RunReport extends TrendEntry {
+/** `inconclusive` is derived from `metrics`, not supplied — recordRun computes it. */
+export interface RunReport extends Omit<TrendEntry, "inconclusive"> {
   runs: CaseRun[];
 }
 
@@ -44,10 +49,11 @@ export interface ReportPaths {
 }
 
 export function recordRun(report: RunReport, paths: ReportPaths): void {
+  const full = { ...report, inconclusive: checkThresholds(report.metrics).inconclusive };
   ensureDir(paths.reportPath);
-  writeFileSync(paths.reportPath, JSON.stringify(report, null, 2));
+  writeFileSync(paths.reportPath, JSON.stringify(full, null, 2));
   ensureDir(paths.trendPath);
-  const { runs: _omit, ...trendEntry } = report;
+  const { runs: _omit, ...trendEntry } = full;
   appendFileSync(paths.trendPath, JSON.stringify(trendEntry) + "\n");
   ensureDir(paths.dashboardPath);
   writeFileSync(paths.dashboardPath, renderDashboard(readTrend(paths.trendPath)));
@@ -63,9 +69,10 @@ export function readTrend(path: string): TrendEntry[] {
 }
 
 export function renderDashboard(trend: readonly TrendEntry[]): string {
-  const rows = trend.map(
-    (e) =>
-      `| ${e.at} | \`${e.promptVersion}\` | ${e.subset ?? "?"} | ${pct(e.metrics.validSpecRate)} | ${pct(e.metrics.falseBuildRate)} | ${pct(e.metrics.parseFailureRate)} | ${pct(e.metrics.clarifyRate)} | ${e.metrics.total} |`,
+  const rows = trend.map((e) =>
+    e.inconclusive
+      ? `| ${e.at} | \`${e.promptVersion}\` | ${e.subset ?? "?"} | **INCONCLUSIVE (infra down)** | — | — | — | ${e.metrics.total} |`
+      : `| ${e.at} | \`${e.promptVersion}\` | ${e.subset ?? "?"} | ${pct(e.metrics.validSpecRate)} | ${pct(e.metrics.falseBuildRate)} | ${pct(e.metrics.parseFailureRate)} | ${pct(e.metrics.clarifyRate)} | ${e.metrics.total} |`,
   );
   return [
     "# Generation eval — metric trend (card #22)",
@@ -73,6 +80,8 @@ export function renderDashboard(trend: readonly TrendEntry[]): string {
     "Appended by `npm run eval` (headline metrics from `src/eval/metrics.ts`).",
     "Newest run last. Valid-spec and parse-failure track review P1 #70. The Subset",
     "column names which cases ran — a smoke and a full run are not comparable (P2 #72).",
+    "A row marked INCONCLUSIVE means too few cases were measured (infra was down or",
+    "flaky, review P2 #74) — it is never treated as a pass or as a drift baseline.",
     "",
     "| Run (UTC) | Prompt | Subset | Valid-spec | False-build | Parse-fail | Clarify | N |",
     "| --- | --- | --- | --- | --- | --- | --- | --- |",

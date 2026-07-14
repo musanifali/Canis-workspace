@@ -13,7 +13,7 @@ const metrics = (validSpecRate: number, falseBuildRate = 0, parseFailureRate = 0
 });
 
 const entry = (over: Partial<TrendEntry> & { metrics: Metrics }): TrendEntry => ({
-  at: "2026-07-14T00:00:00Z", promptVersion: "v1", subset: "full(30)", ...over,
+  at: "2026-07-14T00:00:00Z", promptVersion: "v1", subset: "full(30)", inconclusive: false, ...over,
 });
 
 describe("detectDrift (card #47)", () => {
@@ -51,5 +51,19 @@ describe("detectDrift (card #47)", () => {
 
   it("does not regress on an empty trend", () => {
     expect(detectDrift([]).regressed).toBe(false);
+  });
+
+  it("regresses when the only full run is inconclusive (review P2 #74)", () => {
+    // A dead stack still labels itself full(N) (every case was attempted) but
+    // measured almost nothing — it must never read as a clean run.
+    const v = detectDrift([entry({ inconclusive: true, metrics: metrics(1) })]);
+    expect(v.regressed).toBe(true);
+  });
+
+  it("ignores an inconclusive run as a baseline, even if it's the most recent", () => {
+    const good = entry({ at: "2026-07-10T00:00:00Z", metrics: metrics(0.93) });
+    const dead = entry({ at: "2026-07-13T00:00:00Z", inconclusive: true, metrics: metrics(1) });
+    const v = detectDrift([good, dead]);
+    expect(v.latest?.at).toBe("2026-07-10T00:00:00Z");
   });
 });
