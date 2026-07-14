@@ -144,8 +144,11 @@
   --we-negative: var(--destructive);
   --we-radius: 8px;
   --we-gap: 6px;
-  --we-pad: 8px;
-  --we-font-size: 13px;
+  /* #80 QA pass: 12px data + 6px cell padding lets IDs and ISO dates sit on one
+     line in the 11-column table at 1440 (was wrapping at 13px/8px), and reads
+     as a denser, calmer data surface. Verified against the real 240-case set. */
+  --we-pad: 6px;
+  --we-font-size: 12px;
   --we-font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 

@@ -141,10 +141,10 @@ this is the spec; build them where first needed and keep them here.
 - **Badge / chip** — risk-tier color from the table above:
   `bg-risk-{tier}-bg text-risk-{tier}`, `--radius-xl` (pill), Geist Mono
   label, uppercase, tracked.
-- **Table density spec** — row height 40px (compact) default, 48px
-  (comfortable) optional; cell padding `--we-pad` (8px) horizontal, 6px
-  vertical; header row: Geist Mono, uppercase, `text-muted-foreground`,
-  `--we-border` bottom rule.
+- **Table density spec** — data at `--we-font-size` (12px, tuned in #80 so
+  IDs and ISO dates don't wrap at 1440), cell padding `--we-pad` (6px);
+  header row: Geist Mono, uppercase, `text-muted-foreground`, `--we-border`
+  bottom rule.
 
 ## `@workspace-engine/ui` baseline
 
@@ -152,9 +152,13 @@ this is the spec; build them where first needed and keep them here.
 custom properties on any ancestor (see that file's docstring). This ticket
 sets a baseline at `:root` in `globals.css` — accent, radius, density, and
 Geist Mono as the block data font — so every block already looks like Canis
-without per-block work. **Ticket #80 (visual QA) does the screenshot-verified
-fine-tuning pass** against real seeded data; it must only ever touch these
-demo-level `--we-*` values, never `packages/ui` source.
+without per-block work. **Ticket #80 (visual QA)** did the screenshot-verified
+fine-tuning pass against the real 240-case set — 12px data / 6px cell padding
+for a denser, non-wrapping table — touching only these demo-level `--we-*`
+values, never `packages/ui` source. Known residual (block-source, not a token
+lever): the Table wraps `CASE-####` IDs and ISO dates at the hyphen; fixing
+needs `white-space`/column-width control in the Table component — a separate
+product card, not a demo token change.
 
 ## Scope note
 
