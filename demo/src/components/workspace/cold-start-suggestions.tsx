@@ -85,9 +85,18 @@ export function ColdStartSuggestions({
   };
 
   return (
-    <div className={cn("px-4 pt-6 pb-2 max-w-4xl mx-auto w-full", className)}>
-      <p className="text-xs text-muted-foreground mb-2">Not sure where to start? Try one of these:</p>
-      <div className="flex flex-wrap gap-2">
+    <div className={cn("px-4 pt-10 pb-4 max-w-4xl mx-auto w-full", className)}>
+      {/* Product empty-state hero (#78): the chips are the hero — a short,
+          domain-appropriate header/subhead frames them instead of the
+          template's generic "Not sure where to start?" line. */}
+      <h1 className="font-sentient text-2xl tracking-tight text-foreground sm:text-3xl">
+        Describe the workspace you need
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Ask in plain language — it&apos;s validated against your data contracts,
+        then rendered live. Try one of these to start:
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
         {suggestions.map((s) => (
           <button
             key={s.id}
@@ -95,12 +104,12 @@ export function ColdStartSuggestions({
             onClick={() => send(s)}
             title={s.prompt}
             className={cn(
-              "inline-flex items-center gap-1.5 py-2 px-3 rounded-2xl text-xs",
-              "border border-flat transition-colors hover:bg-muted/40",
-              s.source === "curated" && "bg-muted/20",
+              "inline-flex items-center gap-1.5 py-2 px-3 rounded-2xl text-sm",
+              "border border-border transition-colors duration-150 hover:border-primary hover:bg-secondary",
+              s.source === "curated" && "bg-secondary/60",
             )}
           >
-            {s.source === "curated" && <Pin className="h-3 w-3 text-muted-foreground" aria-hidden />}
+            {s.source === "curated" && <Pin className="h-3 w-3 text-primary" aria-hidden />}
             <span className="font-medium">{s.label}</span>
           </button>
         ))}

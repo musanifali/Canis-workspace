@@ -137,11 +137,17 @@ export function GeneratedWorkspace({ spec }: { spec?: unknown }): React.ReactEle
     );
   }
   // Streaming / structurally-incomplete: a calm placeholder, never a broken tree.
+  // (#78) On-token and prominent — a pulsing dot signals live streaming rather
+  // than a stalled/broken state.
   return (
     <div
       data-testid="generated-workspace-pending"
-      className="rounded-md border border-black/10 p-4 text-sm text-black/60"
+      className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"
     >
+      <span
+        className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-primary"
+        aria-hidden
+      />
       Composing workspace…
     </div>
   );

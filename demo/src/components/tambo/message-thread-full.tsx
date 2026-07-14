@@ -46,6 +46,24 @@ export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElem
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /**
+   * Input placeholder text. Defaults to the generic chat template copy; the
+   * /create surface overrides it with a domain-appropriate prompt (#78).
+   */
+  placeholder?: string;
+  /**
+   * Show the built-in "Get started / Learn more / Examples" suggestion footer.
+   * Defaults to true (template behavior). /create turns it off (#78) — it has
+   * its own domain cold-start chips (ColdStartSuggestions).
+   */
+  showDefaultSuggestions?: boolean;
+  /**
+   * Show the input affordances (attach-image, MCP prompt/resource/config, and
+   * dictation buttons). Defaults to true (template behavior). /create turns
+   * them off (#78) — they're irrelevant to a workspace generator and read as
+   * unfinished template chrome.
+   */
+  showInputAffordances?: boolean;
 }
 
 /**
@@ -54,7 +72,18 @@ export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElem
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, variant, ...props }, ref) => {
+>(
+  (
+    {
+      className,
+      variant,
+      placeholder = "Type your message or paste images...",
+      showDefaultSuggestions = true,
+      showInputAffordances = true,
+      ...props
+    },
+    ref,
+  ) => {
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
 
@@ -116,28 +145,41 @@ export const MessageThreadFull = React.forwardRef<
         {/* Message input */}
         <div className="px-4 pb-4">
           <MessageInput>
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
-            <MessageInputToolbar>
-              <MessageInputFileButton />
-              <MessageInputMcpPromptButton />
-              <MessageInputMcpResourceButton />
-              {/* Uncomment this to enable client-side MCP config modal button */}
-              <MessageInputMcpConfigButton />
-              <MessageInputSubmitButton />
-            </MessageInputToolbar>
+            <MessageInputTextarea placeholder={placeholder} />
+            {showInputAffordances ? (
+              <MessageInputToolbar>
+                <MessageInputFileButton />
+                <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                <MessageInputMcpConfigButton />
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+            ) : (
+              // Focused mode (#78): no attach/MCP/dictation affordances — just
+              // send. MessageInputToolbar hardcodes the dictation button, so a
+              // minimal toolbar is the way to drop it without editing the
+              // shared input component.
+              <div className="mt-2 flex justify-end p-1">
+                <MessageInputSubmitButton />
+              </div>
+            )}
             <MessageInputError />
           </MessageInput>
         </div>
 
         {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={defaultSuggestions} autoGenerate={false}>
-          <MessageSuggestionsList />
-        </MessageSuggestions>
+        {showDefaultSuggestions && (
+          <MessageSuggestions initialSuggestions={defaultSuggestions} autoGenerate={false}>
+            <MessageSuggestionsList />
+          </MessageSuggestions>
+        )}
       </ThreadContainer>
 
       {/* Thread History Sidebar - rendered last if history is on the right */}
       {historyPosition === "right" && threadHistorySidebar}
     </div>
   );
-});
+  },
+);
 MessageThreadFull.displayName = "MessageThreadFull";

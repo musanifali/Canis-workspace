@@ -91,7 +91,16 @@ export default function CreateWorkspace() {
           role={role}
           curated={curatedSuggestions}
         />
-        <MessageThreadFull className="max-w-4xl mx-auto flex-1" />
+        {/* Focused generation surface (#78): domain placeholder, and the
+            template's attach/MCP/dictation affordances + "Get started /
+            Learn more" footer removed — the ColdStartSuggestions chips above
+            are the real, product-appropriate empty state. */}
+        <MessageThreadFull
+          className="max-w-4xl mx-auto flex-1"
+          placeholder="Describe the workspace you need…"
+          showInputAffordances={false}
+          showDefaultSuggestions={false}
+        />
       </div>
       {/* Dev-only inspector (#44): spec + verdicts + query timeline. The NODE_ENV
           guard is dead-code-eliminated in prod so the package leaves the bundle
