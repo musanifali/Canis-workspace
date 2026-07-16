@@ -7,6 +7,7 @@ export type AuditAction =
   | "workspace.created"
   | "workspace.updated"
   | "workspace.rolled_back"
+  | "workspace.viewed"
   | "workspace.deleted"
   | "workspace.shared"
   | "workspace.unshared"

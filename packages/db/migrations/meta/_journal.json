@@ -15,6 +15,13 @@
       "when": 1784239184268,
       "tag": "0001_phase4-schema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784239828672,
+      "tag": "0002_append-only-grants",
+      "breakpoints": true
     }
   ]
 }

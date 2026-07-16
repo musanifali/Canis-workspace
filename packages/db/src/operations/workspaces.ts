@@ -23,6 +23,19 @@ export class WorkspaceNotFoundError extends Error {
   }
 }
 
+/** Thrown when a workspace exists but the requested version number doesn't. */
+export class WorkspaceVersionNotFoundError extends Error {
+  constructor(
+    readonly workspaceId: string,
+    readonly versionNumber: number,
+  ) {
+    super(
+      `workspace "${workspaceId}" has no version ${versionNumber}`,
+    );
+    this.name = "WorkspaceVersionNotFoundError";
+  }
+}
+
 /** A workspace with the version its head currently points at. */
 export interface WorkspaceWithHead {
   workspace: DBWorkspace;
@@ -90,6 +103,7 @@ export async function createWorkspace(
     detail: {
       version: 1,
       title: spec.title,
+      ...(params.prompt ? { prompt: params.prompt } : {}),
       ...(params.createdFromThreadId
         ? { createdFromThreadId: params.createdFromThreadId }
         : {}),
@@ -189,10 +203,127 @@ export async function updateWorkspaceSpec(
   await writeAudit(tx, ctx, {
     action: "workspace.updated",
     workspaceId: id,
-    detail: { version: nextVersion, title: spec.title },
+    detail: {
+      version: nextVersion,
+      title: spec.title,
+      ...(params.prompt ? { prompt: params.prompt } : {}),
+    },
   });
 
   return { workspace, head };
+}
+
+/**
+ * Roll back: point the head at an existing older (or newer) version. No new
+ * version row is written and nothing is rewritten — history stays intact and
+ * a later rollback can return to where it was.
+ * @returns The workspace with its repointed head version.
+ * @throws {WorkspaceNotFoundError} For unknown or deleted workspace ids.
+ * @throws {WorkspaceVersionNotFoundError} When the target version doesn't exist.
+ */
+export async function rollbackWorkspace(
+  tx: TenantTx,
+  ctx: TenantContext,
+  id: string,
+  toVersion: number,
+): Promise<WorkspaceWithHead> {
+  const locked = await lockWorkspace(tx, id);
+  const head = await getWorkspaceVersion(tx, id, toVersion);
+
+  const [workspace] = await tx
+    .update(workspaces)
+    .set({
+      headVersion: toVersion,
+      title: head.spec.title,
+      updatedAt: new Date(),
+    })
+    .where(eq(workspaces.id, locked.id))
+    .returning();
+  if (!workspace) {
+    throw new Error(`Failed to repoint head of workspace "${id}"`);
+  }
+
+  await writeAudit(tx, ctx, {
+    action: "workspace.rolled_back",
+    workspaceId: id,
+    detail: { from: locked.headVersion, to: toVersion },
+  });
+
+  return { workspace, head };
+}
+
+/**
+ * Version history for a workspace, newest first. Includes what every version
+ * records: the prompt, the resolved spec, the verdict, and the author.
+ * @returns Version rows.
+ * @throws {WorkspaceNotFoundError} For unknown or deleted workspace ids.
+ */
+export async function listWorkspaceVersions(
+  tx: TenantTx,
+  workspaceId: string,
+): Promise<DBWorkspaceVersion[]> {
+  // Existence check keeps "unknown workspace" and "no versions" distinct.
+  await getWorkspaceRow(tx, workspaceId);
+  return await tx
+    .select()
+    .from(workspaceVersions)
+    .where(eq(workspaceVersions.workspaceId, workspaceId))
+    .orderBy(desc(workspaceVersions.versionNumber));
+}
+
+/**
+ * Fetch one specific version of a workspace.
+ * @returns The version row.
+ * @throws {WorkspaceVersionNotFoundError} When it doesn't exist.
+ */
+export async function getWorkspaceVersion(
+  tx: TenantTx,
+  workspaceId: string,
+  versionNumber: number,
+): Promise<DBWorkspaceVersion> {
+  const [version] = await tx
+    .select()
+    .from(workspaceVersions)
+    .where(
+      and(
+        eq(workspaceVersions.workspaceId, workspaceId),
+        eq(workspaceVersions.versionNumber, versionNumber),
+      ),
+    );
+  if (!version) {
+    throw new WorkspaceVersionNotFoundError(workspaceId, versionNumber);
+  }
+  return version;
+}
+
+/**
+ * Record that the acting user opened a workspace (#27: audit covers viewed,
+ * not just created/edited). Callers decide when a read is worth recording;
+ * reads themselves stay side-effect free.
+ * @throws {WorkspaceNotFoundError} For unknown or deleted workspace ids.
+ */
+export async function recordWorkspaceView(
+  tx: TenantTx,
+  ctx: TenantContext,
+  id: string,
+): Promise<void> {
+  const workspace = await getWorkspaceRow(tx, id);
+  await writeAudit(tx, ctx, {
+    action: "workspace.viewed",
+    workspaceId: id,
+    detail: { version: workspace.headVersion },
+  });
+}
+
+async function getWorkspaceRow(tx: TenantTx, id: string): Promise<DBWorkspace> {
+  const [workspace] = await tx
+    .select()
+    .from(workspaces)
+    .where(and(eq(workspaces.id, id), isNull(workspaces.deletedAt)));
+  if (!workspace) {
+    throw new WorkspaceNotFoundError(id);
+  }
+  return workspace;
 }
 
 /**
