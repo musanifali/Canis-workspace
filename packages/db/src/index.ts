@@ -1,0 +1,55 @@
+/**
+ * @workspace-engine/db — Workspace Service persistence.
+ *
+ * All DB access for the service lives here: the Drizzle schema (with
+ * tenant-scoped RLS policies), the tenant-scoped transaction helper, and the
+ * operations layer. Services call operations; nothing above this package
+ * writes SQL.
+ */
+export {
+  createDbClient,
+  type WorkspaceDb,
+  type WorkspaceDbClient,
+} from "./client.js";
+export { withTenant, type TenantContext, type TenantTx } from "./tenant.js";
+export {
+  tenants,
+  workspaces,
+  workspaceVersions,
+  workspaceShares,
+  dataContracts,
+  auditLog,
+  workspaceServiceRole,
+  type DBTenant,
+  type DBWorkspace,
+  type DBWorkspaceVersion,
+  type DBWorkspaceShare,
+  type DBDataContract,
+  type DBAuditEntry,
+  type StoredVerdict,
+} from "./schema.js";
+export {
+  createWorkspace,
+  getWorkspace,
+  listWorkspaces,
+  updateWorkspaceSpec,
+  softDeleteWorkspace,
+  WorkspaceNotFoundError,
+  type WorkspaceWithHead,
+  type CreateWorkspaceParams,
+  type UpdateWorkspaceSpecParams,
+} from "./operations/workspaces.js";
+export {
+  upsertDataContract,
+  getDataContract,
+  listDataContracts,
+  removeDataContract,
+  type UpsertDataContractParams,
+} from "./operations/contracts.js";
+export {
+  writeAudit,
+  listAuditEntries,
+  type AuditAction,
+  type WriteAuditParams,
+  type ListAuditParams,
+} from "./operations/audit.js";

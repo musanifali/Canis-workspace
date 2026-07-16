@@ -1,0 +1,26 @@
+# Dedicated Postgres for the Workspace Service (dev + tests).
+# Deliberately separate from the vendored Tambo stack's Postgres: the service's
+# own tests must run without that stack, and we never share an instance with
+# pinned infra we don't control. Port 5443 avoids collisions (the Tambo
+# stack's Postgres already sits on 5433).
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: workspace-engine-postgres
+    ports:
+      - "5443:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: workspace_engine
+    volumes:
+      - workspace-engine-pgdata:/var/lib/postgresql/data
+      - ./scripts/create-test-db.sql:/docker-entrypoint-initdb.d/create-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d workspace_engine"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  workspace-engine-pgdata:

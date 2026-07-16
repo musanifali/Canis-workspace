@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1784239136155,
+      "tag": "0000_workspace-service-role",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784239184268,
+      "tag": "0001_phase4-schema",
+      "breakpoints": true
+    }
+  ]
+}
