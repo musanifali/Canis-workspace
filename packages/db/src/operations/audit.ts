@@ -11,6 +11,7 @@ export type AuditAction =
   | "workspace.deleted"
   | "workspace.shared"
   | "workspace.unshared"
+  | "workspace.visibility_changed"
   | "workspace.duplicated"
   | "contract.registered"
   | "contract.updated"

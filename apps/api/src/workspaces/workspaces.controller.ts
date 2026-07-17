@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiForbiddenResponse,
   ApiHeader,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -24,18 +25,28 @@ import type { Request } from "express";
 import { TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import {
+  duplicateBodySchema,
   rollbackBodySchema,
   saveWorkspaceBodySchema,
+  shareBodySchema,
+  visibilityBodySchema,
   WorkspaceRecordDto,
+  WorkspaceShareDto,
   WorkspaceSummaryDto,
   WorkspaceVersionDto,
+  type DuplicateBody,
   type RollbackBody,
   type SaveWorkspaceBody,
+  type ShareBody,
+  type VisibilityBody,
 } from "./dto.js";
 import { WorkspacesService } from "./workspaces.service.js";
 
 const saveBodyPipe = new ZodValidationPipe(saveWorkspaceBodySchema);
 const rollbackBodyPipe = new ZodValidationPipe(rollbackBodySchema);
+const shareBodyPipe = new ZodValidationPipe(shareBodySchema);
+const visibilityBodyPipe = new ZodValidationPipe(visibilityBodySchema);
+const duplicateBodyPipe = new ZodValidationPipe(duplicateBodySchema);
 
 @ApiTags("workspaces")
 @ApiHeader({ name: "x-api-key", description: "Tenant API key", required: true })
@@ -124,5 +135,71 @@ export class WorkspacesController {
     @Body(rollbackBodyPipe) body: RollbackBody,
   ): Promise<WorkspaceRecordDto> {
     return await this.service.rollback(tenantCtxOf(req), id, body.toVersion);
+  }
+
+  @Get(":id/shares")
+  @ApiOperation({ summary: "List a workspace's shares (owner only)" })
+  @ApiOkResponse({ type: [WorkspaceShareDto] })
+  @ApiForbiddenResponse({ description: "Viewable but not owned" })
+  async shares(
+    @Req() req: Request,
+    @Param("id") id: string,
+  ): Promise<WorkspaceShareDto[]> {
+    return await this.service.shares(tenantCtxOf(req), id);
+  }
+
+  @Post(":id/shares")
+  @HttpCode(201)
+  @ApiOperation({
+    summary: "Grant (or change) a user's or team's role (owner only)",
+  })
+  @ApiCreatedResponse({ type: WorkspaceShareDto })
+  @ApiForbiddenResponse({ description: "Viewable but not owned" })
+  async share(
+    @Req() req: Request,
+    @Param("id") id: string,
+    @Body(shareBodyPipe) body: ShareBody,
+  ): Promise<WorkspaceShareDto> {
+    return await this.service.share(tenantCtxOf(req), id, body);
+  }
+
+  @Delete(":id/shares/:shareId")
+  @HttpCode(204)
+  @ApiOperation({ summary: "Revoke a share (owner only)" })
+  @ApiForbiddenResponse({ description: "Viewable but not owned" })
+  async unshare(
+    @Req() req: Request,
+    @Param("id") id: string,
+    @Param("shareId") shareId: string,
+  ): Promise<void> {
+    await this.service.unshare(tenantCtxOf(req), id, shareId);
+  }
+
+  @Put(":id/visibility")
+  @ApiOperation({ summary: "Change visibility: private/team/org (owner only)" })
+  @ApiOkResponse({ type: WorkspaceRecordDto })
+  @ApiForbiddenResponse({ description: "Viewable but not owned" })
+  async setVisibility(
+    @Req() req: Request,
+    @Param("id") id: string,
+    @Body(visibilityBodyPipe) body: VisibilityBody,
+  ): Promise<WorkspaceRecordDto> {
+    return await this.service.setVisibility(tenantCtxOf(req), id, body);
+  }
+
+  @Post(":id/duplicate")
+  @HttpCode(201)
+  @ApiOperation({
+    summary:
+      "Copy a viewable workspace into a new one owned by the caller " +
+      "(duplicate-and-modify)",
+  })
+  @ApiCreatedResponse({ type: WorkspaceRecordDto })
+  async duplicate(
+    @Req() req: Request,
+    @Param("id") id: string,
+    @Body(duplicateBodyPipe) body: DuplicateBody,
+  ): Promise<WorkspaceRecordDto> {
+    return await this.service.duplicate(tenantCtxOf(req), id, body);
   }
 }

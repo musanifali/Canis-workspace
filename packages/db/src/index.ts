@@ -40,12 +40,26 @@ export {
   getWorkspaceVersion,
   recordWorkspaceView,
   softDeleteWorkspace,
+  duplicateWorkspace,
+  requireWorkspaceAccess,
   WorkspaceNotFoundError,
   WorkspaceVersionNotFoundError,
   type WorkspaceWithHead,
   type CreateWorkspaceParams,
   type UpdateWorkspaceSpecParams,
 } from "./operations/workspaces.js";
+export {
+  resolveWorkspaceRole,
+  WorkspaceForbiddenError,
+  type WorkspaceRole,
+} from "./operations/access.js";
+export {
+  shareWorkspace,
+  unshareWorkspace,
+  listWorkspaceShares,
+  setWorkspaceVisibility,
+  type ShareWorkspaceParams,
+} from "./operations/shares.js";
 export {
   upsertDataContract,
   getDataContract,

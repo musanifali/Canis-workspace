@@ -70,7 +70,7 @@ describe("createWorkspace", () => {
     spec.title = "Mutated after save";
 
     const { head } = await withTenant(client.db, ctx, (tx) =>
-      getWorkspace(tx, workspace.id),
+      getWorkspace(tx, ctx, workspace.id),
     );
     expect(head.spec.title).toBe("Detached");
   });
@@ -91,7 +91,7 @@ describe("createWorkspace", () => {
 describe("getWorkspace / listWorkspaces", () => {
   it("throws WorkspaceNotFoundError for unknown ids", async () => {
     await expect(
-      withTenant(client.db, ctx, (tx) => getWorkspace(tx, "ws_nope")),
+      withTenant(client.db, ctx, (tx) => getWorkspace(tx, ctx, "ws_nope")),
     ).rejects.toThrow(WorkspaceNotFoundError);
   });
 
@@ -118,7 +118,7 @@ describe("getWorkspace / listWorkspaces", () => {
     );
 
     const listed = await withTenant(client.db, freshCtx, (tx) =>
-      listWorkspaces(tx),
+      listWorkspaces(tx, freshCtx),
     );
     expect(listed.map((w) => w.id)).toEqual([
       first.workspace.id,
@@ -195,10 +195,10 @@ describe("softDeleteWorkspace", () => {
     );
 
     await expect(
-      withTenant(client.db, ctx, (tx) => getWorkspace(tx, workspace.id)),
+      withTenant(client.db, ctx, (tx) => getWorkspace(tx, ctx, workspace.id)),
     ).rejects.toThrow(WorkspaceNotFoundError);
 
-    const listed = await withTenant(client.db, ctx, (tx) => listWorkspaces(tx));
+    const listed = await withTenant(client.db, ctx, (tx) => listWorkspaces(tx, ctx));
     expect(listed.map((w) => w.id)).not.toContain(workspace.id);
 
     const versions = await withTenant(client.db, ctx, (tx) =>

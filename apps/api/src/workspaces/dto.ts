@@ -8,6 +8,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { workspaceSpecSchema } from "@workspace-engine/core";
 import type {
   DBWorkspace,
+  DBWorkspaceShare,
   DBWorkspaceVersion,
   WorkspaceWithHead,
 } from "@workspace-engine/db";
@@ -26,6 +27,25 @@ export const rollbackBodySchema = z
   .object({ toVersion: z.number().int().min(1) })
   .strict();
 export type RollbackBody = z.infer<typeof rollbackBodySchema>;
+
+export const shareBodySchema = z
+  .object({
+    subjectType: z.enum(["user", "team"]),
+    subjectId: z.string().min(1).max(200),
+    role: z.enum(["viewer", "editor"]),
+  })
+  .strict();
+export type ShareBody = z.infer<typeof shareBodySchema>;
+
+export const visibilityBodySchema = z
+  .object({ visibility: z.enum(["private", "team", "org"]) })
+  .strict();
+export type VisibilityBody = z.infer<typeof visibilityBodySchema>;
+
+export const duplicateBodySchema = z
+  .object({ title: z.string().min(1).max(200).optional() })
+  .strict();
+export type DuplicateBody = z.infer<typeof duplicateBodySchema>;
 
 // NOTE: every @ApiProperty carries an explicit `type` — this app compiles
 // without emitDecoratorMetadata (so vitest/esbuild can run it), which
@@ -49,6 +69,14 @@ export class WorkspaceRecordDto extends WorkspaceSummaryDto {
   @ApiProperty({ type: String }) ownerUserId!: string;
   @ApiPropertyOptional({ nullable: true, type: String })
   createdFromThreadId!: string | null;
+}
+
+export class WorkspaceShareDto {
+  @ApiProperty({ type: String }) id!: string;
+  @ApiProperty({ type: String, enum: ["user", "team"] }) subjectType!: string;
+  @ApiProperty({ type: String }) subjectId!: string;
+  @ApiProperty({ type: String, enum: ["viewer", "editor"] }) role!: string;
+  @ApiProperty({ type: String }) createdByUserId!: string;
 }
 
 export class WorkspaceVersionDto {
@@ -86,6 +114,17 @@ export function toSummaryDto(workspace: DBWorkspace): WorkspaceSummaryDto {
     id: workspace.id,
     title: workspace.title,
     updatedAt: workspace.updatedAt.getTime(),
+  };
+}
+
+/** Map a share row to the API share shape. */
+export function toShareDto(share: DBWorkspaceShare): WorkspaceShareDto {
+  return {
+    id: share.id,
+    subjectType: share.subjectType,
+    subjectId: share.subjectId,
+    role: share.role,
+    createdByUserId: share.createdByUserId,
   };
 }
 

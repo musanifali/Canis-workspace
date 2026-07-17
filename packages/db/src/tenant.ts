@@ -5,6 +5,8 @@ import type { WorkspaceDb } from "./client.js";
 export interface TenantContext {
   tenantId: string;
   userId: string;
+  /** Teams the acting user belongs to (for team shares); caller-supplied. */
+  teamIds?: readonly string[];
 }
 
 /** The transaction handle operations receive inside withTenant. */

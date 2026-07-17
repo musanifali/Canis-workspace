@@ -64,13 +64,13 @@ describe("rollbackWorkspace", () => {
 
     // No third version appeared — rollback is a pointer move.
     const versions = await withTenant(client.db, ctx, (tx) =>
-      listWorkspaceVersions(tx, id),
+      listWorkspaceVersions(tx, ctx, id),
     );
     expect(versions.map((v) => v.versionNumber)).toEqual([2, 1]);
 
     // get() now serves the rolled-back spec.
     const { head } = await withTenant(client.db, ctx, (tx) =>
-      getWorkspace(tx, id),
+      getWorkspace(tx, ctx, id),
     );
     expect(head.spec.title).toBe("Original");
 
@@ -104,7 +104,7 @@ describe("version history", () => {
     const id = await seedTwoVersions();
 
     const v1 = await withTenant(client.db, ctx, (tx) =>
-      getWorkspaceVersion(tx, id, 1),
+      getWorkspaceVersion(tx, ctx, id, 1),
     );
     expect(v1.prompt).toBe("make me a case board");
     expect(v1.spec.title).toBe("Original");
@@ -112,7 +112,7 @@ describe("version history", () => {
     expect(v1.authorUserId).toBe(ctx.userId);
 
     const history = await withTenant(client.db, ctx, (tx) =>
-      listWorkspaceVersions(tx, id),
+      listWorkspaceVersions(tx, ctx, id),
     );
     expect(history.map((v) => v.versionNumber)).toEqual([2, 1]);
     expect(history.map((v) => v.prompt)).toEqual([
@@ -123,7 +123,7 @@ describe("version history", () => {
 
   it("listWorkspaceVersions rejects unknown workspaces", async () => {
     await expect(
-      withTenant(client.db, ctx, (tx) => listWorkspaceVersions(tx, "ws_nope")),
+      withTenant(client.db, ctx, (tx) => listWorkspaceVersions(tx, ctx, "ws_nope")),
     ).rejects.toThrow(WorkspaceNotFoundError);
   });
 });

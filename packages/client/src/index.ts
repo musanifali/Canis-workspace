@@ -17,4 +17,7 @@ export {
   type WorkspaceRecord,
   type WorkspaceSummary,
   type WorkspaceVersion,
+  type WorkspaceShare,
+  type WorkspaceVisibility,
+  type ShareParams,
 } from "./http-store.js";

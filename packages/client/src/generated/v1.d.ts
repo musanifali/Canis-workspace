@@ -75,6 +75,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a workspace's shares (owner only) */
+        get: operations["WorkspacesController_shares"];
+        put?: never;
+        /** Grant (or change) a user's or team's role (owner only) */
+        post: operations["WorkspacesController_share"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{id}/shares/{shareId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a share (owner only) */
+        delete: operations["WorkspacesController_unshare"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change visibility: private/team/org (owner only) */
+        put: operations["WorkspacesController_setVisibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy a viewable workspace into a new one owned by the caller (duplicate-and-modify) */
+        post: operations["WorkspacesController_duplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -107,6 +176,15 @@ export interface components {
             specVersion: number;
             /** @description The immutable spec snapshot this version stores. */
             spec: Record<string, never>;
+        };
+        WorkspaceShareDto: {
+            id: string;
+            /** @enum {string} */
+            subjectType: "user" | "team";
+            subjectId: string;
+            /** @enum {string} */
+            role: "viewer" | "editor";
+            createdByUserId: string;
         };
     };
     responses: never;
@@ -354,6 +432,181 @@ export interface operations {
             };
             /** @description Unknown workspace or version */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkspacesController_shares: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceShareDto"][];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Viewable but not owned */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkspacesController_share: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceShareDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Viewable but not owned */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkspacesController_unshare: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Viewable but not owned */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkspacesController_setVisibility: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceRecordDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Viewable but not owned */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    WorkspacesController_duplicate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceRecordDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

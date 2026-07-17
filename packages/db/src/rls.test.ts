@@ -103,13 +103,13 @@ describe("RLS coverage (schema-level facts)", () => {
 describe("cross-tenant reads MUST FAIL", () => {
   it("tenant B cannot get tenant A's workspace", async () => {
     await expect(
-      withTenant(client.db, tenantB, (tx) => getWorkspace(tx, workspaceA)),
+      withTenant(client.db, tenantB, (tx) => getWorkspace(tx, tenantB, workspaceA)),
     ).rejects.toThrow(WorkspaceNotFoundError);
   });
 
   it("tenant B's list never contains tenant A's workspaces", async () => {
     const listed = await withTenant(client.db, tenantB, (tx) =>
-      listWorkspaces(tx),
+      listWorkspaces(tx, tenantB),
     );
     expect(listed.map((w) => w.id)).not.toContain(workspaceA);
   });
@@ -117,7 +117,7 @@ describe("cross-tenant reads MUST FAIL", () => {
   it("tenant B cannot enumerate tenant A's versions, even by direct select", async () => {
     await expect(
       withTenant(client.db, tenantB, (tx) =>
-        listWorkspaceVersions(tx, workspaceA),
+        listWorkspaceVersions(tx, tenantB, workspaceA),
       ),
     ).rejects.toThrow(WorkspaceNotFoundError);
 
@@ -190,7 +190,7 @@ describe("cross-tenant writes MUST FAIL", () => {
     expect(updated).toEqual([]);
 
     const { workspace } = await withTenant(client.db, tenantA, (tx) =>
-      getWorkspace(tx, workspaceA),
+      getWorkspace(tx, tenantA, workspaceA),
     );
     expect(workspace.title).toBe("A's board");
   });
@@ -259,12 +259,12 @@ describe("pooled connections cannot leak tenant scope", () => {
     const single = createDbClient(TEST_DATABASE_URL, { maxConnections: 1 });
     try {
       const asA = await withTenant(single.db, tenantA, (tx) =>
-        listWorkspaces(tx),
+        listWorkspaces(tx, tenantA),
       );
       expect(asA.map((w) => w.id)).toContain(workspaceA);
 
       const asB = await withTenant(single.db, tenantB, (tx) =>
-        listWorkspaces(tx),
+        listWorkspaces(tx, tenantB),
       );
       expect(asB.map((w) => w.id)).not.toContain(workspaceA);
 

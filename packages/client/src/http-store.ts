@@ -8,6 +8,16 @@ import type { components } from "./generated/v1.js";
 type RecordDto = components["schemas"]["WorkspaceRecordDto"];
 type SummaryDto = components["schemas"]["WorkspaceSummaryDto"];
 type VersionDto = components["schemas"]["WorkspaceVersionDto"];
+type ShareDto = components["schemas"]["WorkspaceShareDto"];
+
+export type WorkspaceShare = ShareDto;
+export type WorkspaceVisibility = "private" | "team" | "org";
+
+export interface ShareParams {
+  subjectType: "user" | "team";
+  subjectId: string;
+  role: "viewer" | "editor";
+}
 
 /** Matches the SDK's WorkspaceStore port record shape. */
 export interface WorkspaceRecord {
@@ -75,6 +85,14 @@ export interface WorkspaceServiceClient {
   deleteWorkspace(id: string): Promise<void>;
   listVersions(id: string): Promise<WorkspaceVersion[]>;
   rollbackWorkspace(id: string, toVersion: number): Promise<WorkspaceRecord>;
+  listShares(id: string): Promise<WorkspaceShare[]>;
+  shareWorkspace(id: string, params: ShareParams): Promise<WorkspaceShare>;
+  unshareWorkspace(id: string, shareId: string): Promise<void>;
+  setVisibility(
+    id: string,
+    visibility: WorkspaceVisibility,
+  ): Promise<WorkspaceRecord>;
+  duplicateWorkspace(id: string, title?: string): Promise<WorkspaceRecord>;
 }
 
 /**
@@ -177,6 +195,43 @@ export function createWorkspaceServiceClient(
           "POST",
           `/workspaces/${encodeURIComponent(id)}/rollback`,
           { toVersion },
+        ),
+      );
+    },
+    async listShares(id) {
+      return await request<ShareDto[]>(
+        "GET",
+        `/workspaces/${encodeURIComponent(id)}/shares`,
+      );
+    },
+    async shareWorkspace(id, params) {
+      return await request<ShareDto>(
+        "POST",
+        `/workspaces/${encodeURIComponent(id)}/shares`,
+        params,
+      );
+    },
+    async unshareWorkspace(id, shareId) {
+      await request<void>(
+        "DELETE",
+        `/workspaces/${encodeURIComponent(id)}/shares/${encodeURIComponent(shareId)}`,
+      );
+    },
+    async setVisibility(id, visibility) {
+      return toRecord(
+        await request<RecordDto>(
+          "PUT",
+          `/workspaces/${encodeURIComponent(id)}/visibility`,
+          { visibility },
+        ),
+      );
+    },
+    async duplicateWorkspace(id, title) {
+      return toRecord(
+        await request<RecordDto>(
+          "POST",
+          `/workspaces/${encodeURIComponent(id)}/duplicate`,
+          title ? { title } : {},
         ),
       );
     },

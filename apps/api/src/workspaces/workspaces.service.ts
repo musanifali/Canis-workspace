@@ -1,15 +1,26 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type { WorkspaceSpec } from "@workspace-engine/core";
 import {
   createWorkspace,
+  duplicateWorkspace,
   getWorkspace,
   listWorkspaces,
+  listWorkspaceShares,
   listWorkspaceVersions,
   recordWorkspaceView,
   rollbackWorkspace,
+  setWorkspaceVisibility,
+  shareWorkspace,
   softDeleteWorkspace,
+  unshareWorkspace,
   updateWorkspaceSpec,
   withTenant,
+  WorkspaceForbiddenError,
   WorkspaceNotFoundError,
   WorkspaceVersionNotFoundError,
   type StoredVerdict,
@@ -19,10 +30,15 @@ import {
 import { DB_CLIENT } from "../db.provider.js";
 import {
   toRecordDto,
+  toShareDto,
   toSummaryDto,
   toVersionDto,
+  type DuplicateBody,
   type SaveWorkspaceBody,
+  type ShareBody,
+  type VisibilityBody,
   type WorkspaceRecordDto,
+  type WorkspaceShareDto,
   type WorkspaceSummaryDto,
   type WorkspaceVersionDto,
 } from "./dto.js";
@@ -42,7 +58,7 @@ export class WorkspacesService {
 
   async list(ctx: TenantContext): Promise<WorkspaceSummaryDto[]> {
     const rows = await withTenant(this.client.db, ctx, (tx) =>
-      listWorkspaces(tx),
+      listWorkspaces(tx, ctx),
     );
     return rows.map(toSummaryDto);
   }
@@ -50,7 +66,7 @@ export class WorkspacesService {
   async get(ctx: TenantContext, id: string): Promise<WorkspaceRecordDto> {
     return await this.notFoundTo404(async () => {
       const result = await withTenant(this.client.db, ctx, async (tx) => {
-        const found = await getWorkspace(tx, id);
+        const found = await getWorkspace(tx, ctx, id);
         await recordWorkspaceView(tx, ctx, id);
         return found;
       });
@@ -104,7 +120,7 @@ export class WorkspacesService {
   ): Promise<WorkspaceVersionDto[]> {
     return await this.notFoundTo404(async () => {
       const rows = await withTenant(this.client.db, ctx, (tx) =>
-        listWorkspaceVersions(tx, id),
+        listWorkspaceVersions(tx, ctx, id),
       );
       return rows.map(toVersionDto);
     });
@@ -123,7 +139,74 @@ export class WorkspacesService {
     });
   }
 
-  /** Translate the operations layer's not-found errors to HTTP 404. */
+  async shares(ctx: TenantContext, id: string): Promise<WorkspaceShareDto[]> {
+    return await this.notFoundTo404(async () => {
+      const rows = await withTenant(this.client.db, ctx, (tx) =>
+        listWorkspaceShares(tx, ctx, id),
+      );
+      return rows.map(toShareDto);
+    });
+  }
+
+  async share(
+    ctx: TenantContext,
+    id: string,
+    body: ShareBody,
+  ): Promise<WorkspaceShareDto> {
+    return await this.notFoundTo404(async () => {
+      const row = await withTenant(this.client.db, ctx, (tx) =>
+        shareWorkspace(tx, ctx, id, body),
+      );
+      return toShareDto(row);
+    });
+  }
+
+  async unshare(
+    ctx: TenantContext,
+    id: string,
+    shareId: string,
+  ): Promise<void> {
+    const removed = await this.notFoundTo404(() =>
+      withTenant(this.client.db, ctx, (tx) =>
+        unshareWorkspace(tx, ctx, id, shareId),
+      ),
+    );
+    if (!removed) {
+      throw new NotFoundException(`share not found: "${shareId}"`);
+    }
+  }
+
+  async setVisibility(
+    ctx: TenantContext,
+    id: string,
+    body: VisibilityBody,
+  ): Promise<WorkspaceRecordDto> {
+    return await this.notFoundTo404(async () => {
+      await withTenant(this.client.db, ctx, (tx) =>
+        setWorkspaceVisibility(tx, ctx, id, body.visibility),
+      );
+      const result = await withTenant(this.client.db, ctx, (tx) =>
+        getWorkspace(tx, ctx, id),
+      );
+      return toRecordDto(result);
+    });
+  }
+
+  async duplicate(
+    ctx: TenantContext,
+    id: string,
+    body: DuplicateBody,
+  ): Promise<WorkspaceRecordDto> {
+    return await this.notFoundTo404(async () => {
+      const result = await withTenant(this.client.db, ctx, (tx) =>
+        duplicateWorkspace(tx, ctx, id, body.title ? { title: body.title } : {}),
+      );
+      return toRecordDto(result);
+    });
+  }
+
+  /** Translate operations-layer denials to HTTP: 404 (not-found or no view
+   * access — existence stays hidden) and 403 (viewable, right missing). */
   private async notFoundTo404<T>(run: () => Promise<T>): Promise<T> {
     try {
       return await run();
@@ -133,6 +216,9 @@ export class WorkspacesService {
         error instanceof WorkspaceVersionNotFoundError
       ) {
         throw new NotFoundException(error.message);
+      }
+      if (error instanceof WorkspaceForbiddenError) {
+        throw new ForbiddenException(error.message);
       }
       throw error;
     }

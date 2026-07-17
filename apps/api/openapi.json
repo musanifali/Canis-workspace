@@ -313,6 +313,229 @@
           "workspaces"
         ]
       }
+    },
+    "/v1/workspaces/{id}/shares": {
+      "get": {
+        "operationId": "WorkspacesController_shares",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceShareDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "403": {
+            "description": "Viewable but not owned"
+          }
+        },
+        "summary": "List a workspace's shares (owner only)",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "post": {
+        "operationId": "WorkspacesController_share",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceShareDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "403": {
+            "description": "Viewable but not owned"
+          }
+        },
+        "summary": "Grant (or change) a user's or team's role (owner only)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}/shares/{shareId}": {
+      "delete": {
+        "operationId": "WorkspacesController_unshare",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "403": {
+            "description": "Viewable but not owned"
+          }
+        },
+        "summary": "Revoke a share (owner only)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}/visibility": {
+      "put": {
+        "operationId": "WorkspacesController_setVisibility",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "403": {
+            "description": "Viewable but not owned"
+          }
+        },
+        "summary": "Change visibility: private/team/org (owner only)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}/duplicate": {
+      "post": {
+        "operationId": "WorkspacesController_duplicate",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Copy a viewable workspace into a new one owned by the caller (duplicate-and-modify)",
+        "tags": [
+          "workspaces"
+        ]
+      }
     }
   },
   "info": {
@@ -430,6 +653,41 @@
           "createdAt",
           "specVersion",
           "spec"
+        ]
+      },
+      "WorkspaceShareDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "subjectType": {
+            "type": "string",
+            "enum": [
+              "user",
+              "team"
+            ]
+          },
+          "subjectId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "viewer",
+              "editor"
+            ]
+          },
+          "createdByUserId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subjectType",
+          "subjectId",
+          "role",
+          "createdByUserId"
         ]
       }
     }

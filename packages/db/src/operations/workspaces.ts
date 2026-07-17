@@ -3,16 +3,24 @@ import {
   serializeSpec,
   type WorkspaceSpec,
 } from "@workspace-engine/core";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, exists, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   workspaces,
+  workspaceShares,
   workspaceVersions,
   type DBWorkspace,
   type DBWorkspaceVersion,
   type StoredVerdict,
 } from "../schema.js";
 import type { TenantContext, TenantTx } from "../tenant.js";
+import {
+  canEdit,
+  resolveWorkspaceRole,
+  shareMatchFor,
+  WorkspaceForbiddenError,
+  type WorkspaceRole,
+} from "./access.js";
 import { writeAudit } from "./audit.js";
 
 /** Thrown when a workspace id doesn't exist (or is soft-deleted) for this tenant. */
@@ -114,22 +122,18 @@ export async function createWorkspace(
 }
 
 /**
- * Fetch a workspace and its head version. RLS scopes the tenant; soft-deleted
- * workspaces are treated as not found.
+ * Fetch a workspace and its head version. RLS scopes the tenant; #28's
+ * access layer scopes the principal — a workspace the principal cannot VIEW
+ * reads as not found (existence is not revealed).
  * @returns The workspace with its head version.
- * @throws {WorkspaceNotFoundError} For unknown or deleted ids.
+ * @throws {WorkspaceNotFoundError} For unknown, deleted, or unviewable ids.
  */
 export async function getWorkspace(
   tx: TenantTx,
+  ctx: TenantContext,
   id: string,
 ): Promise<WorkspaceWithHead> {
-  const [workspace] = await tx
-    .select()
-    .from(workspaces)
-    .where(and(eq(workspaces.id, id), isNull(workspaces.deletedAt)));
-  if (!workspace) {
-    throw new WorkspaceNotFoundError(id);
-  }
+  const workspace = await getViewableWorkspaceRow(tx, ctx, id);
 
   const [head] = await tx
     .select()
@@ -149,15 +153,39 @@ export async function getWorkspace(
 }
 
 /**
- * List the tenant's live workspaces, most recently updated first. Returns
- * workspace rows only (no spec payload) — cheap listing for summaries.
+ * List the live workspaces the principal can view (owned, org-visible, or
+ * shared with them / their teams), most recently updated first. Rows only —
+ * no spec payload.
  * @returns Workspace rows.
  */
-export async function listWorkspaces(tx: TenantTx): Promise<DBWorkspace[]> {
+export async function listWorkspaces(
+  tx: TenantTx,
+  ctx: TenantContext,
+): Promise<DBWorkspace[]> {
+  const sharedWithMe = exists(
+    tx
+      .select({ one: sql`1` })
+      .from(workspaceShares)
+      .where(
+        and(
+          eq(workspaceShares.workspaceId, workspaces.id),
+          shareMatchFor(ctx),
+        ),
+      ),
+  );
   return await tx
     .select()
     .from(workspaces)
-    .where(isNull(workspaces.deletedAt))
+    .where(
+      and(
+        isNull(workspaces.deletedAt),
+        or(
+          eq(workspaces.ownerUserId, ctx.userId),
+          eq(workspaces.visibility, "org"),
+          sharedWithMe,
+        ),
+      ),
+    )
     .orderBy(desc(workspaces.updatedAt));
 }
 
@@ -169,9 +197,10 @@ export interface UpdateWorkspaceSpecParams {
 
 /**
  * Save an edit: appends a new immutable version and repoints the head.
- * The existing rows are never rewritten.
+ * The existing rows are never rewritten. Requires EDIT access.
  * @returns The workspace with its new head version.
- * @throws {WorkspaceNotFoundError} For unknown or deleted ids.
+ * @throws {WorkspaceNotFoundError} For unknown, deleted, or unviewable ids.
+ * @throws {WorkspaceForbiddenError} For viewers.
  */
 export async function updateWorkspaceSpec(
   tx: TenantTx,
@@ -180,7 +209,9 @@ export async function updateWorkspaceSpec(
   params: UpdateWorkspaceSpecParams,
 ): Promise<WorkspaceWithHead> {
   const spec = cloneSpec(params.spec);
-  const locked = await lockWorkspace(tx, id);
+  const locked = await requireWorkspaceAccess(tx, ctx, id, "edit", {
+    lock: true,
+  });
 
   const nextVersion = (await maxVersionNumber(tx, id)) + 1;
   const head = await insertVersion(tx, ctx, {
@@ -227,8 +258,10 @@ export async function rollbackWorkspace(
   id: string,
   toVersion: number,
 ): Promise<WorkspaceWithHead> {
-  const locked = await lockWorkspace(tx, id);
-  const head = await getWorkspaceVersion(tx, id, toVersion);
+  const locked = await requireWorkspaceAccess(tx, ctx, id, "edit", {
+    lock: true,
+  });
+  const head = await getWorkspaceVersion(tx, ctx, id, toVersion);
 
   const [workspace] = await tx
     .update(workspaces)
@@ -260,10 +293,11 @@ export async function rollbackWorkspace(
  */
 export async function listWorkspaceVersions(
   tx: TenantTx,
+  ctx: TenantContext,
   workspaceId: string,
 ): Promise<DBWorkspaceVersion[]> {
-  // Existence check keeps "unknown workspace" and "no versions" distinct.
-  await getWorkspaceRow(tx, workspaceId);
+  // Existence + view check keeps "unknown workspace" and "no versions" distinct.
+  await getViewableWorkspaceRow(tx, ctx, workspaceId);
   return await tx
     .select()
     .from(workspaceVersions)
@@ -278,9 +312,11 @@ export async function listWorkspaceVersions(
  */
 export async function getWorkspaceVersion(
   tx: TenantTx,
+  ctx: TenantContext,
   workspaceId: string,
   versionNumber: number,
 ): Promise<DBWorkspaceVersion> {
+  await getViewableWorkspaceRow(tx, ctx, workspaceId);
   const [version] = await tx
     .select()
     .from(workspaceVersions)
@@ -307,7 +343,7 @@ export async function recordWorkspaceView(
   ctx: TenantContext,
   id: string,
 ): Promise<void> {
-  const workspace = await getWorkspaceRow(tx, id);
+  const workspace = await getViewableWorkspaceRow(tx, ctx, id);
   await writeAudit(tx, ctx, {
     action: "workspace.viewed",
     workspaceId: id,
@@ -315,28 +351,20 @@ export async function recordWorkspaceView(
   });
 }
 
-async function getWorkspaceRow(tx: TenantTx, id: string): Promise<DBWorkspace> {
-  const [workspace] = await tx
-    .select()
-    .from(workspaces)
-    .where(and(eq(workspaces.id, id), isNull(workspaces.deletedAt)));
-  if (!workspace) {
-    throw new WorkspaceNotFoundError(id);
-  }
-  return workspace;
-}
-
 /**
  * Soft-delete a workspace. Versions and audit history remain (append-only);
- * the workspace disappears from list/get.
- * @throws {WorkspaceNotFoundError} For unknown or already-deleted ids.
+ * the workspace disappears from list/get. Owner only.
+ * @throws {WorkspaceNotFoundError} For unknown, deleted, or unviewable ids.
+ * @throws {WorkspaceForbiddenError} For non-owners with view access.
  */
 export async function softDeleteWorkspace(
   tx: TenantTx,
   ctx: TenantContext,
   id: string,
 ): Promise<void> {
-  const locked = await lockWorkspace(tx, id);
+  const locked = await requireWorkspaceAccess(tx, ctx, id, "owner", {
+    lock: true,
+  });
   await tx
     .update(workspaces)
     .set({ deletedAt: new Date() })
@@ -345,19 +373,96 @@ export async function softDeleteWorkspace(
 }
 
 /**
- * Lock the live workspace row for the rest of the transaction, serializing
- * concurrent version appends against the same workspace.
- * @returns The locked workspace row.
- * @throws {WorkspaceNotFoundError} For unknown or deleted ids.
+ * Copy another user's (viewable) workspace into a new one owned by the
+ * caller — the "make me one like Sarah's but for EMEA" flow. The copied spec
+ * re-enters through the same persistence gate as any create (canonical
+ * parse round-trip); version history starts fresh at 1.
+ * @returns The new workspace with its head version.
+ * @throws {WorkspaceNotFoundError} When the source is unknown or unviewable.
  */
-async function lockWorkspace(tx: TenantTx, id: string): Promise<DBWorkspace> {
-  const [workspace] = await tx
+export async function duplicateWorkspace(
+  tx: TenantTx,
+  ctx: TenantContext,
+  sourceId: string,
+  params: { title?: string } = {},
+): Promise<WorkspaceWithHead> {
+  const source = await getWorkspace(tx, ctx, sourceId);
+  const spec: WorkspaceSpec = {
+    ...source.head.spec,
+    title: params.title ?? `${source.head.spec.title} (copy)`,
+  };
+  const created = await createWorkspace(tx, ctx, {
+    spec,
+    verdict: source.head.verdict,
+  });
+  await writeAudit(tx, ctx, {
+    action: "workspace.duplicated",
+    workspaceId: created.workspace.id,
+    detail: { sourceId, sourceVersion: source.head.versionNumber },
+  });
+  return created;
+}
+
+interface AccessOptions {
+  lock?: boolean;
+}
+
+/**
+ * Fetch a live workspace row and the principal's role on it; optionally
+ * lock the row (FOR UPDATE) to serialize version appends. No view access
+ * reads as not found — existence is never revealed.
+ * @returns The row and role.
+ * @throws {WorkspaceNotFoundError} Unknown, deleted, or unviewable.
+ */
+async function fetchWorkspaceWithRole(
+  tx: TenantTx,
+  ctx: TenantContext,
+  id: string,
+  options: AccessOptions = {},
+): Promise<{ workspace: DBWorkspace; role: WorkspaceRole }> {
+  const query = tx
     .select()
     .from(workspaces)
-    .where(and(eq(workspaces.id, id), isNull(workspaces.deletedAt)))
-    .for("update");
+    .where(and(eq(workspaces.id, id), isNull(workspaces.deletedAt)));
+  const [workspace] = options.lock ? await query.for("update") : await query;
   if (!workspace) {
     throw new WorkspaceNotFoundError(id);
+  }
+  const role = await resolveWorkspaceRole(tx, ctx, workspace);
+  if (!role) {
+    throw new WorkspaceNotFoundError(id);
+  }
+  return { workspace, role };
+}
+
+async function getViewableWorkspaceRow(
+  tx: TenantTx,
+  ctx: TenantContext,
+  id: string,
+  options: AccessOptions = {},
+): Promise<DBWorkspace> {
+  return (await fetchWorkspaceWithRole(tx, ctx, id, options)).workspace;
+}
+
+/**
+ * Fetch a workspace row and demand a right on it.
+ * @returns The workspace row.
+ * @throws {WorkspaceNotFoundError} Unknown, deleted, or unviewable.
+ * @throws {WorkspaceForbiddenError} Viewable but lacking the right.
+ */
+export async function requireWorkspaceAccess(
+  tx: TenantTx,
+  ctx: TenantContext,
+  id: string,
+  needed: "edit" | "owner",
+  options: AccessOptions = {},
+): Promise<DBWorkspace> {
+  const { workspace, role } = await fetchWorkspaceWithRole(tx, ctx, id, options);
+  if (needed === "owner" && role !== "owner") {
+    throw new WorkspaceForbiddenError(id, "owner");
+  }
+  if (needed === "edit" && !canEdit(role)) {
+    throw new WorkspaceForbiddenError(id, "edit");
   }
   return workspace;
 }

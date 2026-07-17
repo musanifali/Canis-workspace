@@ -212,6 +212,125 @@ describe("tenant isolation over HTTP", () => {
   });
 });
 
+describe("sharing & permissions over HTTP (#28)", () => {
+  const asColleague = () => ({
+    "x-api-key": apiKeyA,
+    "x-user-id": "user_colleague",
+  });
+
+  it("shares grant viewer/editor; owner-only surfaces 403 for others", async () => {
+    const created = await request(httpServer)
+      .post("/v1/workspaces")
+      .set(asA)
+      .send(specBody("Team asset"))
+      .expect(201);
+    const id = created.body.id as string;
+
+    // Same tenant, different user: private workspace reads as 404.
+    await request(httpServer)
+      .get(`/v1/workspaces/${id}`)
+      .set(asColleague())
+      .expect(404);
+
+    // Owner shares viewer access.
+    const share = await request(httpServer)
+      .post(`/v1/workspaces/${id}/shares`)
+      .set(asA)
+      .send({ subjectType: "user", subjectId: "user_colleague", role: "viewer" })
+      .expect(201);
+
+    await request(httpServer)
+      .get(`/v1/workspaces/${id}`)
+      .set(asColleague())
+      .expect(200);
+    // Viewer cannot edit (403 — they can see it exists).
+    await request(httpServer)
+      .put(`/v1/workspaces/${id}`)
+      .set(asColleague())
+      .send(specBody("hijack"))
+      .expect(403);
+    // Viewer cannot manage shares.
+    await request(httpServer)
+      .get(`/v1/workspaces/${id}/shares`)
+      .set(asColleague())
+      .expect(403);
+
+    // Duplicate-and-modify: the viewer copies it into their own workspace.
+    const copy = await request(httpServer)
+      .post(`/v1/workspaces/${id}/duplicate`)
+      .set(asColleague())
+      .send({ title: "My copy" })
+      .expect(201);
+    expect(copy.body.ownerUserId).toBe("user_colleague");
+    expect(copy.body.title).toBe("My copy");
+    expect(copy.body.headVersion).toBe(1);
+
+    // Owner revokes the share; access disappears.
+    await request(httpServer)
+      .delete(`/v1/workspaces/${id}/shares/${share.body.id}`)
+      .set(asA)
+      .expect(204);
+    await request(httpServer)
+      .get(`/v1/workspaces/${id}`)
+      .set(asColleague())
+      .expect(404);
+  });
+
+  it("org visibility opens viewing to the whole tenant", async () => {
+    const created = await request(httpServer)
+      .post("/v1/workspaces")
+      .set(asA)
+      .send(specBody("Org-wide"))
+      .expect(201);
+    const id = created.body.id as string;
+
+    await request(httpServer)
+      .put(`/v1/workspaces/${id}/visibility`)
+      .set(asA)
+      .send({ visibility: "org" })
+      .expect(200);
+
+    const seen = await request(httpServer)
+      .get(`/v1/workspaces/${id}`)
+      .set(asColleague())
+      .expect(200);
+    expect(seen.body.visibility).toBe("org");
+  });
+
+  it("team shares work via the x-user-teams header", async () => {
+    const created = await request(httpServer)
+      .post("/v1/workspaces")
+      .set(asA)
+      .send(specBody("EMEA board"))
+      .expect(201);
+    const id = created.body.id as string;
+
+    await request(httpServer)
+      .post(`/v1/workspaces/${id}/shares`)
+      .set(asA)
+      .send({ subjectType: "team", subjectId: "team_emea", role: "editor" })
+      .expect(201);
+
+    const teammate = {
+      "x-api-key": apiKeyA,
+      "x-user-id": "user_teammate",
+      "x-user-teams": "team_apac, team_emea",
+    };
+    const updated = await request(httpServer)
+      .put(`/v1/workspaces/${id}`)
+      .set(teammate)
+      .send(specBody("EMEA board v2"))
+      .expect(200);
+    expect(updated.body.headVersion).toBe(2);
+
+    // Without the team header, same user has nothing.
+    await request(httpServer)
+      .get(`/v1/workspaces/${id}`)
+      .set({ "x-api-key": apiKeyA, "x-user-id": "user_teammate" })
+      .expect(404);
+  });
+});
+
 describe("OpenAPI contract artifact", () => {
   it("the committed openapi.json matches the controllers", () => {
     const committed = JSON.parse(

@@ -43,7 +43,12 @@ export class TenantGuard implements CanActivate {
         "missing x-user-id header (acting end user)",
       );
     }
-    const ctx: TenantContext = { tenantId, userId };
+    // Optional team memberships for team shares (#28), comma-separated.
+    const teamIds = (request.header("x-user-teams") ?? "")
+      .split(",")
+      .map((team) => team.trim())
+      .filter((team) => team.length > 0);
+    const ctx: TenantContext = { tenantId, userId, teamIds };
     Object.assign(request, { [TENANT_CTX]: ctx });
     return true;
   }
