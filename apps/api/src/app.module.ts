@@ -1,6 +1,7 @@
 import { Module, type DynamicModule } from "@nestjs/common";
 import { dbProviders } from "./db.provider.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
+import { UsageController } from "./usage/usage.controller.js";
 import { WorkspacesController } from "./workspaces/workspaces.controller.js";
 import { WorkspacesService } from "./workspaces/workspaces.service.js";
 
@@ -14,7 +15,7 @@ export class AppModule {
   static forDatabase(databaseUrl: string): DynamicModule {
     return {
       module: AppModule,
-      controllers: [WorkspacesController],
+      controllers: [WorkspacesController, UsageController],
       providers: [...dbProviders(databaseUrl), TenantGuard, WorkspacesService],
     };
   }

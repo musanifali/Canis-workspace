@@ -12,6 +12,9 @@ type ShareDto = components["schemas"]["WorkspaceShareDto"];
 
 export type WorkspaceShare = ShareDto;
 export type WorkspaceVisibility = "private" | "team" | "org";
+export type GenerationAllowance =
+  components["schemas"]["GenerationAllowanceDto"];
+export type UsageSummary = components["schemas"]["UsageSummaryDto"];
 
 export interface ShareParams {
   subjectType: "user" | "team";
@@ -58,6 +61,18 @@ export class WorkspaceNotFoundError extends WorkspaceServiceError {
   }
 }
 
+/** 429 — generation budget exhausted or rate limited (clear state, not silence). */
+export class GenerationLimitedError extends WorkspaceServiceError {
+  constructor(
+    readonly code: "budget_exceeded" | "rate_limited",
+    message: string,
+    body: unknown,
+  ) {
+    super(message, 429, body);
+    this.name = "GenerationLimitedError";
+  }
+}
+
 export interface WorkspaceServiceClientOptions {
   /** Service origin, e.g. "http://localhost:8270". No trailing slash needed. */
   baseUrl: string;
@@ -85,6 +100,12 @@ export interface WorkspaceServiceClient {
   deleteWorkspace(id: string): Promise<void>;
   listVersions(id: string): Promise<WorkspaceVersion[]>;
   rollbackWorkspace(id: string, toVersion: number): Promise<WorkspaceRecord>;
+  getGenerationAllowance(): Promise<GenerationAllowance>;
+  recordGeneration(params?: {
+    workspaceId?: string;
+    costCents?: number;
+  }): Promise<GenerationAllowance>;
+  getUsageSummary(): Promise<UsageSummary>;
   listShares(id: string): Promise<WorkspaceShare[]>;
   shareWorkspace(id: string, params: ShareParams): Promise<WorkspaceShare>;
   unshareWorkspace(id: string, shareId: string): Promise<void>;
@@ -128,6 +149,16 @@ export function createWorkspaceServiceClient(
       const id = path.split("/")[2] ?? path;
       if (response.status === 404) {
         throw new WorkspaceNotFoundError(id, response.status, payload);
+      }
+      if (response.status === 429) {
+        const limitBody = payload as { code?: string; message?: string };
+        throw new GenerationLimitedError(
+          limitBody.code === "budget_exceeded"
+            ? "budget_exceeded"
+            : "rate_limited",
+          limitBody.message ?? "generation limit reached",
+          payload,
+        );
       }
       throw new WorkspaceServiceError(
         `workspace service ${method} ${path} failed with ${response.status}`,
@@ -197,6 +228,20 @@ export function createWorkspaceServiceClient(
           { toVersion },
         ),
       );
+    },
+    async getGenerationAllowance() {
+      return await request<GenerationAllowance>("GET", "/usage/allowance");
+    },
+    async recordGeneration(params = {}) {
+      const response = await request<{ allowance: GenerationAllowance }>(
+        "POST",
+        "/usage/generation",
+        params,
+      );
+      return response.allowance;
+    },
+    async getUsageSummary() {
+      return await request<UsageSummary>("GET", "/usage/summary");
     },
     async listShares(id) {
       return await request<ShareDto[]>(

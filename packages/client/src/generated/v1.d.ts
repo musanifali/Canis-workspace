@@ -144,6 +144,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/usage/allowance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pre-check whether the acting user may run a generation (gate the UI before burning a model call) */
+        get: operations["UsageController_allowance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usage/generation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record one generation event (enforces budget + rate limit) */
+        post: operations["UsageController_record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This month's cost picture: totals + per-workspace breakdown (reads always cost zero) */
+        get: operations["UsageController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -185,6 +236,33 @@ export interface components {
             /** @enum {string} */
             role: "viewer" | "editor";
             createdByUserId: string;
+        };
+        GenerationAllowanceDto: {
+            allowed: boolean;
+            /** @enum {string} */
+            reason?: "budget_exceeded" | "rate_limited";
+            /** @description Generations left this month; null = unlimited budget. */
+            remainingThisMonth: number | null;
+            remainingThisMinute: number;
+        };
+        RecordGenerationResponseDto: {
+            allowance: components["schemas"]["GenerationAllowanceDto"];
+        };
+        UsageMonthDto: {
+            generations: number;
+            costCents: number;
+        };
+        UsageWorkspaceRowDto: {
+            /** @description Null for generations not attributed to a workspace. */
+            workspaceId: string | null;
+            generations: number;
+            costCents: number;
+        };
+        UsageSummaryDto: {
+            month: components["schemas"]["UsageMonthDto"];
+            perWorkspace: components["schemas"]["UsageWorkspaceRowDto"][];
+            /** @description Always 0 — saved workspaces cost nothing to open (two-phase design); reads are never metered. */
+            readCostCents: number;
         };
     };
     responses: never;
@@ -611,6 +689,85 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    UsageController_allowance: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationAllowanceDto"];
+                };
+            };
+        };
+    };
+    UsageController_record: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordGenerationResponseDto"];
+                };
+            };
+            /** @description Budget exhausted or rate limited — body carries a machine-readable `code` (budget_exceeded | rate_limited) so UIs surface a clear state, never a silent failure. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsageController_summary: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummaryDto"];
+                };
             };
         };
     };

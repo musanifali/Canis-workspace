@@ -63,6 +63,12 @@ export const tenants = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    /** Max generation events per calendar month; null = unlimited (#48). */
+    monthlyGenerationBudget: integer("monthly_generation_budget"),
+    /** Per-user generation events per minute (#48). */
+    generationRatePerMinute: integer("generation_rate_per_minute")
+      .default(20)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -326,6 +332,46 @@ export const dataContracts = pgTable(
   ],
 );
 export type DBDataContract = typeof dataContracts.$inferSelect;
+
+export const usageEvents = pgTable(
+  "usage_events",
+  {
+    id: bigserial("id", { mode: "bigint" }).primaryKey(),
+    tenantId: text("tenant_id")
+      .references(() => tenants.id)
+      .notNull(),
+    userId: text("user_id").notNull(),
+    /** Generation events cost money; saved workspaces cost ZERO at read time
+     * (two-phase design) — reads are deliberately never recorded here. */
+    kind: text("kind", { enum: ["generation"] }).notNull(),
+    workspaceId: text("workspace_id"),
+    costCents: integer("cost_cents").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("usage_events_tenant_created_idx").on(table.tenantId, table.createdAt),
+    index("usage_events_tenant_user_created_idx").on(
+      table.tenantId,
+      table.userId,
+      table.createdAt,
+    ),
+    index("usage_events_workspace_id_idx").on(table.workspaceId),
+    // Append-only ledger, same mechanism as audit_log.
+    pgPolicy("usage_events_service_select", {
+      to: workspaceServiceRole,
+      for: "select",
+      using: sql`${table.tenantId} = ${tenantIdSetting}`,
+    }),
+    pgPolicy("usage_events_service_insert", {
+      to: workspaceServiceRole,
+      for: "insert",
+      withCheck: sql`${table.tenantId} = ${tenantIdSetting}`,
+    }),
+  ],
+);
+export type DBUsageEvent = typeof usageEvents.$inferSelect;
 
 export const auditLog = pgTable(
   "audit_log",

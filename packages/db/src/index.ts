@@ -20,6 +20,7 @@ export {
   workspaceShares,
   dataContracts,
   auditLog,
+  usageEvents,
   workspaceServiceRole,
   type DBTenant,
   type DBApiKey,
@@ -28,6 +29,7 @@ export {
   type DBWorkspaceShare,
   type DBDataContract,
   type DBAuditEntry,
+  type DBUsageEvent,
   type StoredVerdict,
 } from "./schema.js";
 export {
@@ -67,6 +69,17 @@ export {
   removeDataContract,
   type UpsertDataContractParams,
 } from "./operations/contracts.js";
+export {
+  getGenerationAllowance,
+  recordGenerationUsage,
+  getUsageSummary,
+  setTenantLimits,
+  GenerationLimitError,
+  type GenerationAllowance,
+  type GenerationDenialReason,
+  type RecordGenerationParams,
+  type UsageSummary,
+} from "./operations/usage.js";
 export {
   createApiKey,
   resolveApiKey,

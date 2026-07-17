@@ -536,6 +536,132 @@
           "workspaces"
         ]
       }
+    },
+    "/v1/usage/allowance": {
+      "get": {
+        "operationId": "UsageController_allowance",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationAllowanceDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pre-check whether the acting user may run a generation (gate the UI before burning a model call)",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
+    "/v1/usage/generation": {
+      "post": {
+        "operationId": "UsageController_record",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordGenerationResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Budget exhausted or rate limited — body carries a machine-readable `code` (budget_exceeded | rate_limited) so UIs surface a clear state, never a silent failure."
+          }
+        },
+        "summary": "Record one generation event (enforces budget + rate limit)",
+        "tags": [
+          "usage"
+        ]
+      }
+    },
+    "/v1/usage/summary": {
+      "get": {
+        "operationId": "UsageController_summary",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageSummaryDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "This month's cost picture: totals + per-workspace breakdown (reads always cost zero)",
+        "tags": [
+          "usage"
+        ]
+      }
     }
   },
   "info": {
@@ -688,6 +814,104 @@
           "subjectId",
           "role",
           "createdByUserId"
+        ]
+      },
+      "GenerationAllowanceDto": {
+        "type": "object",
+        "properties": {
+          "allowed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "budget_exceeded",
+              "rate_limited"
+            ]
+          },
+          "remainingThisMonth": {
+            "type": "number",
+            "nullable": true,
+            "description": "Generations left this month; null = unlimited budget."
+          },
+          "remainingThisMinute": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "allowed",
+          "remainingThisMonth",
+          "remainingThisMinute"
+        ]
+      },
+      "RecordGenerationResponseDto": {
+        "type": "object",
+        "properties": {
+          "allowance": {
+            "$ref": "#/components/schemas/GenerationAllowanceDto"
+          }
+        },
+        "required": [
+          "allowance"
+        ]
+      },
+      "UsageMonthDto": {
+        "type": "object",
+        "properties": {
+          "generations": {
+            "type": "number"
+          },
+          "costCents": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "generations",
+          "costCents"
+        ]
+      },
+      "UsageWorkspaceRowDto": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for generations not attributed to a workspace."
+          },
+          "generations": {
+            "type": "number"
+          },
+          "costCents": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "workspaceId",
+          "generations",
+          "costCents"
+        ]
+      },
+      "UsageSummaryDto": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "$ref": "#/components/schemas/UsageMonthDto"
+          },
+          "perWorkspace": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageWorkspaceRowDto"
+            }
+          },
+          "readCostCents": {
+            "type": "number",
+            "description": "Always 0 — saved workspaces cost nothing to open (two-phase design); reads are never metered."
+          }
+        },
+        "required": [
+          "month",
+          "perWorkspace",
+          "readCostCents"
         ]
       }
     }
