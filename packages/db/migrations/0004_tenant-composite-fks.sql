@@ -1,0 +1,2 @@
+ALTER TABLE "workspace_shares" ADD CONSTRAINT "workspace_shares_workspace_tenant_fk" FOREIGN KEY ("workspace_id","tenant_id") REFERENCES "public"."workspaces"("id","tenant_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_versions" ADD CONSTRAINT "workspace_versions_workspace_tenant_fk" FOREIGN KEY ("workspace_id","tenant_id") REFERENCES "public"."workspaces"("id","tenant_id") ON DELETE no action ON UPDATE no action;

@@ -19,8 +19,19 @@ export interface WorkspaceDbClient {
  * transaction-local `app.tenant_id`), so RLS applies to every operation
  * without a second credential.
  */
-export function createDbClient(databaseUrl: string): WorkspaceDbClient {
-  const pool = new pg.Pool({ connectionString: databaseUrl });
+export interface CreateDbClientOptions {
+  /** Pool size cap; pg's default when omitted. */
+  maxConnections?: number;
+}
+
+export function createDbClient(
+  databaseUrl: string,
+  options: CreateDbClientOptions = {},
+): WorkspaceDbClient {
+  const pool = new pg.Pool({
+    connectionString: databaseUrl,
+    ...(options.maxConnections ? { max: options.maxConnections } : {}),
+  });
   const db = drizzle(pool, { schema });
   return {
     db,

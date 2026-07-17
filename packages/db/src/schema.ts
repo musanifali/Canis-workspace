@@ -24,6 +24,7 @@ import { sql } from "drizzle-orm";
 import {
   bigserial,
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -36,9 +37,11 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * Tenant scoping for RLS policies. `current_setting` with no missing_ok is
- * deliberate: a tenant-scoped query outside `withTenant` fails loudly instead
- * of silently returning nothing.
+ * Tenant scoping for RLS policies. Fail-closed in both possible states of a
+ * connection: on a fresh connection the unset GUC makes `current_setting`
+ * error; on a connection that has run a transaction-local set_config before,
+ * the reset value is '' — which matches no tenant_id, so the query sees zero
+ * rows. Either way, no tenant setting = no data (proven in rls.test.ts).
  */
 export const tenantIdSetting = sql`current_setting('app.tenant_id')`;
 
@@ -104,6 +107,10 @@ export const workspaces = pgTable(
   },
   (table) => [
     index("workspaces_tenant_id_idx").on(table.tenantId),
+    // Composite target for child tables' (workspace_id, tenant_id) FKs: FK
+    // checks run as the table owner and bypass RLS, so without this a tenant
+    // could attach child rows to another tenant's workspace.
+    unique("workspaces_id_tenant_unique").on(table.id, table.tenantId),
     check("workspaces_head_version_positive", sql`${table.headVersion} >= 1`),
     pgPolicy("workspaces_service_select", {
       to: workspaceServiceRole,
@@ -131,9 +138,7 @@ export const workspaceVersions = pgTable(
   "workspace_versions",
   {
     id: text("id").primaryKey(),
-    workspaceId: text("workspace_id")
-      .references(() => workspaces.id)
-      .notNull(),
+    workspaceId: text("workspace_id").notNull(),
     tenantId: text("tenant_id")
       .references(() => tenants.id)
       .notNull(),
@@ -152,6 +157,13 @@ export const workspaceVersions = pgTable(
     // No updated_at: versions are immutable snapshots.
   },
   (table) => [
+    // Composite FK: a version can only belong to a workspace of the SAME
+    // tenant — closes the FK-bypasses-RLS forgery path.
+    foreignKey({
+      name: "workspace_versions_workspace_tenant_fk",
+      columns: [table.workspaceId, table.tenantId],
+      foreignColumns: [workspaces.id, workspaces.tenantId],
+    }),
     unique("workspace_versions_workspace_version_unique").on(
       table.workspaceId,
       table.versionNumber,
@@ -182,9 +194,7 @@ export const workspaceShares = pgTable(
   "workspace_shares",
   {
     id: text("id").primaryKey(),
-    workspaceId: text("workspace_id")
-      .references(() => workspaces.id)
-      .notNull(),
+    workspaceId: text("workspace_id").notNull(),
     tenantId: text("tenant_id")
       .references(() => tenants.id)
       .notNull(),
@@ -198,6 +208,12 @@ export const workspaceShares = pgTable(
       .notNull(),
   },
   (table) => [
+    // Same composite FK rationale as workspace_versions.
+    foreignKey({
+      name: "workspace_shares_workspace_tenant_fk",
+      columns: [table.workspaceId, table.tenantId],
+      foreignColumns: [workspaces.id, workspaces.tenantId],
+    }),
     unique("workspace_shares_subject_unique").on(
       table.workspaceId,
       table.subjectType,

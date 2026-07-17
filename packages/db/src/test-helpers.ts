@@ -83,3 +83,35 @@ export function specFixture(title = "Cases overview"): WorkspaceSpec {
 
 /** The verdict a save-gated spec is stored with. */
 export const buildVerdict = { verdict: "BUILD", notes: [] } as const;
+
+/**
+ * Assert a DB call fails with a Postgres error matching `pattern`. Drizzle
+ * wraps driver errors ("Failed query: …" with the pg error as `cause`), so
+ * this walks the cause chain.
+ */
+export async function expectDbErrorMatching(
+  run: Promise<unknown>,
+  pattern: RegExp,
+): Promise<void> {
+  const error = await run.then(
+    () => null,
+    (thrown: unknown) => thrown,
+  );
+  if (!(error instanceof Error)) {
+    throw new Error(
+      `expected the query to fail with ${pattern}, but it succeeded`,
+    );
+  }
+  const chain: string[] = [];
+  let current: unknown = error;
+  while (current instanceof Error) {
+    chain.push(current.message);
+    current = current.cause;
+  }
+  const combined = chain.join(" | ");
+  if (!pattern.test(combined)) {
+    throw new Error(
+      `expected error matching ${pattern}, got: ${combined}`,
+    );
+  }
+}
