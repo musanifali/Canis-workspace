@@ -150,27 +150,45 @@ session, answers it. There is no new credential, no new auth surface, and no
 row of customer data ever transits or persists in our infrastructure — we
 see specs (structure + field names), never the data those fields resolve to.
 
-**Current implementation status — read this before citing the diagram above
-as "in production."** The `demo/` app (Phase 3's proof-of-concept) wires
-`case-contract.ts`'s `fetch` to an in-memory seeded array
-(`demo/src/services/case-management.ts`) and ignores the `auth` parameter
-entirely — there is no real backend call, no session propagation, and no
-network boundary to defend in the demo today. This is the correct simplification
-for validating the *generation and validation* pipeline (Phase 3's scope) and
-is not a security gap in itself — but it also means ADR-4's auth-passthrough
-is currently an **enforced interface, not yet an exercised one**: the `auth`
-parameter exists and is threaded through unchanged end-to-end
-(`toGroundedTools(contracts, auth)` → `compileToExecutor` → `contract.fetch`),
-but no contract in this repo has a `fetch` that does anything with it yet.
-Wiring a first real, auth-checked vendor backend is Phase 4 (Workspace
-Service) work; this document should be revisited once that lands, since it
-is the one place today's implementation and the pitched architecture diverge.
+**Current implementation status — updated for Phase 4 (2026-07-17). ADR-4's
+auth-passthrough is now an exercised path, not just an enforced interface.**
+The demo has two wirings for the same contract declaration
+(`demo/src/workspace-engine/case-contract.ts`):
 
-**Session identity today** is a client-generated anonymous key
-(`demo/src/lib/use-anonymous-user-key.ts` — `anon-<uuid>` in `localStorage`,
-no cookies, no server session) plus a client-exposed
-`NEXT_PUBLIC_TAMBO_API_KEY`. This is appropriate for an unauthenticated demo;
-it is not the production auth model and should not be read as one.
+- **In-memory** (`caseContract`, used by tests and cold clones): `fetch`
+  returns the seeded rows and ignores `auth` — Phase 3's simplification,
+  unchanged.
+- **Service mode** (`createRemoteCaseContract`, active when the demo is
+  pointed at a running Workspace Service): rows live **server-side** in the
+  demo vendor's backend (`/api/vendor/cases/query`, a Next route handler),
+  which answers **only under a valid end-user session token**. The token is
+  minted server-side (`/api/vendor/session`, HMAC over the end-user key with
+  a server-only secret — `demo/src/services/vendor-session.ts`), handed to
+  `WorkspaceProvider` as `userToken`, threaded UNCHANGED through
+  `compileToExecutor` into `contract.fetch`, and presented as the Bearer
+  credential. **No token, or a forged token, is a 401 and the block renders
+  a fetch error instead of data** — verified by tests that drive the real
+  route handlers and the real remote contract
+  (`demo/src/workspace-engine/adr4.test.ts`). A query now actually runs
+  under the end user's session against a real network boundary.
+
+**Persistence** also moved from localStorage to the Workspace Service in the
+same phase: saved specs live in Postgres behind `/v1` (RLS-isolated per
+tenant with a cross-tenant must-fail suite, immutable versions, append-only
+audit — see `packages/db/src/rls.test.ts` and the Phase 4 cards), consumed
+through the SDK's unchanged `WorkspaceStore` port via
+`@workspace-engine/client`. We store specs; the vendor's rows still never
+transit our service.
+
+**What remains demo-grade, stated plainly:** the end-user identity inside
+the session token is still the demo's anonymous key (`anon-<uuid>` — there
+is no login), the vendor-session secret defaults for local dev, and the
+demo's Workspace Service API key is client-exposed
+(`NEXT_PUBLIC_WORKSPACE_API_KEY`, same trust model as
+`NEXT_PUBLIC_TAMBO_API_KEY`). The *mechanism* — server-side mint,
+server-side verify, deny-without — is the production shape; the *identity
+provider* behind it is not yet a real one. Cryptographic per-user identity
+(JWTs from the vendor's IdP) slots into the same seam.
 
 ## 5. What we inherit from the platform (out of scope for a from-scratch audit)
 
@@ -255,7 +273,7 @@ answer on our behalf.
 | --- | --- | --- |
 | The model cannot cause arbitrary code execution | True by construction | Spec is JSON, not code; renderer is a fixed registry of block components (§1) |
 | The model cannot read data outside the vendor's declared contract | True, 100% red-team catch rate, independently reproduced | §2, `redteam.test.ts`, reviewer log 2026-07-12 |
-| No new auth surface; vendor data stays under the vendor's existing session | Architecturally enforced (`auth` threaded end-to-end); not yet exercised by a real backend in this repo | §4 |
+| No new auth surface; vendor data stays under the vendor's existing session | **Exercised (Phase 4):** the demo vendor backend checks the end-user session on every case query — no token, no rows; demo-grade identity provider flagged | §4, `demo/src/workspace-engine/adr4.test.ts` |
 | The eval numbers backing these claims can be trusted even when infrastructure is degraded | Fixed this phase — inconclusive runs are a distinct, non-green status | §3, Trello `HYVbv9k5` |
 | `/v1` guard chain + RLS policies (pinned platform, static review) | Guard ordering, per-project JWT scoping, and RLS policy logic checked sound; one design property flagged (opt-in cryptographic per-user identity); connection-pool session-variable leakage flagged as an open question requiring a live test we did not run | §5 |
 

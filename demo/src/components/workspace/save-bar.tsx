@@ -9,9 +9,10 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useCurrentInteractablesSnapshot } from "@tambo-ai/react";
+import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
 import { validationContext } from "@/workspace-engine/kit";
 import { liftWorkspaceSpec, LiftError } from "@/workspace-engine/lift";
-import { createLocalStorageWorkspaceStore } from "@/workspace-engine/workspace-store";
+import { createDemoWorkspaceStore } from "@/workspace-engine/workspace-store";
 
 type Status =
   | { kind: "idle" }
@@ -20,7 +21,9 @@ type Status =
 
 export function WorkspaceSaveBar() {
   const snapshot = useCurrentInteractablesSnapshot();
-  const store = useMemo(() => createLocalStorageWorkspaceStore(), []);
+  const userKey = useAnonymousUserKey();
+  // Service mode → durable Postgres via /v1; otherwise localStorage.
+  const store = useMemo(() => createDemoWorkspaceStore(userKey), [userKey]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [busy, setBusy] = useState(false);
 

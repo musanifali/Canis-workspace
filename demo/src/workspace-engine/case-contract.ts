@@ -13,8 +13,8 @@ import { caseSchema, searchCases, type Case } from "@/services/case-management";
 /** Every seeded case, loaded once (240 = dataset size cap). */
 const ALL_CASES: Case[] = searchCases({ limit: 240 }).cases;
 
-/** The `case` contract: field kinds, capabilities, and the (trivial) executor. */
-export const caseContract = defineEntity({
+/** Shared declaration — the surface is identical however rows are fetched. */
+const caseContractDeclaration = {
   name: "case",
   schema: caseSchema,
   fieldKinds: { openedDate: "date", dueDate: "date" },
@@ -29,6 +29,42 @@ export const caseContract = defineEntity({
     defaultLimit: 50,
     maxLimit: 200,
   },
+} as const;
+
+/** The `case` contract: field kinds, capabilities, and the (trivial) executor. */
+export const caseContract = defineEntity({
+  ...caseContractDeclaration,
   // Return rows; @workspace-engine/core's client-side engine does the querying.
   fetch: async () => ALL_CASES,
 });
+
+/**
+ * The same contract backed by the demo vendor's REAL backend (ADR-4
+ * exercised): rows come from /api/vendor/cases/query, which answers only
+ * under the end user's session token. `auth` arrives here UNCHANGED from
+ * WorkspaceProvider's `userToken` and is presented as the Bearer credential —
+ * no token (or a forged one) means 401, and the block surfaces a fetch error
+ * instead of data.
+ */
+export function createRemoteCaseContract(baseUrl = "") {
+  return defineEntity({
+    ...caseContractDeclaration,
+    fetch: async ({ auth }) => {
+      const response = await fetch(`${baseUrl}/api/vendor/cases/query`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${String(auth)}`,
+        },
+        body: JSON.stringify({}),
+      });
+      if (!response.ok) {
+        throw new Error(
+          `vendor case backend refused the query (${response.status})`,
+        );
+      }
+      const payload = (await response.json()) as { rows: Case[] };
+      return payload.rows;
+    },
+  });
+}

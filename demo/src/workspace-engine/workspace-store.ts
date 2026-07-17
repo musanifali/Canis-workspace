@@ -13,12 +13,52 @@ import {
   serializeSpec,
   type WorkspaceSpec,
 } from "@workspace-engine/core";
+import { createHttpWorkspaceStore } from "@workspace-engine/client";
 import {
   WorkspaceNotFoundError,
   type WorkspaceRecord,
   type WorkspaceStore,
   type WorkspaceSummary,
 } from "@workspace-engine/react";
+
+/** Service mode is on when the demo is pointed at a Workspace Service. */
+export interface ServiceModeConfig {
+  baseUrl: string;
+  apiKey: string;
+}
+
+/**
+ * Read service-mode config from the build-time env (NEXT_PUBLIC_ vars are
+ * inlined by Next). The demo API key is client-exposed by design — same
+ * trust model as NEXT_PUBLIC_TAMBO_API_KEY, appropriate for the
+ * unauthenticated demo, not a production posture.
+ * @returns The config, or null to stay on localStorage.
+ */
+export function serviceModeConfig(): ServiceModeConfig | null {
+  const baseUrl = process.env.NEXT_PUBLIC_WORKSPACE_API_URL;
+  const apiKey = process.env.NEXT_PUBLIC_WORKSPACE_API_KEY;
+  return baseUrl && apiKey ? { baseUrl, apiKey } : null;
+}
+
+/**
+ * The Phase 4 port swap, demo side: the SAME WorkspaceStore port, backed by
+ * the Workspace Service when configured (durable Postgres, versioned,
+ * audited, RLS-isolated) and by localStorage otherwise (tests, cold clones).
+ * @returns The store for this end user.
+ */
+export function createDemoWorkspaceStore(
+  userKey: string,
+  config: ServiceModeConfig | null = serviceModeConfig(),
+): WorkspaceStore {
+  if (config) {
+    return createHttpWorkspaceStore({
+      baseUrl: config.baseUrl,
+      apiKey: config.apiKey,
+      userId: userKey,
+    });
+  }
+  return createLocalStorageWorkspaceStore();
+}
 
 const KEY = "workspace-engine:saved-workspaces";
 

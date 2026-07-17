@@ -18,12 +18,19 @@ import {
   type WorkspaceSummary,
   type WorkspaceRecord,
 } from "@workspace-engine/react";
-import { blocks, contracts } from "@/workspace-engine/kit";
-import { createLocalStorageWorkspaceStore } from "@/workspace-engine/workspace-store";
+import { blocks } from "@/workspace-engine/kit";
+import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
+import { useVendorDataAccess } from "@/workspace-engine/vendor-data";
+import { createDemoWorkspaceStore } from "@/workspace-engine/workspace-store";
 import { seedSavedWorkspaces } from "@/workspace-engine/seed-saved";
 
 export default function SavedWorkspacesPage() {
-  const store = useMemo(() => createLocalStorageWorkspaceStore(), []);
+  const userKey = useAnonymousUserKey();
+  // Service mode → durable Postgres via /v1; otherwise localStorage.
+  const store = useMemo(() => createDemoWorkspaceStore(userKey), [userKey]);
+  // ADR-4: in service mode, contracts hit the vendor backend under the
+  // end user's session token; the token IS the userToken passed below.
+  const vendor = useVendorDataAccess(userKey);
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>([]);
   const [active, setActive] = useState<WorkspaceRecord | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -139,12 +146,12 @@ export default function SavedWorkspacesPage() {
           </ul>
 
           <div className="min-w-0 flex-1" data-testid="saved-render">
-            {active && (
+            {active && vendor.ready && (
               <WorkspaceProvider
                 key={active.id}
                 apiKey="demo"
-                userToken={{ demo: true }}
-                contracts={contracts}
+                userToken={vendor.userToken}
+                contracts={vendor.contracts}
                 blocks={blocks}
               >
                 <WorkspaceRenderer spec={active.spec} rowHeight={72} />
