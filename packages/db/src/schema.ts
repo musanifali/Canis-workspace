@@ -79,6 +79,35 @@ export const tenants = pgTable(
 );
 export type DBTenant = typeof tenants.$inferSelect;
 
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .references(() => tenants.id)
+      .notNull(),
+    name: text("name").notNull(),
+    /** sha256 hex of the raw key — the raw key is shown once and never stored. */
+    keyHash: text("key_hash").notNull().unique(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("api_keys_tenant_id_idx").on(table.tenantId),
+    // Key resolution runs on the owner connection BEFORE a tenant is known;
+    // the service role can only list its own tenant's keys (metadata, hashes
+    // only). No insert/update/delete: key management is an admin operation.
+    pgPolicy("api_keys_service_select", {
+      to: workspaceServiceRole,
+      for: "select",
+      using: sql`${table.tenantId} = ${tenantIdSetting}`,
+    }),
+  ],
+);
+export type DBApiKey = typeof apiKeys.$inferSelect;
+
 export const workspaces = pgTable(
   "workspaces",
   {

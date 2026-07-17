@@ -1,0 +1,38 @@
+{
+  "name": "@workspace-engine/api",
+  "version": "0.1.0",
+  "description": "Workspace Service — the /v1 HTTP API. NestJS, mirroring the vendored Tambo backend's discipline: controllers → services → packages/db operations.",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "openapi": "tsx src/emit-openapi.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "@workspace-engine/core": "0.1.0",
+    "@workspace-engine/db": "0.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^26.1.0",
+    "@types/supertest": "^6.0.2",
+    "@workspace-engine/client": "0.1.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

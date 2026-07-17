@@ -16,6 +16,7 @@ const require = createRequire(import.meta.url);
 
 const PACKAGES = [
   "@workspace-engine/core",
+  "@workspace-engine/client",
   "@workspace-engine/db",
   "@workspace-engine/react",
   "@workspace-engine/ui",

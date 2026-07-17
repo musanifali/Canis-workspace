@@ -1,0 +1,437 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/workspaces": {
+      "get": {
+        "operationId": "WorkspacesController_list",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "List the tenant's workspaces (no spec payload)",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "post": {
+        "operationId": "WorkspacesController_create",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Save a new workspace (creates version 1)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}": {
+      "get": {
+        "operationId": "WorkspacesController_get",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "Unknown or deleted workspace"
+          }
+        },
+        "summary": "Fetch a workspace with its head-version spec",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "put": {
+        "operationId": "WorkspacesController_update",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "Unknown or deleted workspace"
+          }
+        },
+        "summary": "Save an edit (appends an immutable version)",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "delete": {
+        "operationId": "WorkspacesController_remove",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "Unknown or deleted workspace"
+          }
+        },
+        "summary": "Soft-delete a workspace (history is preserved)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}/versions": {
+      "get": {
+        "operationId": "WorkspacesController_versions",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceVersionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "Unknown or deleted workspace"
+          }
+        },
+        "summary": "Version history, newest first",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{id}/rollback": {
+      "post": {
+        "operationId": "WorkspacesController_rollback",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceRecordDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "Unknown workspace or version"
+          }
+        },
+        "summary": "Point the head at an existing version (no history rewrite)",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Workspace Service API",
+    "description": "Durable, multi-tenant, versioned, audited persistence for Workspace Spec v1 documents. Versioned at /v1 from day one; see API_VERSIONING.md for the deprecation policy.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    },
+    "schemas": {
+      "WorkspaceSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "number",
+            "description": "Epoch millis of the last save."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "updatedAt"
+        ]
+      },
+      "WorkspaceRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "number",
+            "description": "Epoch millis of the last save."
+          },
+          "spec": {
+            "type": "object",
+            "description": "The validated Workspace Spec v1 document."
+          },
+          "headVersion": {
+            "type": "number"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "private",
+              "team",
+              "org"
+            ]
+          },
+          "ownerUserId": {
+            "type": "string"
+          },
+          "createdFromThreadId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "updatedAt",
+          "spec",
+          "headVersion",
+          "visibility",
+          "ownerUserId"
+        ]
+      },
+      "WorkspaceVersionDto": {
+        "type": "object",
+        "properties": {
+          "versionNumber": {
+            "type": "number"
+          },
+          "prompt": {
+            "type": "string",
+            "nullable": true
+          },
+          "authorUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp."
+          },
+          "specVersion": {
+            "type": "number"
+          },
+          "spec": {
+            "type": "object",
+            "description": "The immutable spec snapshot this version stores."
+          }
+        },
+        "required": [
+          "versionNumber",
+          "prompt",
+          "authorUserId",
+          "createdAt",
+          "specVersion",
+          "spec"
+        ]
+      }
+    }
+  }
+}

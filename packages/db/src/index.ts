@@ -14,6 +14,7 @@ export {
 export { withTenant, type TenantContext, type TenantTx } from "./tenant.js";
 export {
   tenants,
+  apiKeys,
   workspaces,
   workspaceVersions,
   workspaceShares,
@@ -21,6 +22,7 @@ export {
   auditLog,
   workspaceServiceRole,
   type DBTenant,
+  type DBApiKey,
   type DBWorkspace,
   type DBWorkspaceVersion,
   type DBWorkspaceShare,
@@ -51,6 +53,12 @@ export {
   removeDataContract,
   type UpsertDataContractParams,
 } from "./operations/contracts.js";
+export {
+  createApiKey,
+  resolveApiKey,
+  revokeApiKey,
+  type CreatedApiKey,
+} from "./operations/api-keys.js";
 export {
   writeAudit,
   listAuditEntries,

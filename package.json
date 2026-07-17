@@ -2,9 +2,10 @@
   "name": "workspace-engine",
   "private": true,
   "version": "0.0.0",
-  "description": "Workspace Engine — natural language to safe, saved, native screens. Built on Tambo (consumed, never forked).",
+  "description": "Workspace Engine \u2014 natural language to safe, saved, native screens. Built on Tambo (consumed, never forked).",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "packageManager": "npm@10.9.7",
   "scripts": {
