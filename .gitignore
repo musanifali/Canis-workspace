@@ -6,6 +6,7 @@ dist/
 *.tsbuildinfo
 .env.local
 .env
+.env.mcp
 *.log
 .DS_Store
 # Obsidian vault is versioned; ignore only per-machine editor state

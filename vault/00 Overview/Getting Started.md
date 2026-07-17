@@ -44,3 +44,26 @@ cd demo && npm run dev    # → localhost:3001 (:3000 is taken by another projec
 ```bash
 cd demo && npx -y tsx scripts/check-tools.mts   # 15 regression checks must pass
 ```
+
+## 6. (Optional) Configure GitHub + Trello MCP
+
+The repo root ships a committed `.mcp.json` wiring up the GitHub and Trello
+MCP servers — **placeholders only, no secrets**. To use them from a fresh
+clone:
+
+```bash
+cp .env.mcp.example .env.mcp   # gitignored — never commit the filled version
+# edit .env.mcp with your own GitHub PAT + Trello key/token/board ID
+set -a && . ./.env.mcp && set +a
+claude   # .mcp.json picks up the ${VAR} placeholders from your shell env
+```
+
+> [!warning] Never commit filled-in credentials
+> `.mcp.json` must only ever contain `${VAR}` placeholders. Each person
+> supplies their own token via `.env.mcp` (gitignored) — this is why rotating
+> a key never requires touching `.mcp.json`. See [[Known Issues]] for the
+> history of keys pasted into chat that needed rotation.
+
+On first use, Claude Code will prompt you to approve the two new project MCP
+servers (`.mcp.json` is repo-scoped, so approval is per-clone, per-person —
+by design, so no one silently inherits MCP access they didn't opt into).
