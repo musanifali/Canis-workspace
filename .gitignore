@@ -2,6 +2,7 @@
 /tambo/
 node_modules/
 dist/
+.next/
 .turbo/
 *.tsbuildinfo
 .env.local

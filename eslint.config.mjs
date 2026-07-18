@@ -5,7 +5,15 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "demo/**", "tambo/**", "vault/**"],
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/next-env.d.ts",
+      "demo/**",
+      "tambo/**",
+      "vault/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

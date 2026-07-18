@@ -1,0 +1,167 @@
+/* Canis brand: indigo accent over a neutral shell; the workspace blocks pick
+   the palette up through the --we-* theme variables (no CSS import needed). */
+:root {
+  --canis-accent: #4f46e5;
+  --we-accent: #4f46e5;
+  --we-radius: 10px;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  color: #111827;
+  background: #f9fafb;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--canis-accent);
+  text-decoration: none;
+}
+
+.brand-sub {
+  font-weight: 400;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.site-header nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.site-header nav a {
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.site-header nav a:hover {
+  color: var(--canis-accent);
+}
+
+.site-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.view-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.view-card {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.view-card:hover {
+  border-color: var(--canis-accent);
+}
+
+.view-card h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.view-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.notice {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  color: #374151;
+}
+
+.notice.error {
+  border-color: #fca5a5;
+}
+
+.notice code {
+  background: #f3f4f6;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.contracts-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.contracts-table th,
+.contracts-table td {
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+
+.contracts-table th {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pill {
+  display: inline-block;
+  background: #eef2ff;
+  color: var(--canis-accent);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  font-size: 0.78rem;
+  margin: 0 0.25rem 0.25rem 0;
+}
+
+details.def summary {
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+details.def pre {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.75rem;
+  overflow: auto;
+  font-size: 0.78rem;
+}
