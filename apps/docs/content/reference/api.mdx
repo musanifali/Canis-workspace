@@ -1,0 +1,104 @@
+# API reference
+
+The public surface of the six released packages, curated (what the [release
+policy](/reference/release-policy) counts as semver-protected). Types are the
+source of truth — everything here re-exports from each package's `index`.
+
+## `@workspace-engine/core`
+
+Pure — no React, no IO; zod is the only runtime dependency.
+
+### Contracts
+
+- **`defineEntity({ name, schema, fieldKinds?, capabilities, fetch })`** →
+  `EntityContract`. Declares an entity: a zod object schema (field names,
+  kinds, and the `.describe()` strings the model reads), the allowed query
+  capabilities, and your executor. Throws `ContractDefinitionError` on
+  impossible declarations (e.g. a capability naming an undeclared field).
+- **`serializeContract(contract)` / `reviveContract(json)`** — the
+  declarative surface as JSON (what the Workspace Service stores) and back.
+  A revived contract gates specs; its `fetch` throws by design.
+- **`compileToTools` / `compileToValidator` / `compileToExecutor`** — one
+  contract compiled three ways (LLM tool schema, query validator, executor);
+  they cannot drift because they derive from the same object.
+- **`executeQuery(rows, query, options?)`** — the in-memory engine:
+  filter/sort/group/aggregate over fetched rows, capped at
+  `maxClientRows` (default 10 000; `RowCapExceededError` beyond it).
+
+### Execution modes
+
+Every capability runs `client` (default — the engine enforces it, your fetch
+may over-return) or `server` (your fetch handles it; the engine trusts the
+result). Declare per-operation:
+`capabilities: { ..., execution: { sort: "server" } }`. Verify server modes
+with [`canis contracts lint --probe`](/guides/vendor-ci).
+
+### Specs
+
+- **`parseSpec(json)` / `serializeSpec(spec)`** — canonical (de)serialization;
+  `SpecParseError` on shape violations.
+- **`validateSpec(spec, { contracts, policy? })`** → `BUILD | CLARIFY |
+  REJECT` — [the gate](/reference/errors). `MAX_BLOCKS`, `DEFAULT_REGISTRY`,
+  and the schema exports (`workspaceSpecSchema`, `querySpecSchema`, …) let
+  you build tooling that cannot drift from the validator.
+- **`migrateSpec` / `createMigrationRunner`** — forward migrations for future
+  spec versions (v1 is frozen).
+
+## `@workspace-engine/react`
+
+`react` is the only peer; SSR-safe.
+
+- **`WorkspaceProvider`** — mount once: `apiKey`, `userToken` (passed
+  untouched to every contract fetch), `contracts`, `blocks`, optional
+  `store`, `policy`, `registry`, `queryClient`, `onBlockDegraded`, `devMode`.
+- **`WorkspaceRenderer spec={…}`** — deterministic grid render of a
+  validated spec. Per-block error boundaries; degradations fire
+  `onBlockDegraded` [once each](/reference/errors#2-read-time-degradation-renderer).
+- **`defineBlock({ type, accepts, component })`** — register a custom block
+  component; declarations are checked at mount, not at first render.
+- **Headless hooks** — `useBlockQuery`, `useWorkspaceFilters`,
+  `useRuntimeFilters`, workspace store hooks; `createInMemoryWorkspaceStore`
+  and the **`WorkspaceStore` port** (list/get/create/update/remove) that the
+  HTTP store implements.
+
+## `@workspace-engine/ui`
+
+- **`defaultBlocks`** — the complete built-in block set (`CasesTable`,
+  `KpiCards`, `CaseQueue`, `GroupedBoard`, `FilterBar`, `Graph`); hand to
+  `blocks={defaultBlocks}` and swap entries one at a time.
+- **`WorkspaceSandbox`** — the zero-config devMode screen.
+
+### Theming
+
+Blocks read `--we-*` CSS custom properties from any ancestor — no CSS import:
+`--we-bg`, `--we-surface`, `--we-fg`, `--we-muted`, `--we-border`,
+`--we-accent`, `--we-positive`, `--we-negative`, `--we-radius`, `--we-gap`
+(exported as `tokens` / `TOKEN_NAMES`).
+
+## `@workspace-engine/client`
+
+### Workspace Service client
+
+- **`createWorkspaceServiceClient({ baseUrl, apiKey, userId, fetch? })`** —
+  typed /v1 client: workspaces CRUD + versions + rollback + shares +
+  visibility + duplicate, `listContracts`/`getContract`/`upsertContract`/
+  `removeContract`, `listAudit({ workspaceId?, action?, limit? })`,
+  usage (`getGenerationAllowance`, `recordGeneration`, `getUsageSummary`).
+  Errors: `WorkspaceServiceError`, `WorkspaceNotFoundError`,
+  `GenerationLimitedError`.
+- **`createHttpWorkspaceStore(options)`** — the same options, shaped as the
+  SDK's `WorkspaceStore` port: swapping the in-memory store for the real
+  service is one line. Keep the API key server-side — proxy pattern in the
+  [dashboard reference integration](https://github.com/musanifali/Canis-workspace/tree/main/apps/dashboard).
+
+## `@workspace-engine/cli`
+
+The `canis` binary — see the [vendor CI guide](/guides/vendor-ci):
+`contracts diff`, `contracts lint [--probe]`, `contracts dev`. Exit codes are
+public API: `0` ok, `1` gating, `2` usage.
+
+## `@workspace-engine/devtools`
+
+In-app devtools bus + panel: `recordSpec`, `recordVerdict`,
+`DevtoolsQueryReporter`, and the panel component for inspecting gate
+verdicts and block queries during integration.

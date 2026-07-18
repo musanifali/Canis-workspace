@@ -1,0 +1,85 @@
+# Contract safety in CI
+
+Your contract is load-bearing: your customers' saved workspaces reference its
+fields and capabilities, sometimes for years. The `canis` CLI makes changing
+it safe.
+
+## `contracts diff` — does this change break saved workspaces?
+
+```sh
+npx canis contracts diff \
+  --old contracts/shipped.ts --new contracts/proposed.ts \
+  --service-url https://workspace-api.internal \
+  --api-key "$CANIS_API_KEY" --user-id ci-bot
+```
+
+The diff re-validates every saved workspace under the proposed contracts and
+exits `1` with a report like:
+
+```
+BREAKING — this change breaks 1 of 3 saved workspace(s):
+
+  x ws_9f2 "SLA breach watch"  BUILD -> REJECT
+      [blk_table] field "sla_deadline" is no longer filterable on "case"
+```
+
+Air-gapped CI can use `--specs-dir ./saved-specs` (a directory of exported
+spec JSON) instead of the service. `--json` emits a stable machine-readable
+report. Purely additive changes exit `0`.
+
+## `contracts lint` — is the contract good enough to generate from?
+
+Generation quality depends on contract quality. Lint makes that legible:
+
+```sh
+npx canis contracts lint --contracts contracts/shipped.ts
+```
+
+- **errors** (exit `1`): a capability referencing an undeclared field, a
+  module that fails to load.
+- **warnings**: missing/vague entity or field descriptions, enum values the
+  description doesn't document — each one is context the model is being
+  starved of. Codes in the [error taxonomy](/reference/errors#4-canis-cli).
+
+## `--probe` — does your fetch do what the contract promises?
+
+Capabilities declared `execution: "server"` are trusted blindly at render
+time. The probe runs sample queries through your **real** fetch and fails CI
+when a declared capability is unimplemented:
+
+```sh
+npx canis contracts lint --contracts contracts/shipped.ts --probe --auth '{"token":"ci"}'
+```
+
+```
+orders:
+  error  declared sortable "total" with execution.sort="server", but the fetch
+         returned rows out of order — the engine trusts server sort and
+         renders them as-is  (server_sort_unimplemented)
+```
+
+Client-mode capabilities are never probed — the engine enforces those no
+matter what your fetch returns.
+
+## `contracts dev` — the playground
+
+One command to see a contract the way the platform sees it — fields and
+kinds, capabilities, execution modes, limits — plus every lint and probe
+finding:
+
+```sh
+npx canis contracts dev --contracts contracts/shipped.ts
+```
+
+## Recommended CI wiring
+
+```yaml
+- run: npx canis contracts lint --contracts contracts/shipped.ts --probe
+- run: |
+    npx canis contracts diff \
+      --old contracts/shipped.ts --new contracts/proposed.ts \
+      --specs-dir ci/saved-specs
+```
+
+Run `diff` on every PR that touches a contract file; treat exit `1` as a
+review conversation with your customers' saved workspaces.

@@ -1,0 +1,201 @@
+# Quickstart — a validated workspace in under 10 minutes
+
+> Every code block on this page is a real file in
+> [`examples/quickstart`](https://github.com/musanifali/Canis-workspace/tree/main/examples/quickstart),
+> compiled and tested on every CI run — a sync test fails if this page drifts
+> from the code. Last stopwatch run (2026-07-18): a scripted cold run — fresh
+> directory, tarball install, the four files below, `tsc` + the gate test
+> green — takes **38s**; budget the rest of the ten minutes for reading and
+> adapting the contract to your data.
+
+## Step 0 — see it live before writing anything (60s)
+
+Drop the zero-config sandbox into any React app to see a working workspace
+with bundled sample data — no contract, no network, no keys:
+
+```tsx
+import { WorkspaceSandbox } from "@workspace-engine/ui";
+
+export default function Page() {
+  return <WorkspaceSandbox />;
+}
+```
+
+Now replace the sample with your data, in three files.
+
+## Step 1 — install (30s)
+
+```sh
+npm install @workspace-engine/core @workspace-engine/react @workspace-engine/ui zod
+```
+
+*(In this monorepo the packages are workspace-linked; from outside, install
+the canary tarballs — see the [release policy](/reference/release-policy).)*
+
+## Step 2 — declare your contract (3–4 min)
+
+One `defineEntity` call declares what your data looks like and which queries
+you allow. The model, the validator, and the renderer all work from this one
+declaration — the `.describe()` strings are what the model reads, so write
+them for a colleague, not a compiler:
+
+```ts filename="src/contract.ts"
+// Step 2 — declare what your data looks like and what queries you allow.
+// This is the whole integration contract: the model, the validator, and the
+// renderer all work from this one declaration.
+import { defineEntity } from "@workspace-engine/core";
+import { z } from "zod";
+
+export const ticketContract = defineEntity({
+  name: "ticket",
+  schema: z
+    .object({
+      id: z.string().describe("Ticket id from your helpdesk."),
+      subject: z.string().describe("One-line customer-facing summary."),
+      priority: z
+        .enum(["low", "normal", "urgent"])
+        .describe("Priority: low (backlog), normal (this week), urgent (today)."),
+      assignee: z.string().describe("Support agent the ticket is assigned to."),
+      ageHours: z.number().describe("Hours since the ticket was opened."),
+      opened: z.string().describe("Day the ticket was opened (YYYY-MM-DD)."),
+    })
+    .describe("A customer support ticket from your helpdesk."),
+  fieldKinds: { opened: "date" },
+  capabilities: {
+    filterable: ["priority", "assignee", "ageHours", "subject"],
+    sortable: ["ageHours", "opened"],
+    groupable: ["priority", "assignee"],
+    aggregations: { ageHours: ["avg", "max"] },
+    defaultLimit: 50,
+    maxLimit: 200,
+  },
+  // Your fetch just returns rows — filtering/sorting/grouping run in the
+  // SDK's engine. `auth` is your end user's token, passed through untouched.
+  fetch: async ({ auth }) => {
+    const response = await fetch("/api/tickets", {
+      headers: { authorization: `Bearer ${String(auth)}` },
+    });
+    return (await response.json()) as unknown[];
+  },
+});
+```
+
+Your `fetch` may **over-return** (the engine filters, sorts, groups, and
+aggregates client-side up to the row cap) but must never under-return — see
+[execution modes](/reference/api#execution-modes) for graduating hot paths to
+`execution: "server"`.
+
+## Step 3 — mount the provider (1 min)
+
+```tsx filename="src/App.tsx"
+// Step 3 — mount the provider once, then any validated spec renders.
+// defaultBlocks is the complete built-in block set; swap components later,
+// one block at a time.
+import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import { defaultBlocks } from "@workspace-engine/ui";
+import { ticketContract } from "./contract";
+import { ticketBoardSpec } from "./spec";
+
+export default function App({ userToken }: { userToken: string }) {
+  return (
+    <WorkspaceProvider
+      apiKey="qs-local"
+      userToken={userToken}
+      contracts={[ticketContract]}
+      blocks={defaultBlocks}
+    >
+      <WorkspaceRenderer spec={ticketBoardSpec} />
+    </WorkspaceProvider>
+  );
+}
+```
+
+## Step 4 — a workspace is data (1 min)
+
+In production this JSON comes out of the generation pipeline; here it's
+hand-written so you can see all there is to it:
+
+```ts filename="src/spec.ts"
+// Step 4 — a workspace is data, not code. This one came out of the
+// generation pipeline; you could also write it by hand, like here. Either
+// way it only renders after validateSpec says BUILD.
+import { parseSpec } from "@workspace-engine/core";
+
+export const ticketBoardSpec = parseSpec({
+  specVersion: 1,
+  title: "Support triage",
+  timezone: "viewer",
+  blocks: [
+    {
+      id: "blk_kpis",
+      type: "KpiCards",
+      frame: { x: 0, y: 0, w: 12, h: 2 },
+      config: {
+        cards: [
+          { alias: "open_tickets", label: "Open tickets" },
+          { alias: "avg_age", label: "Avg age (h)" },
+        ],
+      },
+      binding: {
+        entity: "ticket",
+        query: {
+          aggregations: [
+            { fn: "count", alias: "open_tickets" },
+            { fn: "avg", field: "ageHours", alias: "avg_age" },
+          ],
+        },
+      },
+    },
+    {
+      id: "blk_board",
+      type: "GroupedBoard",
+      frame: { x: 0, y: 2, w: 6, h: 6 },
+      config: { title: "By priority" },
+      binding: { entity: "ticket", query: { groupBy: "priority" } },
+    },
+    {
+      id: "blk_oldest",
+      type: "CasesTable",
+      frame: { x: 6, y: 2, w: 6, h: 6 },
+      config: {
+        title: "Oldest first",
+        columns: ["subject", "priority", "assignee", "ageHours"],
+      },
+      binding: {
+        entity: "ticket",
+        query: { sort: [{ field: "ageHours", dir: "desc" }], limit: 20 },
+      },
+    },
+  ],
+});
+```
+
+## Step 5 — the gate, in your CI (2 min)
+
+```ts filename="src/validate.test.ts"
+// Step 5 — the gate. Everything that reaches the renderer passes this same
+// check, so run it in YOUR CI too: a contract change that would break this
+// workspace fails here (and `canis contracts diff` tells you across all of
+// your saved workspaces).
+import { validateSpec } from "@workspace-engine/core";
+import { expect, test } from "vitest";
+import { ticketContract } from "./contract";
+import { ticketBoardSpec } from "./spec";
+
+test("the ticket board builds under the ticket contract", () => {
+  const result = validateSpec(ticketBoardSpec, {
+    contracts: { ticket: ticketContract },
+  });
+  expect(result.verdict).toBe("BUILD");
+});
+```
+
+`npm test` → green. You have a working, validated workspace: the model can
+now only ever propose screens your contract allows, and anything else comes
+back as a [`REJECT` or `CLARIFY`](/reference/errors) — never a broken render.
+
+## Next
+
+- Wire generation + persistence: the [Workspace Service](/reference/api#workspace-service-client).
+- Put [`canis contracts diff`](/guides/vendor-ci) in CI before you change a contract.
+- Restyle blocks with the [`--we-*` theme tokens](/reference/api#theming), or swap any block for your own component.

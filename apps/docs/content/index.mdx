@@ -1,0 +1,33 @@
+# Canis — Workspace Engine
+
+Canis gives your B2B product **AI-built, contract-validated workspaces**: your
+customers describe the screen they need, the model proposes a workspace *as
+data*, a validator gates it against **your** declared data contract, and a
+deterministic renderer turns it into a live screen — with zero LLM involvement
+at read time.
+
+```
+prompt ──> LLM ──> WorkspaceSpec (JSON) ──> validateSpec ──> BUILD? ──> renderer
+                                              │ your contract │
+                                              └── REJECT / CLARIFY (never renders)
+```
+
+Three properties make this safe to ship:
+
+- **Everything is data.** A workspace is a JSON document (Spec v1) — no code,
+  no JSX, no expressions. Every capability it can use is one you declared.
+- **Validation is total.** Nothing reaches the renderer, or the Workspace
+  Service's storage, without a `BUILD` verdict from the same validator.
+- **Your data stays yours.** The SDK calls *your* `fetch` with *your end
+  user's* auth token. Customer rows never rest with us.
+
+## Where to go
+
+- **[Quickstart](/quickstart)** — a working, validated workspace in your app
+  in under 10 minutes (stopwatch-timed, and the code is compiled in our CI).
+- **[Vendor CI guide](/guides/vendor-ci)** — `canis contracts diff` blocks
+  contract changes that would break your customers' saved workspaces.
+- **[Spec v1 reference](/reference/spec-v1)** — the frozen workspace format.
+- **[Error taxonomy](/reference/errors)** — every verdict, error code, and
+  exit code, and what to do about each.
+- **[API reference](/reference/api)** — the public surface of each package.

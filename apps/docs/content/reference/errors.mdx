@@ -1,0 +1,94 @@
+# Error taxonomy
+
+Every failure in Canis is machine-readable and belongs to one of five layers.
+Nothing fails silently: a spec that can't render never renders, and every
+refusal carries a code from this page.
+
+## 1. Validator verdicts (`validateSpec`)
+
+The single gate. Every spec — model-generated, hand-written, or loaded from
+storage — gets one of:
+
+| Verdict | Meaning | What to do |
+|---|---|---|
+| `BUILD` | Renders. Carries the normalized spec plus advisory `notes`. | Render / save it. |
+| `CLARIFY` | Under-determined — carries `questions` for the end user. | Ask, regenerate. |
+| `REJECT` | References data, operators, or blocks outside the contract/policy — carries structured `errors` (below). | Show the errors; never render. |
+
+### `SpecValidationError` codes
+
+| Code | Fired when | Key fields |
+|---|---|---|
+| `SpecShapeError` | JSON doesn't match the Spec v1 schema | `path` |
+| `SpecVersionError` | `specVersion` unsupported | `found`, `supported` |
+| `BlockCountError` | more blocks than the cap | `count`, `max` |
+| `UnknownBlockTypeError` | type absent from the registry | `type`, `allowed` |
+| `BlockTypeNotAllowedError` | type outside tenant policy | `type`, `allowed` |
+| `FrameSizeError` | frame outside the block's min/max | `axis`, `found`, `min`, `max` |
+| `ConfigSchemaError` | block `config` fails its schema | `path` |
+| `ConfigFieldReferenceError` | config names a field the entity lacks | `field`, `allowed` |
+| `UnknownEntityError` | binding names an entity with no contract | `entity`, `allowed` |
+| `EntityNotAllowedError` | entity outside tenant policy | `entity`, `allowed` |
+| `ContractViolationError` | query exceeds the entity's capabilities | `entity`, `violation`, `field` |
+| `LayoutOverlapError` | two frames overlap | `blockIds` |
+| `BindingShapeError` | query shape ≠ what the block renders | `expected`, `derived` |
+| `AliasReferenceError` | config references an undeclared aggregation alias | `alias`, `declared` |
+| `FilterTargetError` | FilterBar targets a bad sibling | `target`, `reason` |
+
+`ContractViolationError.violation` is one of: `unknown_field`,
+`not_filterable`, `op_not_allowed`, `not_sortable`, `not_groupable`,
+`aggregation_not_allowed`, `limit_exceeded`.
+
+## 2. Read-time degradation (renderer)
+
+A saved spec can outlive its contract. Blocks degrade **individually** — one
+broken block never takes down the workspace. Each degradation fires
+`onBlockDegraded` once with a reason:
+
+| Reason | Meaning |
+|---|---|
+| `unknown-type` | no component registered for the block's type |
+| `missing-contract` | bound entity has no contract in this provider |
+| `contract-drift` | saved spec references data the contract no longer exposes |
+| `fetch-error` | the vendor fetch / executor failed at runtime |
+| `render-error` | the block component threw while rendering |
+
+## 3. Workspace Service (/v1) error bodies
+
+All errors are `{ statusCode, code, message, ... }`:
+
+| Status | `code` | When |
+|---|---|---|
+| 422 | `spec_rejected` | save re-gated server-side → REJECT (carries `errors`) |
+| 422 | `spec_needs_clarification` | save re-gated → CLARIFY (carries `questions`) |
+| 422 | `contract_invalid` | contract registration that `reviveContract` can't enforce |
+| 429 | `budget_exceeded` | tenant generation budget exhausted |
+| 429 | `rate_limited` | per-user generation rate cap hit |
+| 404 | — | unknown/deleted resource, or existence hidden (no view access) |
+| 403 | — | viewable but the specific right is missing |
+
+Every refused save also lands on the audit trail as
+`workspace.spec_rejected` with the validator's errors — the vendor
+dashboard's "rejected capabilities" report reads exactly these.
+
+## 4. `canis` CLI
+
+**Exit codes:** `0` ok · `1` CI-gating result (broken workspaces / error
+findings) · `2` usage error.
+
+Lint/probe finding codes: `contract_load_failed`, `capability_unknown_field`
+(errors); `missing_entity_description`, `vague_entity_description`,
+`missing_field_description`, `vague_field_description`,
+`enum_value_undocumented` (warnings); probes add
+`server_sort_unimplemented`, `server_filter_unimplemented`,
+`probe_fetch_failed` (errors), `probe_insufficient_rows`,
+`probe_unverified_server_op` (warnings).
+
+## 5. Engine limits
+
+| Error | Meaning | Fix |
+|---|---|---|
+| `RowCapExceededError` | fetch returned more rows than `maxClientRows` | narrow the query, raise the cap, or declare the op `execution: "server"` |
+| `SpecParseError` | `parseSpec` on malformed JSON | fix the document; carries zod paths |
+| `ContractDefinitionError` | `defineEntity` given an impossible contract | thrown at build time, on purpose |
+| `ContractRevivalError` | stored contract definition can't be revived | re-register the contract |

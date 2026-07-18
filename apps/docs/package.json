@@ -1,0 +1,26 @@
+{
+  "name": "@workspace-engine/docs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "node scripts/sync-devdocs.mjs && next build",
+    "start": "next start -p 3003",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "^15.5.7",
+    "nextra": "^4.2.0",
+    "nextra-theme-docs": "^4.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
