@@ -1,7 +1,7 @@
 ---
 tags: [product, decision, phase5]
 created: 2026-07-18
-status: proposed — pending reviewer/user push-back; to be mirrored onto cards #29/#30/#31/#51/#52 once the Trello token is rotated (MCP currently 401s)
+status: proposed — pending reviewer/user push-back; mirrored onto cards #29/#30/#31/#33/#51/#52/#53 on 2026-07-18 (token rotated, board access restored)
 ---
 
 # Phase 5 tooling decisions (proposed)
