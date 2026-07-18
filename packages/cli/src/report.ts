@@ -1,10 +1,11 @@
 /**
- * Human- and JSON-readable rendering for `contracts diff`. Output is plain
+ * Human- and JSON-readable rendering for both subcommands. Output is plain
  * ASCII (no color codes) so it reads cleanly in CI logs and is easy to assert
  * against in tests.
  */
 import type { ContractDiff, EntityContractDiff } from "./contracts/static-diff.js";
 import type { DiffAnalysis, SpecImpact } from "./diff/analyze.js";
+import type { LintFinding } from "./contracts/lint.js";
 
 export interface DiffMeta {
   baseline: string;
@@ -111,5 +112,57 @@ export function diffJson(
     },
     contractDiff,
     workspaces: analysis.impacts,
+  };
+}
+
+export interface LintMeta {
+  contracts: string;
+  entityCount: number;
+}
+
+/** Render lint findings for humans. */
+export function formatLintHuman(findings: readonly LintFinding[], meta: LintMeta): string {
+  const lines: string[] = [];
+  lines.push("canis contracts lint");
+  lines.push(`  contracts: ${meta.contracts} (${meta.entityCount} entit${meta.entityCount === 1 ? "y" : "ies"})`);
+  lines.push("");
+
+  const errors = findings.filter((f) => f.severity === "error").length;
+  const warnings = findings.filter((f) => f.severity === "warning").length;
+
+  if (findings.length === 0) {
+    lines.push("OK — no contract quality issues found.");
+    return lines.join("\n");
+  }
+
+  const byEntity = new Map<string, LintFinding[]>();
+  for (const finding of findings) {
+    const list = byEntity.get(finding.entity) ?? [];
+    list.push(finding);
+    byEntity.set(finding.entity, list);
+  }
+  for (const [entity, list] of [...byEntity].sort(([a], [b]) => a.localeCompare(b))) {
+    lines.push(`${entity}:`);
+    for (const finding of list) {
+      const tag = finding.severity === "error" ? "error" : "warn ";
+      lines.push(`  ${tag}  ${finding.message}  (${finding.code})`);
+    }
+    lines.push("");
+  }
+  lines.push(`${errors} error(s), ${warnings} warning(s).`);
+  return lines.join("\n");
+}
+
+/** Render lint findings as a stable JSON object. */
+export function lintJson(findings: readonly LintFinding[], meta: LintMeta): unknown {
+  return {
+    command: "contracts lint",
+    contracts: meta.contracts,
+    entityCount: meta.entityCount,
+    summary: {
+      errors: findings.filter((f) => f.severity === "error").length,
+      warnings: findings.filter((f) => f.severity === "warning").length,
+    },
+    findings,
   };
 }

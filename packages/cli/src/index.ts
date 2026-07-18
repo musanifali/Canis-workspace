@@ -3,8 +3,8 @@
  *
  * All contract/spec IO lives in this package; the actual gating decision reuses
  * @workspace-engine/core's validateSpec unchanged (no forked validation). The
- * library exports below let the diff logic be embedded programmatically (and
- * unit-tested) without going through argv.
+ * library exports below let the diff/lint logic be embedded programmatically
+ * (and unit-tested) without going through argv.
  */
 export { run, type CliIo } from "./cli.js";
 export { parseArgs, resolveOption, type ParsedArgs } from "./args.js";
@@ -20,6 +20,12 @@ export {
   type EntityContractDiff,
   type CapabilityRef,
 } from "./contracts/static-diff.js";
+export {
+  lintContracts,
+  hasLintErrors,
+  type LintFinding,
+  type LintSeverity,
+} from "./contracts/lint.js";
 
 export {
   analyzeBreakingChanges,
@@ -37,4 +43,11 @@ export {
   type ServiceSpecSource,
 } from "./specs/load.js";
 
-export { formatDiffHuman, diffJson, type DiffMeta } from "./report.js";
+export {
+  formatDiffHuman,
+  diffJson,
+  formatLintHuman,
+  lintJson,
+  type DiffMeta,
+  type LintMeta,
+} from "./report.js";

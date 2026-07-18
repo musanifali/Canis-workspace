@@ -68,6 +68,39 @@ describe("canis contracts diff", () => {
   });
 });
 
+describe("canis contracts lint", () => {
+  it("prints warnings but exits zero for a valid-but-sloppy contract", async () => {
+    const h = harness();
+    const code = await run(["contracts", "lint", "--contracts", CONTRACTS.smelly], h.io);
+    expect(code).toBe(0);
+    expect(h.out()).toContain("warning(s)");
+    expect(h.out()).toContain("enum field");
+  });
+
+  it("exits zero and reports clean for a well-documented contract", async () => {
+    const h = harness();
+    const code = await run(["contracts", "lint", "--contracts", CONTRACTS.clean], h.io);
+    expect(code).toBe(0);
+    expect(h.out()).toContain("no contract quality issues");
+  });
+
+  it("exits non-zero when a contract module fails to load", async () => {
+    const h = harness();
+    const code = await run(["contracts", "lint", "--contracts", CONTRACTS.broken], h.io);
+    expect(code).toBe(1);
+    expect(h.out()).toContain("contract_load_failed");
+  });
+
+  it("emits structured JSON with --json", async () => {
+    const h = harness();
+    const code = await run(["contracts", "lint", "--contracts", CONTRACTS.smelly, "--json"], h.io);
+    expect(code).toBe(0);
+    const parsed = JSON.parse(h.out());
+    expect(parsed.summary.warnings).toBeGreaterThan(0);
+    expect(parsed.summary.errors).toBe(0);
+  });
+});
+
 describe("canis dispatch", () => {
   it("returns usage for an unknown command with a non-zero code", async () => {
     const h = harness();

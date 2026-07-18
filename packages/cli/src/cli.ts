@@ -2,14 +2,21 @@
  * `canis` command dispatch. `run(argv, io)` is pure-ish: all side effects go
  * through the injected `io`, and it returns an exit code instead of calling
  * process.exit — so the whole CLI is testable end-to-end without spawning a
- * process. Exit codes: 0 ok, 1 CI-gating (workspaces broken), 2 usage error.
+ * process. Exit codes: 0 ok, 1 CI-gating (workspaces broken / lint errors),
+ * 2 usage error.
  */
 import { loadContractModule, toContractMap, ContractLoadError } from "./contracts/load.js";
 import { diffContracts } from "./contracts/static-diff.js";
+import { lintContracts, hasLintErrors, type LintFinding } from "./contracts/lint.js";
 import { analyzeBreakingChanges } from "./diff/analyze.js";
 import { loadSpecsFromDir, loadSpecsFromService, type LoadedSpec } from "./specs/load.js";
 import { parseArgs, resolveOption, type ParsedArgs } from "./args.js";
-import { formatDiffHuman, diffJson } from "./report.js";
+import {
+  formatDiffHuman,
+  diffJson,
+  formatLintHuman,
+  lintJson,
+} from "./report.js";
 
 export interface CliIo {
   stdout: (line: string) => void;
@@ -22,6 +29,7 @@ const USAGE = `canis — Workspace Engine vendor CLI
 
 Usage:
   canis contracts diff  --old <module> --new <module> [--specs-dir <dir> | --service-url <url>] [--json]
+  canis contracts lint  --contracts <module> [--json]
 
 contracts diff — does a contract change break saved workspaces?
   --old <module>       Baseline (currently shipped) contract module
@@ -32,6 +40,11 @@ contracts diff — does a contract change break saved workspaces?
   --user-id <id>       Acting user within the tenant   (env CANIS_USER_ID)
   --json               Machine-readable output
   Exit: non-zero when >=1 saved workspace breaks.
+
+contracts lint — static contract-quality checks
+  --contracts <module> Contract module to lint
+  --json               Machine-readable output
+  Exit: non-zero when >=1 error-severity finding.
 
 A "contract module" is any JS/ESM module exporting EntityContracts built with
 defineEntity (named exports, an array export, or the default export).`;
@@ -55,9 +68,10 @@ export async function run(argv: readonly string[], io: CliIo): Promise<number> {
     return group === undefined ? 0 : fail(io, `unknown command "${group ?? ""}"`);
   }
   if (sub === "diff") return runDiff(parsed, io);
+  if (sub === "lint") return runLint(parsed, io);
 
   io.stderr(USAGE);
-  return fail(io, `unknown "contracts" subcommand "${sub ?? ""}" (expected diff)`);
+  return fail(io, `unknown "contracts" subcommand "${sub ?? ""}" (expected diff|lint)`);
 }
 
 async function runDiff(parsed: ParsedArgs, io: CliIo): Promise<number> {
@@ -136,4 +150,48 @@ async function runDiff(parsed: ParsedArgs, io: CliIo): Promise<number> {
   }
 
   return analysis.broken > 0 ? 1 : 0;
+}
+
+async function runLint(parsed: ParsedArgs, io: CliIo): Promise<number> {
+  if (parsed.flags.has("help")) {
+    io.stdout(USAGE);
+    return 0;
+  }
+  const contractsPath = parsed.options.contracts;
+  if (!contractsPath) {
+    return fail(io, "contracts lint requires --contracts <module>");
+  }
+
+  let findings: LintFinding[];
+  let entityCount: number;
+  try {
+    const contracts = await loadContractModule(contractsPath, io.cwd);
+    entityCount = contracts.length;
+    findings = lintContracts(contracts);
+  } catch (error) {
+    if (error instanceof ContractLoadError) {
+      // A module that fails to load (e.g. defineEntity threw on a bad
+      // capability) is itself an error-severity lint result, not a crash.
+      findings = [
+        {
+          entity: "(module)",
+          severity: "error",
+          code: "contract_load_failed",
+          message: error.message,
+        },
+      ];
+      entityCount = 0;
+    } else {
+      throw error;
+    }
+  }
+
+  const meta = { contracts: contractsPath, entityCount };
+  if (parsed.flags.has("json")) {
+    io.stdout(JSON.stringify(lintJson(findings, meta), null, 2));
+  } else {
+    io.stdout(formatLintHuman(findings, meta));
+  }
+
+  return hasLintErrors(findings) ? 1 : 0;
 }
