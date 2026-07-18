@@ -668,6 +668,266 @@
           "usage"
         ]
       }
+    },
+    "/v1/contracts": {
+      "get": {
+        "operationId": "ContractsController_list",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DataContractDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "List the tenant's registered data contracts",
+        "tags": [
+          "contracts"
+        ]
+      }
+    },
+    "/v1/contracts/{entityName}": {
+      "get": {
+        "operationId": "ContractsController_get",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataContractDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "No contract registered for the entity"
+          }
+        },
+        "summary": "Fetch one contract by entity name",
+        "tags": [
+          "contracts"
+        ]
+      },
+      "put": {
+        "operationId": "ContractsController_upsert",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataContractDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "422": {
+            "description": "Definition is not a revivable contract, or its `name` does not match the path entity. Body carries a machine-readable `code` (contract_invalid). Nothing is stored."
+          }
+        },
+        "summary": "Register or update the entity's contract (serialized defineEntity surface — the executable fetch stays vendor-side)",
+        "tags": [
+          "contracts"
+        ]
+      },
+      "delete": {
+        "operationId": "ContractsController_remove",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "No contract registered for the entity"
+          }
+        },
+        "summary": "Remove the entity's contract registration",
+        "tags": [
+          "contracts"
+        ]
+      }
+    },
+    "/v1/audit": {
+      "get": {
+        "operationId": "AuditController_list",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "workspace.created",
+                "workspace.updated",
+                "workspace.rolled_back",
+                "workspace.viewed",
+                "workspace.deleted",
+                "workspace.shared",
+                "workspace.unshared",
+                "workspace.visibility_changed",
+                "workspace.duplicated",
+                "workspace.spec_rejected",
+                "contract.registered",
+                "contract.updated",
+                "contract.removed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntryDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Page over the tenant's audit trail, newest first (append-only at the database layer; server-computed verdicts per card #87)",
+        "tags": [
+          "audit"
+        ]
+      }
     }
   },
   "info": {
@@ -918,6 +1178,81 @@
           "month",
           "perWorkspace",
           "readCostCents"
+        ]
+      },
+      "DataContractDto": {
+        "type": "object",
+        "properties": {
+          "entityName": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "object",
+            "description": "Serialized defineEntity surface (fields, kinds, capabilities) — revivable with core's reviveContract."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp."
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp."
+          }
+        },
+        "required": [
+          "entityName",
+          "definition",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuditEntryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Monotonic entry id (bigserial, serialized as a string)."
+          },
+          "workspaceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorUserId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "workspace.created",
+              "workspace.updated",
+              "workspace.rolled_back",
+              "workspace.viewed",
+              "workspace.deleted",
+              "workspace.shared",
+              "workspace.unshared",
+              "workspace.visibility_changed",
+              "workspace.duplicated",
+              "workspace.spec_rejected",
+              "contract.registered",
+              "contract.updated",
+              "contract.removed"
+            ]
+          },
+          "detail": {
+            "type": "object",
+            "description": "Action-specific payload. For workspace.spec_rejected: the verdict plus the validator's structured errors/questions."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp."
+          }
+        },
+        "required": [
+          "id",
+          "actorUserId",
+          "action",
+          "detail",
+          "createdAt"
         ]
       }
     }

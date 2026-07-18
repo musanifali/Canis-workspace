@@ -1,6 +1,8 @@
 import { Module, type DynamicModule } from "@nestjs/common";
 import { dbProviders } from "./db.provider.js";
+import { AuditController } from "./audit/audit.controller.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
+import { ContractsController } from "./contracts/contracts.controller.js";
 import { UsageController } from "./usage/usage.controller.js";
 import { WorkspacesController } from "./workspaces/workspaces.controller.js";
 import { WorkspacesService } from "./workspaces/workspaces.service.js";
@@ -15,7 +17,12 @@ export class AppModule {
   static forDatabase(databaseUrl: string): DynamicModule {
     return {
       module: AppModule,
-      controllers: [WorkspacesController, UsageController],
+      controllers: [
+        WorkspacesController,
+        UsageController,
+        ContractsController,
+        AuditController,
+      ],
       providers: [...dbProviders(databaseUrl), TenantGuard, WorkspacesService],
     };
   }

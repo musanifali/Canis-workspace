@@ -195,6 +195,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/contracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the tenant's registered data contracts */
+        get: operations["ContractsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contracts/{entityName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fetch one contract by entity name */
+        get: operations["ContractsController_get"];
+        /** Register or update the entity's contract (serialized defineEntity surface — the executable fetch stays vendor-side) */
+        put: operations["ContractsController_upsert"];
+        post?: never;
+        /** Remove the entity's contract registration */
+        delete: operations["ContractsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page over the tenant's audit trail, newest first (append-only at the database layer; server-computed verdicts per card #87) */
+        get: operations["AuditController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -263,6 +316,27 @@ export interface components {
             perWorkspace: components["schemas"]["UsageWorkspaceRowDto"][];
             /** @description Always 0 — saved workspaces cost nothing to open (two-phase design); reads are never metered. */
             readCostCents: number;
+        };
+        DataContractDto: {
+            entityName: string;
+            /** @description Serialized defineEntity surface (fields, kinds, capabilities) — revivable with core's reviveContract. */
+            definition: Record<string, never>;
+            /** @description ISO timestamp. */
+            createdAt: string;
+            /** @description ISO timestamp. */
+            updatedAt: string;
+        };
+        AuditEntryDto: {
+            /** @description Monotonic entry id (bigserial, serialized as a string). */
+            id: string;
+            workspaceId?: string | null;
+            actorUserId: string;
+            /** @enum {string} */
+            action: "workspace.created" | "workspace.updated" | "workspace.rolled_back" | "workspace.viewed" | "workspace.deleted" | "workspace.shared" | "workspace.unshared" | "workspace.visibility_changed" | "workspace.duplicated" | "workspace.spec_rejected" | "contract.registered" | "contract.updated" | "contract.removed";
+            /** @description Action-specific payload. For workspace.spec_rejected: the verdict plus the validator's structured errors/questions. */
+            detail: Record<string, never>;
+            /** @description ISO timestamp. */
+            createdAt: string;
         };
     };
     responses: never;
@@ -782,6 +856,178 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UsageSummaryDto"];
                 };
+            };
+        };
+    };
+    ContractsController_list: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataContractDto"][];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataContractDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No contract registered for the entity */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_upsert: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataContractDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Definition is not a revivable contract, or its `name` does not match the path entity. Body carries a machine-readable `code` (contract_invalid). Nothing is stored. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ContractsController_remove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No contract registered for the entity */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuditController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+                action?: "workspace.created" | "workspace.updated" | "workspace.rolled_back" | "workspace.viewed" | "workspace.deleted" | "workspace.shared" | "workspace.unshared" | "workspace.visibility_changed" | "workspace.duplicated" | "workspace.spec_rejected" | "contract.registered" | "contract.updated" | "contract.removed";
+                workspaceId?: string;
+            };
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryDto"][];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

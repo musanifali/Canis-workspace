@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { auditLog, type DBAuditEntry } from "../schema.js";
 import type { TenantContext, TenantTx } from "../tenant.js";
 
@@ -13,6 +13,8 @@ export type AuditAction =
   | "workspace.unshared"
   | "workspace.visibility_changed"
   | "workspace.duplicated"
+  /** A save the server refused (non-BUILD verdict) — no version was written. */
+  | "workspace.spec_rejected"
   | "contract.registered"
   | "contract.updated"
   | "contract.removed";
@@ -52,24 +54,26 @@ export async function writeAudit(
 
 export interface ListAuditParams {
   workspaceId?: string;
+  action?: AuditAction;
   limit?: number;
 }
 
 /**
  * List audit entries for the tenant, newest first (RLS scopes the tenant).
- * @returns Audit rows, optionally filtered to one workspace.
+ * @returns Audit rows, optionally filtered to one workspace and/or action.
  */
 export async function listAuditEntries(
   tx: TenantTx,
   params: ListAuditParams = {},
 ): Promise<DBAuditEntry[]> {
-  const workspaceFilter = params.workspaceId
-    ? eq(auditLog.workspaceId, params.workspaceId)
-    : undefined;
+  const filters = [
+    params.workspaceId ? eq(auditLog.workspaceId, params.workspaceId) : undefined,
+    params.action ? eq(auditLog.action, params.action) : undefined,
+  ].filter((f) => f !== undefined);
   return await tx
     .select()
     .from(auditLog)
-    .where(workspaceFilter)
+    .where(filters.length > 0 ? and(...filters) : undefined)
     .orderBy(desc(auditLog.id))
     .limit(params.limit ?? 100);
 }

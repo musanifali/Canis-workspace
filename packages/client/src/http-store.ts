@@ -15,6 +15,15 @@ export type WorkspaceVisibility = "private" | "team" | "org";
 export type GenerationAllowance =
   components["schemas"]["GenerationAllowanceDto"];
 export type UsageSummary = components["schemas"]["UsageSummaryDto"];
+export type DataContract = components["schemas"]["DataContractDto"];
+export type AuditEntry = components["schemas"]["AuditEntryDto"];
+
+export interface ListAuditParams {
+  workspaceId?: string;
+  /** e.g. "workspace.spec_rejected" — see the audit tag in the OpenAPI doc. */
+  action?: string;
+  limit?: number;
+}
 
 export interface ShareParams {
   subjectType: "user" | "team";
@@ -114,6 +123,15 @@ export interface WorkspaceServiceClient {
     visibility: WorkspaceVisibility,
   ): Promise<WorkspaceRecord>;
   duplicateWorkspace(id: string, title?: string): Promise<WorkspaceRecord>;
+  listContracts(): Promise<DataContract[]>;
+  getContract(entityName: string): Promise<DataContract>;
+  /** definition = core's serializeContract output (declarative surface only). */
+  upsertContract(
+    entityName: string,
+    definition: Record<string, unknown>,
+  ): Promise<DataContract>;
+  removeContract(entityName: string): Promise<void>;
+  listAudit(params?: ListAuditParams): Promise<AuditEntry[]>;
 }
 
 /**
@@ -279,6 +297,36 @@ export function createWorkspaceServiceClient(
           title ? { title } : {},
         ),
       );
+    },
+    async listContracts() {
+      return await request<DataContract[]>("GET", "/contracts");
+    },
+    async getContract(entityName) {
+      return await request<DataContract>(
+        "GET",
+        `/contracts/${encodeURIComponent(entityName)}`,
+      );
+    },
+    async upsertContract(entityName, definition) {
+      return await request<DataContract>(
+        "PUT",
+        `/contracts/${encodeURIComponent(entityName)}`,
+        { definition },
+      );
+    },
+    async removeContract(entityName) {
+      await request<void>(
+        "DELETE",
+        `/contracts/${encodeURIComponent(entityName)}`,
+      );
+    },
+    async listAudit(params = {}) {
+      const search = new URLSearchParams();
+      if (params.workspaceId) search.set("workspaceId", params.workspaceId);
+      if (params.action) search.set("action", params.action);
+      if (params.limit) search.set("limit", String(params.limit));
+      const qs = search.toString();
+      return await request<AuditEntry[]>("GET", `/audit${qs ? `?${qs}` : ""}`);
     },
   };
 }

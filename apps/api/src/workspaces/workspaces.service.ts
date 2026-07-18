@@ -30,6 +30,7 @@ import {
   unshareWorkspace,
   updateWorkspaceSpec,
   withTenant,
+  writeAudit,
   WorkspaceForbiddenError,
   WorkspaceNotFoundError,
   WorkspaceVersionNotFoundError,
@@ -59,6 +60,19 @@ type NonBuildVerdict = Extract<
   ValidationVerdict,
   { verdict: "REJECT" | "CLARIFY" }
 >;
+
+/**
+ * Internal carrier for a refused save. Thrown inside the save transaction
+ * (which rolls back), caught at the create/update boundary where the refusal
+ * is audited in its OWN transaction — an entry written inside the aborted one
+ * would vanish with it.
+ */
+class SpecVerdictRejection extends Error {
+  constructor(readonly result: NonBuildVerdict) {
+    super(`spec verdict ${result.verdict}`);
+    this.name = "SpecVerdictRejection";
+  }
+}
 
 /**
  * Turn a non-BUILD verdict into a machine-readable 422, matching this API's
@@ -122,17 +136,19 @@ export class WorkspacesService {
     ctx: TenantContext,
     body: SaveWorkspaceBody,
   ): Promise<WorkspaceRecordDto> {
-    const result = await withTenant(this.client.db, ctx, async (tx) => {
-      const gated = await this.gateSpec(tx, ctx, body.spec);
-      return createWorkspace(tx, ctx, {
-        spec: gated.spec,
-        verdict: gated.verdict,
-        ...(body.prompt ? { prompt: body.prompt } : {}),
-        ...(body.createdFromThreadId
-          ? { createdFromThreadId: body.createdFromThreadId }
-          : {}),
-      });
-    });
+    const result = await this.auditingRejections(ctx, undefined, () =>
+      withTenant(this.client.db, ctx, async (tx) => {
+        const gated = await this.gateSpec(tx, ctx, body.spec);
+        return createWorkspace(tx, ctx, {
+          spec: gated.spec,
+          verdict: gated.verdict,
+          ...(body.prompt ? { prompt: body.prompt } : {}),
+          ...(body.createdFromThreadId
+            ? { createdFromThreadId: body.createdFromThreadId }
+            : {}),
+        });
+      }),
+    );
     return toRecordDto(result);
   }
 
@@ -142,18 +158,20 @@ export class WorkspacesService {
     body: SaveWorkspaceBody,
   ): Promise<WorkspaceRecordDto> {
     return await this.notFoundTo404(async () => {
-      const result = await withTenant(this.client.db, ctx, async (tx) => {
-        // Authorize before gating content: a viewer/cross-tenant caller gets
-        // 403/404 (existence semantics preserved), not a spec-validity signal.
-        // The lock also serializes the version append across this transaction.
-        await requireWorkspaceAccess(tx, ctx, id, "edit", { lock: true });
-        const gated = await this.gateSpec(tx, ctx, body.spec);
-        return updateWorkspaceSpec(tx, ctx, id, {
-          spec: gated.spec,
-          verdict: gated.verdict,
-          ...(body.prompt ? { prompt: body.prompt } : {}),
-        });
-      });
+      const result = await this.auditingRejections(ctx, id, () =>
+        withTenant(this.client.db, ctx, async (tx) => {
+          // Authorize before gating content: a viewer/cross-tenant caller gets
+          // 403/404 (existence semantics preserved), not a spec-validity signal.
+          // The lock also serializes the version append across this transaction.
+          await requireWorkspaceAccess(tx, ctx, id, "edit", { lock: true });
+          const gated = await this.gateSpec(tx, ctx, body.spec);
+          return updateWorkspaceSpec(tx, ctx, id, {
+            spec: gated.spec,
+            verdict: gated.verdict,
+            ...(body.prompt ? { prompt: body.prompt } : {}),
+          });
+        }),
+      );
       return toRecordDto(result);
     });
   }
@@ -181,12 +199,50 @@ export class WorkspacesService {
 
     const result = validateSpec(spec, { contracts });
     if (result.verdict !== "BUILD") {
-      throw specVerdictException(result);
+      throw new SpecVerdictRejection(result);
     }
     return {
       spec: result.spec,
       verdict: { verdict: "BUILD", notes: result.notes },
     };
+  }
+
+  /**
+   * Run a save attempt; when the gate refuses it, record the refusal on the
+   * audit trail (card #31's rejected-capabilities report reads these) and
+   * surface the 422. The audit write happens after the aborted save
+   * transaction, in its own — and is best-effort: a failure to audit must not
+   * mask the 422 the caller needs.
+   */
+  private async auditingRejections<T>(
+    ctx: TenantContext,
+    workspaceId: string | undefined,
+    run: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await run();
+    } catch (error) {
+      if (!(error instanceof SpecVerdictRejection)) {
+        throw error;
+      }
+      const { result } = error;
+      const detail =
+        result.verdict === "REJECT"
+          ? { verdict: result.verdict, errors: result.errors }
+          : { verdict: result.verdict, questions: result.questions };
+      try {
+        await withTenant(this.client.db, ctx, (tx) =>
+          writeAudit(tx, ctx, {
+            action: "workspace.spec_rejected",
+            ...(workspaceId ? { workspaceId } : {}),
+            detail: detail as unknown as Record<string, unknown>,
+          }),
+        );
+      } catch {
+        // Auditing is observability, not the contract: the 422 wins.
+      }
+      throw specVerdictException(result);
+    }
   }
 
   async remove(ctx: TenantContext, id: string): Promise<void> {
