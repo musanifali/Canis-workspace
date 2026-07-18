@@ -1,0 +1,189 @@
+# Adapter recipes — your data behind one `fetch`
+
+Every contract needs exactly one integration point: a `fetch` that returns
+rows. The rule for all four recipes below is the same:
+
+> **Map what's cheap, skip the rest.** Push eq/in filters, sort, and limit
+> into your API when it's a one-liner; return everything else as-is. The
+> SDK's engine re-applies the full query client-side, so **over-returning is
+> always safe — under-returning is not.** (Declared `execution: "server"`
+> capabilities are the exception: those your API must honor —
+> [probe them](/guides/vendor-ci#--probe--does-your-fetch-do-what-the-contract-promises).)
+
+Each recipe is a compiled, unit-tested file in
+[`examples/recipes`](https://github.com/musanifali/Canis-workspace/tree/main/examples/recipes)
+— a sync test keeps this page honest.
+
+## REST
+
+```ts filename="src/rest.ts"
+// REST recipe — the simplest honest adapter: list endpoint + auth header.
+// Push cheap narrowing (eq filters, limit) into query params when your API
+// supports them; return everything else as-is. Over-returning is safe — the
+// engine filters/sorts/groups client-side. Under-returning is not.
+import type { QuerySpec } from "@workspace-engine/core";
+
+export function restFetch(baseUrl: string) {
+  return async ({ query, auth }: { query: QuerySpec; auth: unknown }) => {
+    const url = new URL(`${baseUrl}/tickets`);
+    for (const filter of query.filters) {
+      // Only eq maps cleanly onto typical REST query params; the engine
+      // re-applies every filter anyway, so skipping the rest is correct.
+      if (filter.op === "eq") url.searchParams.set(filter.field, String(filter.value));
+    }
+    if (query.limit) url.searchParams.set("limit", String(query.limit));
+
+    const response = await fetch(url, {
+      headers: { authorization: `Bearer ${String(auth)}` },
+    });
+    if (!response.ok) throw new Error(`tickets API ${response.status}`);
+    return (await response.json()) as unknown[];
+  };
+}
+```
+
+## GraphQL
+
+```ts filename="src/graphql.ts"
+// GraphQL recipe — one fixed document, variables for the cheap narrowing.
+// Keep the document static (persisted-query friendly); the engine handles
+// whatever your schema can't express.
+import type { QuerySpec } from "@workspace-engine/core";
+
+const TICKETS_QUERY = /* GraphQL */ `
+  query Tickets($priority: String, $limit: Int) {
+    tickets(priority: $priority, limit: $limit) {
+      id
+      subject
+      priority
+      assignee
+      ageHours
+      opened
+    }
+  }
+`;
+
+export function graphqlFetch(endpoint: string) {
+  return async ({ query, auth }: { query: QuerySpec; auth: unknown }) => {
+    const priority = query.filters.find(
+      (filter) => filter.field === "priority" && filter.op === "eq",
+    );
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${String(auth)}`,
+      },
+      body: JSON.stringify({
+        query: TICKETS_QUERY,
+        variables: {
+          priority: priority ? String(priority.value) : null,
+          limit: query.limit ?? null,
+        },
+      }),
+    });
+    if (!response.ok) throw new Error(`GraphQL ${response.status}`);
+    const payload = (await response.json()) as {
+      data?: { tickets: unknown[] };
+      errors?: { message: string }[];
+    };
+    if (payload.errors?.length) throw new Error(payload.errors[0]!.message);
+    return payload.data?.tickets ?? [];
+  };
+}
+```
+
+## Prisma (server-side)
+
+```ts filename="src/prisma.ts"
+// Prisma recipe — runs on YOUR server (a route handler or RPC), never in the
+// browser. Map eq/in filters and sort into the Prisma query; the engine
+// re-checks everything, so partial mapping is always safe. The structural
+// client type below is exactly the slice of PrismaClient the recipe touches —
+// substitute your generated client.
+import type { QuerySpec } from "@workspace-engine/core";
+
+export interface TicketDelegate {
+  findMany(args: {
+    where?: Record<string, unknown>;
+    orderBy?: Record<string, "asc" | "desc">[];
+    take?: number;
+  }): Promise<unknown[]>;
+}
+
+export function prismaFetch(db: { ticket: TicketDelegate }) {
+  return async ({ query, auth }: { query: QuerySpec; auth: unknown }) => {
+    const where: Record<string, unknown> = {
+      // Row-level tenancy comes from the END USER's auth, not from the query.
+      orgId: String(auth),
+    };
+    for (const filter of query.filters) {
+      if (filter.op === "eq") where[filter.field] = filter.value;
+      if (filter.op === "in") where[filter.field] = { in: filter.value };
+    }
+    return await db.ticket.findMany({
+      where,
+      orderBy: query.sort.map((sort) => ({ [sort.field]: sort.dir })),
+      take: query.limit ?? 200,
+    });
+  };
+}
+```
+
+## Supabase
+
+```ts filename="src/supabase.ts"
+// Supabase recipe — supabase-js query builder with the user's JWT so
+// Postgres RLS applies to every row. Same rule as always: map what's cheap
+// (eq/in, order, limit), let the engine do the rest.
+import type { QuerySpec } from "@workspace-engine/core";
+
+/** The slice of supabase-js the recipe touches — substitute your client. */
+export interface SupabaseQuery {
+  eq(column: string, value: unknown): SupabaseQuery;
+  in(column: string, values: readonly unknown[]): SupabaseQuery;
+  order(column: string, options: { ascending: boolean }): SupabaseQuery;
+  limit(count: number): SupabaseQuery;
+  then(
+    onFulfilled: (result: { data: unknown[] | null; error: { message: string } | null }) => void,
+  ): void;
+}
+export interface SupabaseLike {
+  from(table: string): { select(columns: string): SupabaseQuery };
+}
+
+export function supabaseFetch(client: SupabaseLike) {
+  return async ({ query }: { query: QuerySpec; auth: unknown }) => {
+    // Create the client per-request with the end user's JWT
+    // (createClient(url, anonKey, { global: { headers: { Authorization } } }))
+    // so RLS scopes rows — `auth` never needs manual WHERE clauses here.
+    let builder = client
+      .from("tickets")
+      .select("id,subject,priority,assignee,age_hours,opened");
+    for (const filter of query.filters) {
+      if (filter.op === "eq") builder = builder.eq(filter.field, filter.value);
+      if (filter.op === "in") builder = builder.in(filter.field, filter.value);
+    }
+    for (const sort of query.sort) {
+      builder = builder.order(sort.field, { ascending: sort.dir === "asc" });
+    }
+    builder = builder.limit(query.limit ?? 200);
+
+    const { data, error } = await new Promise<{
+      data: unknown[] | null;
+      error: { message: string } | null;
+    }>((resolve) => builder.then(resolve));
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  };
+}
+```
+
+## Which one am I?
+
+| Your data lives… | Recipe | Where the fetch runs |
+|---|---|---|
+| behind an internal REST API | REST | browser (with user JWT) or server |
+| behind GraphQL | GraphQL | browser or server |
+| in Postgres via Prisma | Prisma | **server only** (route handler the browser calls) |
+| in Supabase | Supabase | browser — per-request client with the user's JWT, RLS scopes rows |

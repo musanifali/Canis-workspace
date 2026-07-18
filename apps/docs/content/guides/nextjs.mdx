@@ -1,0 +1,40 @@
+# Next.js App Router — where the boundary goes
+
+You hit this in minute five: *"can I create my contract in a server
+component?"* No — and the framework will tell you cryptically. Here is the
+boundary, drawn once:
+
+| Server side (no `"use client"`) | Client side (`"use client"`) |
+|---|---|
+| layouts, `metadata`, pages that pass **plain serializable props** | everything imported from `@workspace-engine/*` |
+| data routes (`app/api/…/route.ts`) — your ORM, your keys | `defineEntity` calls — a contract **holds a function** and cannot cross the boundary |
+| session → derive the `userToken` string | `WorkspaceProvider` + `WorkspaceRenderer` (they use state and effects) |
+
+Three rules cover every case:
+
+1. **Contracts are created in client modules.** A `defineEntity` result
+   contains your `fetch` function; functions cannot be serialized across the
+   RSC boundary. Create the contract in the `"use client"` file that mounts
+   the provider, and have its `fetch` call your server data route.
+2. **Server components pass strings, not SDK objects.** A page can compute
+   the user token, feature flags, or a workspace id — all serializable — and
+   hand them down as props.
+3. **Keys stay on the server.** The Workspace Service API key belongs in a
+   route handler that proxies `/v1` (never in `NEXT_PUBLIC_*`). The
+   [dashboard reference integration](https://github.com/musanifali/Canis-workspace/tree/main/apps/dashboard)
+   shows a complete GET-only proxy.
+
+The complete runnable app —
+[`examples/next-app`](https://github.com/musanifali/Canis-workspace/tree/main/examples/next-app)
+— is a server layout + server data route + one client workspace module, built
+in CI against every release. The shape:
+
+```
+app/layout.tsx            server — shell, metadata
+app/page.tsx              server — session → userToken (a string) → props
+app/api/tickets/route.ts  server — your data, your auth, your keys
+components/workspace.tsx  client — contract + provider + renderer
+```
+
+SSR note: the SDK is SSR-safe (no `window` at module load), so the usual
+`next build` prerender works — blocks stream data after hydration.
