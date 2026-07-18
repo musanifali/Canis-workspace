@@ -1,7 +1,7 @@
 {
   "name": "@workspace-engine/db",
   "version": "0.1.0",
-  "description": "Workspace Service persistence: Drizzle schema, migrations, and the operations layer. All DB access lives here — services call operations, never inline SQL.",
+  "description": "Workspace Service persistence: Drizzle schema, migrations, and the operations layer. All DB access lives here \u2014 services call operations, never inline SQL.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -48,5 +48,6 @@
     "tsup": "^8.0.0",
     "typescript": "^5.6.0",
     "vitest": "^3.0.0"
-  }
+  },
+  "private": true
 }

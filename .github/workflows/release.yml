@@ -1,0 +1,82 @@
+name: Release
+
+# Release engineering (card #33, decision D4): the six public packages are
+# changeset-versioned in-repo, NOT npm-published. Accumulated changesets on
+# main become one version commit + a single `vX.Y.Z` git tag (the semver
+# source of truth the compat suite pins to); every main build also packs
+# canary tarballs vendors can install ahead of a release.
+# Policy: devdocs/release-policy.md.
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  version-and-tag:
+    name: version + tag (when changesets exist)
+    runs-on: ubuntu-latest
+    # The version commit this job pushes must not re-trigger a release loop.
+    if: "!startsWith(github.event.head_commit.message, 'chore(release)')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Detect pending changesets
+        id: pending
+        run: |
+          count=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+      - name: Version packages and tag
+        if: steps.pending.outputs.count != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npx changeset version
+          version=$(node -p "require('./packages/core/package.json').version")
+          git add -A
+          git commit -m "chore(release): v${version}"
+          git tag "v${version}"
+          git push --follow-tags
+
+  canary:
+    name: canary tarballs
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'chore(release)')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Detect pending changesets
+        id: pending
+        run: |
+          count=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+      - name: Stamp snapshot versions (0.0.0-canary-*)
+        # With no pending changesets the tarballs simply carry the released
+        # version — the artifact still gives vendors a per-commit install.
+        if: steps.pending.outputs.count != '0'
+        run: npx changeset version --snapshot canary
+      - run: npm run build
+      - run: npm run pack:canary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canary-${{ github.sha }}
+          path: canary-dist/*.tgz
+          retention-days: 14
