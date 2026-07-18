@@ -180,6 +180,30 @@ through the SDK's unchanged `WorkspaceStore` port via
 `@workspace-engine/client`. We store specs; the vendor's rows still never
 transit our service.
 
+**The stored audit verdict is server-computed (card #87).** Every create and
+update the Workspace Service accepts is re-gated **server-side** by the *same*
+`validateSpec` the render path uses (`packages/core`), run against the
+**tenant's own registered contracts** (`data_contracts`, RLS-scoped per
+tenant — the declarative fields/capabilities surface, revived via core's
+`reviveContract`; the vendor `fetch` never lives in our DB, ADR-4). The
+verdict written to the immutable `workspace_versions.verdict` audit column is
+therefore the verdict the validator actually computed — no longer a
+client-asserted `BUILD`. **A non-BUILD spec cannot be persisted:** a CLARIFY
+or REJECT — including a spec that binds an entity, field, operator,
+aggregation, or row limit the tenant never declared a contract for — is
+refused with a machine-readable `422` (`code: spec_rejected |
+spec_needs_clarification`, carrying the validator's own errors/questions), and
+**nothing is written** (the gate runs inside the same transaction as the
+insert, before any row is created — no workspace row, no version row). This
+closes the gap where the audit trail could record a `BUILD` the server never
+verified: the persisted history now cannot claim an unverified verdict, and
+the server's gate matches the client's gate because both call the one
+validator in `packages/core`. Verified end-to-end in
+`apps/api/src/spec-verdict.e2e.test.ts` (valid in-contract save stores the
+real verdict incl. normalization notes; out-of-contract field, unknown
+entity, and contractless-tenant saves all 422 with nothing persisted, on both
+create and update paths).
+
 **What remains demo-grade, stated plainly:** the end-user identity inside
 the session token is still the demo's anonymous key (`anon-<uuid>` — there
 is no login), the vendor-session secret defaults for local dev, and the
@@ -274,6 +298,7 @@ answer on our behalf.
 | The model cannot cause arbitrary code execution | True by construction | Spec is JSON, not code; renderer is a fixed registry of block components (§1) |
 | The model cannot read data outside the vendor's declared contract | True, 100% red-team catch rate, independently reproduced | §2, `redteam.test.ts`, reviewer log 2026-07-12 |
 | No new auth surface; vendor data stays under the vendor's existing session | **Exercised (Phase 4):** the demo vendor backend checks the end-user session on every case query — no token, no rows; demo-grade identity provider flagged | §4, `demo/src/workspace-engine/adr4.test.ts` |
+| The stored audit verdict reflects real server-side validation, not a client assertion | **Closed (card #87):** every save is re-gated server-side by the same `validateSpec` the renderer uses, against the tenant's RLS-scoped contracts; non-BUILD specs are refused with a machine-readable 422 and persist nothing | §4, `apps/api/src/spec-verdict.e2e.test.ts` |
 | The eval numbers backing these claims can be trusted even when infrastructure is degraded | Fixed this phase — inconclusive runs are a distinct, non-green status | §3, Trello `HYVbv9k5` |
 | `/v1` guard chain + RLS policies (pinned platform, static review) | Guard ordering, per-project JWT scoping, and RLS policy logic checked sound; one design property flagged (opt-in cryptographic per-user identity); connection-pool session-variable leakage flagged as an open question requiring a live test we did not run | §5 |
 

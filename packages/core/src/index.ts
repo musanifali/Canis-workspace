@@ -67,6 +67,12 @@ export {
   type EntityContract,
 } from "./contract/define-entity.js";
 export {
+  serializeContract,
+  reviveContract,
+  ContractRevivalError,
+  type SerializedEntityContract,
+} from "./contract/serialize-contract.js";
+export {
   compileToTools,
   compileToValidator,
   compileToExecutor,

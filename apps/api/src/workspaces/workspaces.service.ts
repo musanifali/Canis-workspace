@@ -1,18 +1,28 @@
 import {
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import {
+  reviveContract,
+  validateSpec,
+  type EntityContract,
+  type ValidationVerdict,
+  type WorkspaceSpec,
+} from "@workspace-engine/core";
 import {
   createWorkspace,
   duplicateWorkspace,
   getWorkspace,
+  listDataContracts,
   listWorkspaces,
   listWorkspaceShares,
   listWorkspaceVersions,
   recordWorkspaceView,
+  requireWorkspaceAccess,
   rollbackWorkspace,
   setWorkspaceVisibility,
   shareWorkspace,
@@ -25,6 +35,7 @@ import {
   WorkspaceVersionNotFoundError,
   type StoredVerdict,
   type TenantContext,
+  type TenantTx,
   type WorkspaceDbClient,
 } from "@workspace-engine/db";
 import { DB_CLIENT } from "../db.provider.js";
@@ -43,12 +54,45 @@ import {
   type WorkspaceVersionDto,
 } from "./dto.js";
 
+/** A verdict the server refuses to persist, mapped to a machine-readable 422. */
+type NonBuildVerdict = Extract<
+  ValidationVerdict,
+  { verdict: "REJECT" | "CLARIFY" }
+>;
+
 /**
- * The specs this API stores arrived through the zod-validated request body
- * (core's workspaceSpecSchema), so shape validity is already established;
- * contract-level gating (BUILD) happens at the save gate client-side today.
+ * Turn a non-BUILD verdict into a machine-readable 422, matching this API's
+ * error-DTO convention (see the usage ledger's 429: a `{ statusCode, code,
+ * message }` body). CLARIFY/REJECT carry the validator's own questions/errors
+ * so a client sees the same actionable detail the render-path gate produces.
  */
-const SHAPE_CHECKED_VERDICT: StoredVerdict = { verdict: "BUILD", notes: [] };
+function specVerdictException(verdict: NonBuildVerdict): HttpException {
+  const status = HttpStatus.UNPROCESSABLE_ENTITY;
+  if (verdict.verdict === "REJECT") {
+    return new HttpException(
+      {
+        statusCode: status,
+        code: "spec_rejected",
+        verdict: "REJECT",
+        message:
+          "spec rejected: it references data, fields, operators, or blocks " +
+          "outside this tenant's contracts and policy",
+        errors: verdict.errors,
+      },
+      status,
+    );
+  }
+  return new HttpException(
+    {
+      statusCode: status,
+      code: "spec_needs_clarification",
+      verdict: "CLARIFY",
+      message: "spec is under-determined and cannot be saved as-is",
+      questions: verdict.questions,
+    },
+    status,
+  );
+}
 
 @Injectable()
 export class WorkspacesService {
@@ -78,16 +122,17 @@ export class WorkspacesService {
     ctx: TenantContext,
     body: SaveWorkspaceBody,
   ): Promise<WorkspaceRecordDto> {
-    const result = await withTenant(this.client.db, ctx, (tx) =>
-      createWorkspace(tx, ctx, {
-        spec: body.spec as WorkspaceSpec,
-        verdict: SHAPE_CHECKED_VERDICT,
+    const result = await withTenant(this.client.db, ctx, async (tx) => {
+      const gated = await this.gateSpec(tx, ctx, body.spec);
+      return createWorkspace(tx, ctx, {
+        spec: gated.spec,
+        verdict: gated.verdict,
         ...(body.prompt ? { prompt: body.prompt } : {}),
         ...(body.createdFromThreadId
           ? { createdFromThreadId: body.createdFromThreadId }
           : {}),
-      }),
-    );
+      });
+    });
     return toRecordDto(result);
   }
 
@@ -97,15 +142,51 @@ export class WorkspacesService {
     body: SaveWorkspaceBody,
   ): Promise<WorkspaceRecordDto> {
     return await this.notFoundTo404(async () => {
-      const result = await withTenant(this.client.db, ctx, (tx) =>
-        updateWorkspaceSpec(tx, ctx, id, {
-          spec: body.spec as WorkspaceSpec,
-          verdict: SHAPE_CHECKED_VERDICT,
+      const result = await withTenant(this.client.db, ctx, async (tx) => {
+        // Authorize before gating content: a viewer/cross-tenant caller gets
+        // 403/404 (existence semantics preserved), not a spec-validity signal.
+        // The lock also serializes the version append across this transaction.
+        await requireWorkspaceAccess(tx, ctx, id, "edit", { lock: true });
+        const gated = await this.gateSpec(tx, ctx, body.spec);
+        return updateWorkspaceSpec(tx, ctx, id, {
+          spec: gated.spec,
+          verdict: gated.verdict,
           ...(body.prompt ? { prompt: body.prompt } : {}),
-        }),
-      );
+        });
+      });
       return toRecordDto(result);
     });
+  }
+
+  /**
+   * Re-gate a submitted spec server-side with the SAME `validateSpec` the
+   * render path uses (card #87), against the tenant's own registered
+   * contracts (RLS-scoped `data_contracts`). Only a BUILD is persisted; the
+   * stored verdict is the one the validator computed, never a client-asserted
+   * one. A CLARIFY/REJECT — including a spec that binds an entity the tenant
+   * has no contract for — throws a 422 and nothing is written (this runs
+   * inside the create/update transaction, before any insert).
+   * @returns The normalized (revalidated) spec and its real BUILD verdict.
+   * @throws {HttpException} 422 for any non-BUILD verdict.
+   */
+  private async gateSpec(
+    tx: TenantTx,
+    ctx: TenantContext,
+    spec: WorkspaceSpec,
+  ): Promise<{ spec: WorkspaceSpec; verdict: StoredVerdict }> {
+    const contracts: Record<string, EntityContract> = {};
+    for (const row of await listDataContracts(tx)) {
+      contracts[row.entityName] = reviveContract(row.definition);
+    }
+
+    const result = validateSpec(spec, { contracts });
+    if (result.verdict !== "BUILD") {
+      throw specVerdictException(result);
+    }
+    return {
+      spec: result.spec,
+      verdict: { verdict: "BUILD", notes: result.notes },
+    };
   }
 
   async remove(ctx: TenantContext, id: string): Promise<void> {

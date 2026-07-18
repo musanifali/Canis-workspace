@@ -20,6 +20,7 @@ import {
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
 } from "@nestjs/swagger";
 import type { Request } from "express";
 import { TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
@@ -73,6 +74,13 @@ export class WorkspacesController {
   @Post()
   @ApiOperation({ summary: "Save a new workspace (creates version 1)" })
   @ApiCreatedResponse({ type: WorkspaceRecordDto })
+  @ApiUnprocessableEntityResponse({
+    description:
+      "Spec is shape-valid but fails server-side contract/policy validation " +
+      "(the same validateSpec the renderer uses). Body carries a " +
+      "machine-readable `code` (spec_rejected | spec_needs_clarification) " +
+      "plus the validator's errors/questions. Nothing is persisted.",
+  })
   async create(
     @Req() req: Request,
     @Body(saveBodyPipe) body: SaveWorkspaceBody,
@@ -95,6 +103,12 @@ export class WorkspacesController {
   @ApiOperation({ summary: "Save an edit (appends an immutable version)" })
   @ApiOkResponse({ type: WorkspaceRecordDto })
   @ApiNotFoundResponse({ description: "Unknown or deleted workspace" })
+  @ApiUnprocessableEntityResponse({
+    description:
+      "Spec is shape-valid but fails server-side contract/policy validation. " +
+      "Body carries a machine-readable `code` plus the validator's " +
+      "errors/questions. No new version is persisted.",
+  })
   async update(
     @Req() req: Request,
     @Param("id") id: string,

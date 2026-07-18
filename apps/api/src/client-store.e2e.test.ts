@@ -19,6 +19,7 @@ import {
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";
+import { caseSpec as spec, registerCaseContract } from "./e2e-support.js";
 
 const TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ??
@@ -29,27 +30,11 @@ let admin: WorkspaceDbClient;
 let baseUrl: string;
 let apiKey: string;
 
-const spec = (title: string) => ({
-  specVersion: 1 as const,
-  title,
-  timezone: "viewer",
-  refresh: { mode: "manual" as const },
-  layout: { columns: 12 as const },
-  blocks: [
-    {
-      id: "blk_a1",
-      type: "NoteCard",
-      frame: { x: 0, y: 0, w: 6, h: 4 },
-      config: {},
-      binding: null,
-    },
-  ],
-});
-
 beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   const tenantId = `ten_${randomUUID()}`;
   await admin.db.insert(tenants).values({ id: tenantId, name: "Client Tenant" });
+  await registerCaseContract(admin.db, tenantId);
   apiKey = (await createApiKey(admin.db, { tenantId, name: "client" })).rawKey;
 
   const moduleRef = await Test.createTestingModule({

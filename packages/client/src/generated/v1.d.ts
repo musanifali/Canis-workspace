@@ -333,6 +333,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Spec is shape-valid but fails server-side contract/policy validation (the same validateSpec the renderer uses). Body carries a machine-readable `code` (spec_rejected | spec_needs_clarification) plus the validator's errors/questions. Nothing is persisted. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     WorkspacesController_get: {
@@ -404,6 +411,13 @@ export interface operations {
             };
             /** @description Unknown or deleted workspace */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Spec is shape-valid but fails server-side contract/policy validation. Body carries a machine-readable `code` plus the validator's errors/questions. No new version is persisted. */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

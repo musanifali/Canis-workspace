@@ -17,6 +17,7 @@ import request from "supertest";
 import type { App } from "supertest/types.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";
+import { caseSpec, registerCaseContract } from "./e2e-support.js";
 
 const TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ??
@@ -39,6 +40,7 @@ beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   const tenantId = `ten_${randomUUID()}`;
   await admin.db.insert(tenants).values({ id: tenantId, name: "Persistence Tenant" });
+  await registerCaseContract(admin.db, tenantId);
   const key = await createApiKey(admin.db, { tenantId, name: "persist" });
   headers = { "x-api-key": key.rawKey, "x-user-id": "user_persist" };
 });
@@ -53,24 +55,7 @@ describe("persistence across processes", () => {
     const created = await request(instanceA.getHttpServer() as App)
       .post("/v1/workspaces")
       .set(headers)
-      .send({
-        spec: {
-          specVersion: 1,
-          title: "Survives the process",
-          timezone: "viewer",
-          refresh: { mode: "manual" },
-          layout: { columns: 12 },
-          blocks: [
-            {
-              id: "blk_a1",
-              type: "NoteCard",
-              frame: { x: 0, y: 0, w: 6, h: 4 },
-              config: {},
-              binding: null,
-            },
-          ],
-        },
-      })
+      .send({ spec: caseSpec("Survives the process") })
       .expect(201);
     await instanceA.close();
 

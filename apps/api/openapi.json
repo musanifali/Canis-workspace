@@ -82,6 +82,9 @@
           },
           "401": {
             "description": "Missing/unknown API key or user"
+          },
+          "422": {
+            "description": "Spec is shape-valid but fails server-side contract/policy validation (the same validateSpec the renderer uses). Body carries a machine-readable `code` (spec_rejected | spec_needs_clarification) plus the validator's errors/questions. Nothing is persisted."
           }
         },
         "summary": "Save a new workspace (creates version 1)",
@@ -174,6 +177,9 @@
           },
           "404": {
             "description": "Unknown or deleted workspace"
+          },
+          "422": {
+            "description": "Spec is shape-valid but fails server-side contract/policy validation. Body carries a machine-readable `code` plus the validator's errors/questions. No new version is persisted."
           }
         },
         "summary": "Save an edit (appends an immutable version)",

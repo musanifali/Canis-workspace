@@ -18,6 +18,7 @@ import request from "supertest";
 import type { App } from "supertest/types.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";
+import { caseSpecBody as specBody, registerCaseContract } from "./e2e-support.js";
 import { buildOpenApiDocument } from "./openapi.js";
 
 const TEST_DATABASE_URL =
@@ -29,25 +30,6 @@ let httpServer: App;
 let admin: WorkspaceDbClient;
 let apiKeyA: string;
 let apiKeyB: string;
-
-const specBody = (title: string) => ({
-  spec: {
-    specVersion: 1,
-    title,
-    timezone: "viewer",
-    refresh: { mode: "manual" },
-    layout: { columns: 12 },
-    blocks: [
-      {
-        id: "blk_a1",
-        type: "NoteCard",
-        frame: { x: 0, y: 0, w: 6, h: 4 },
-        config: { text: "hello" },
-        binding: null,
-      },
-    ],
-  },
-});
 
 const asA = { "x-api-key": "", "x-user-id": "user_alice" };
 const asB = { "x-api-key": "", "x-user-id": "user_bob" };
@@ -71,6 +53,8 @@ beforeAll(async () => {
   ]);
   apiKeyA = (await createApiKey(admin.db, { tenantId: tenantA, name: "a" })).rawKey;
   apiKeyB = (await createApiKey(admin.db, { tenantId: tenantB, name: "b" })).rawKey;
+  await registerCaseContract(admin.db, tenantA);
+  await registerCaseContract(admin.db, tenantB);
   asA["x-api-key"] = apiKeyA;
   asB["x-api-key"] = apiKeyB;
 
