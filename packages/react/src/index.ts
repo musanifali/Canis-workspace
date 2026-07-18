@@ -8,7 +8,10 @@
  * hooks (#15) cover list/load/edit. SSR-safe: no `window`/`document` at module
  * load; `react` is the only peer.
  */
-export const SDK_VERSION = "0.1.0";
+export { SDK_VERSION } from "./version";
+
+// Opt-in anonymous telemetry (#52) — OFF unless explicitly enabled.
+export type { TelemetryOptions, TelemetryEventName } from "./telemetry";
 
 // Provider + block registration (the 3-step integration surface)
 export {

@@ -928,6 +928,94 @@
           "audit"
         ]
       }
+    },
+    "/v1/telemetry": {
+      "post": {
+        "operationId": "TelemetryController_ingest",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelemetryAcceptedDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Ingest a batch of anonymous SDK events (documented schema; nothing identifying is persisted)",
+        "tags": [
+          "telemetry"
+        ]
+      }
+    },
+    "/v1/telemetry/summary": {
+      "get": {
+        "operationId": "TelemetryController_summary",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user within the tenant",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelemetrySummaryDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Aggregate funnel + degradation-reason counts (the internal dashboard view; raw events are never exposed)",
+        "tags": [
+          "telemetry"
+        ]
+      }
     }
   },
   "info": {
@@ -1253,6 +1341,69 @@
           "action",
           "detail",
           "createdAt"
+        ]
+      },
+      "TelemetryAcceptedDto": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "accepted"
+        ]
+      },
+      "TelemetryEventCountDto": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "event",
+          "count"
+        ]
+      },
+      "TelemetryReasonCountDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "reason",
+          "count"
+        ]
+      },
+      "TelemetrySummaryDto": {
+        "type": "object",
+        "properties": {
+          "byEvent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryEventCountDto"
+            }
+          },
+          "degradedByReason": {
+            "description": "block.degraded events by reason — the error-frequency view.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryReasonCountDto"
+            }
+          }
+        },
+        "required": [
+          "byEvent",
+          "degradedByReason"
         ]
       }
     }

@@ -1,0 +1,53 @@
+# Telemetry — anonymous, opt-in, documented
+
+The SDK sends **nothing, ever, by default**. There is no ambient flag, no
+environment variable, no phone-home on install. Telemetry exists so
+integration paper-cuts reach us before churn does — and it only turns on
+when you say so:
+
+```tsx
+<WorkspaceProvider
+  contracts={contracts}
+  blocks={defaultBlocks}
+  telemetry={{
+    enabled: true,
+    // your same-origin proxy, or the service directly:
+    endpoint: "/api/canis/v1/telemetry",
+  }}
+>
+```
+
+Self-hosted installs: leave it off and the code path is inert — no queue, no
+timers, no network.
+
+## Exactly what is sent
+
+The full event set. Anything outside this schema is rejected by the sink
+(HTTP 400) — the endpoint cannot quietly grow into a logger.
+
+| Event | Props | Fired |
+|---|---|---|
+| `provider.mounted` | `devMode: boolean`, `contracts: number`, `blocks: number` | once per provider mount |
+| `sandbox.rendered` | — | when the devMode sandbox renders |
+| `store.first_save` | — | first successful workspace save in a session |
+| `block.degraded` | `reason` (see [error taxonomy](/reference/errors#2-read-time-degradation-renderer)), `blockType` | once per distinct degradation |
+| `spec.rejected` | `code` | when a generated spec is refused |
+
+Every event also carries `sdkVersion`. Batches are ≤ 20 events, debounced
+2 s, fire-and-forget: a failed send is silently dropped — telemetry may
+never break, slow, or block your app.
+
+## What is never sent
+
+- No user identifiers, session ids, or IPs stored — the ingest requires your
+  API key purely as an abuse gate and **does not persist it or the tenant**.
+- No spec contents, titles, prompts, or field names.
+- No row data — nothing from your `fetch` results ever leaves your app.
+
+## Server side
+
+`POST /v1/telemetry` validates against the schema above and appends to an
+append-only store with **no tenant or user columns**.
+`GET /v1/telemetry/summary` exposes aggregates only (event counts,
+degradation reasons) — raw events have no read API. The internal dashboard's
+Telemetry page renders exactly that summary.

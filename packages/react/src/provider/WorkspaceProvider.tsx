@@ -10,7 +10,13 @@ import {
 import { WorkspaceQueryClientProvider } from "../query/client";
 import { WorkspaceStoreProvider } from "../workspace/context";
 import { createInMemoryWorkspaceStore, type WorkspaceStore } from "../workspace/store";
-import type { OnBlockDegraded } from "../renderer/degradation";
+import type { BlockDegradationEvent, OnBlockDegraded } from "../renderer/degradation";
+import {
+  createTelemetryReporter,
+  NOOP_TELEMETRY,
+  type TelemetryOptions,
+  type TelemetryReporter,
+} from "../telemetry";
 import { buildBlockRegistry, type BlockDefinition } from "./defineBlock";
 import { WorkspaceConfigContext, type WorkspaceConfig } from "./config-context";
 
@@ -40,6 +46,12 @@ export interface WorkspaceProviderProps {
   queryClient?: QueryClient | undefined;
   /** Telemetry: fires once whenever any block renders in a degraded state. */
   onBlockDegraded?: OnBlockDegraded | undefined;
+  /**
+   * Anonymous SDK telemetry (card #52): integration funnel + degraded-render
+   * events, documented schema only. OFF unless `{ enabled: true, endpoint }`
+   * is passed explicitly — no ambient default, no network otherwise.
+   */
+  telemetry?: TelemetryOptions | undefined;
   children: ReactNode;
 }
 
@@ -61,6 +73,7 @@ export function WorkspaceProvider({
   policy,
   queryClient,
   onBlockDegraded,
+  telemetry,
   devMode = false,
   children,
 }: WorkspaceProviderProps): ReactElement {
@@ -68,6 +81,13 @@ export function WorkspaceProvider({
   const resolvedApiKey = apiKey ?? (devMode ? "dev-mode" : "");
 
   useDevModeBanner(devMode);
+
+  const reporter = useMemo(
+    () => createTelemetryReporter(telemetry, resolvedApiKey),
+    // Recreate only when the opt-in identity changes, not per render.
+    [telemetry?.enabled, telemetry?.endpoint, telemetry?.fetch, resolvedApiKey],
+  );
+  useTelemetryFunnel(reporter, devMode, contracts.length, blocks.length);
 
   const contractsByName = useMemo(
     () => Object.fromEntries(contracts.map((c) => [c.name, c])),
@@ -89,9 +109,27 @@ export function WorkspaceProvider({
   );
 
   const resolvedStore = useMemo(
-    () => store ?? createInMemoryWorkspaceStore(),
+    () => (store ?? createInMemoryWorkspaceStore()),
     [store],
   );
+  const telemetryStore = useMemo(
+    () => withFirstSaveTelemetry(resolvedStore, reporter),
+    [resolvedStore, reporter],
+  );
+
+  // Merge the vendor's degradation callback with the telemetry emit; the
+  // event's human/technical strings stay with the vendor — telemetry gets
+  // only the reason + block type (documented anonymous schema).
+  const reportDegraded = useMemo<OnBlockDegraded | undefined>(() => {
+    if (reporter === NOOP_TELEMETRY) return onBlockDegraded;
+    return (event: BlockDegradationEvent) => {
+      reporter.emit("block.degraded", {
+        reason: event.reason,
+        blockType: event.blockType,
+      });
+      onBlockDegraded?.(event);
+    };
+  }, [reporter, onBlockDegraded]);
 
   const config = useMemo<WorkspaceConfig>(
     () => ({
@@ -99,20 +137,61 @@ export function WorkspaceProvider({
       dataSource: { contracts: contractsByName, auth: userToken },
       validation,
       apiKey: resolvedApiKey,
-      ...(onBlockDegraded ? { onBlockDegraded } : {}),
+      ...(reportDegraded ? { onBlockDegraded: reportDegraded } : {}),
     }),
-    [components, contractsByName, userToken, validation, resolvedApiKey, onBlockDegraded],
+    [components, contractsByName, userToken, validation, resolvedApiKey, reportDegraded],
   );
 
   return (
     <WorkspaceQueryClientProvider client={queryClient}>
-      <WorkspaceStoreProvider store={resolvedStore} validation={validation}>
+      <WorkspaceStoreProvider store={telemetryStore} validation={validation}>
         <WorkspaceConfigContext.Provider value={config}>
           {children}
         </WorkspaceConfigContext.Provider>
       </WorkspaceStoreProvider>
     </WorkspaceQueryClientProvider>
   );
+}
+
+/** Emit the mount funnel event once, and flush pending events on unmount. */
+function useTelemetryFunnel(
+  reporter: TelemetryReporter,
+  devMode: boolean,
+  contractCount: number,
+  blockCount: number,
+): void {
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (reporter === NOOP_TELEMETRY || mounted.current) return;
+    mounted.current = true;
+    reporter.emit("provider.mounted", {
+      devMode,
+      contracts: contractCount,
+      blocks: blockCount,
+    });
+    return () => reporter.flush();
+    // Mount-once by design; counts are snapshotted into the first event.
+  }, [reporter]);
+}
+
+/** Wrap a store so the first successful create emits `store.first_save`. */
+function withFirstSaveTelemetry(
+  store: WorkspaceStore,
+  reporter: TelemetryReporter,
+): WorkspaceStore {
+  if (reporter === NOOP_TELEMETRY) return store;
+  let saved = false;
+  return {
+    ...store,
+    async create(spec) {
+      const record = await store.create(spec);
+      if (!saved) {
+        saved = true;
+        reporter.emit("store.first_save");
+      }
+      return record;
+    },
+  };
 }
 
 /** Print the devMode next-step banner once per mount (never during render/SSR). */

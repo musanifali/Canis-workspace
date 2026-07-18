@@ -24,6 +24,7 @@ export default function RootLayout({
           <nav>
             <Link href="/">Views</Link>
             <Link href="/contracts">Contracts</Link>
+            <Link href="/telemetry">Telemetry</Link>
           </nav>
         </header>
         <main className="site-main">{children}</main>

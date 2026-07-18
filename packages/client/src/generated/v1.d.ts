@@ -248,6 +248,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/telemetry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest a batch of anonymous SDK events (documented schema; nothing identifying is persisted) */
+        post: operations["TelemetryController_ingest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/telemetry/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aggregate funnel + degradation-reason counts (the internal dashboard view; raw events are never exposed) */
+        get: operations["TelemetryController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -337,6 +371,22 @@ export interface components {
             detail: Record<string, never>;
             /** @description ISO timestamp. */
             createdAt: string;
+        };
+        TelemetryAcceptedDto: {
+            accepted: number;
+        };
+        TelemetryEventCountDto: {
+            event: string;
+            count: number;
+        };
+        TelemetryReasonCountDto: {
+            reason: string;
+            count: number;
+        };
+        TelemetrySummaryDto: {
+            byEvent: components["schemas"]["TelemetryEventCountDto"][];
+            /** @description block.degraded events by reason — the error-frequency view. */
+            degradedByReason: components["schemas"]["TelemetryReasonCountDto"][];
         };
     };
     responses: never;
@@ -1020,6 +1070,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditEntryDto"][];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelemetryController_ingest: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TelemetryAcceptedDto"];
+                };
+            };
+            /** @description Missing/unknown API key or user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelemetryController_summary: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Acting end user within the tenant */
+                "x-user-id": string;
+                /** @description Tenant API key */
+                "x-api-key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TelemetrySummaryDto"];
                 };
             };
             /** @description Missing/unknown API key or user */

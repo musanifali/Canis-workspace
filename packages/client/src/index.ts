@@ -16,6 +16,8 @@ export {
   type DataContract,
   type AuditEntry,
   type ListAuditParams,
+  type TelemetrySummary,
+  type TelemetryEventInput,
   type WorkspaceServiceClient,
   type WorkspaceServiceClientOptions,
   type SaveWorkspaceParams,

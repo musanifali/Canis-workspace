@@ -21,6 +21,7 @@ export {
   dataContracts,
   auditLog,
   usageEvents,
+  telemetryEvents,
   workspaceServiceRole,
   type DBTenant,
   type DBApiKey,
@@ -30,6 +31,7 @@ export {
   type DBDataContract,
   type DBAuditEntry,
   type DBUsageEvent,
+  type DBTelemetryEvent,
   type StoredVerdict,
 } from "./schema.js";
 export {
@@ -80,6 +82,12 @@ export {
   type RecordGenerationParams,
   type UsageSummary,
 } from "./operations/usage.js";
+export {
+  recordTelemetryEvents,
+  getTelemetrySummary,
+  type TelemetryEventInput,
+  type TelemetrySummary,
+} from "./operations/telemetry.js";
 export {
   createApiKey,
   resolveApiKey,

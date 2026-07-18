@@ -409,3 +409,42 @@ export const auditLog = pgTable(
   ],
 );
 export type DBAuditEntry = typeof auditLog.$inferSelect;
+
+/**
+ * Anonymous SDK telemetry (card #52, decision D5). Deliberately NO tenant or
+ * user columns — the documented schema is aggregate-only (funnel events,
+ * degradation reasons, error-code frequencies). The API key gates the
+ * endpoint against abuse but is never persisted here. Append-only like the
+ * audit trail; the service role may insert and read (no tenant predicate —
+ * there is no tenant to scope by).
+ */
+export const telemetryEvents = pgTable(
+  "telemetry_events",
+  {
+    id: bigserial("id", { mode: "bigint" }).primaryKey(),
+    event: text("event").notNull(),
+    props: jsonb("props")
+      .$type<Record<string, unknown>>()
+      .default({})
+      .notNull(),
+    sdkVersion: text("sdk_version"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("telemetry_events_event_idx").on(table.event),
+    index("telemetry_events_created_idx").on(table.createdAt),
+    pgPolicy("telemetry_events_service_select", {
+      to: workspaceServiceRole,
+      for: "select",
+      using: sql`true`,
+    }),
+    pgPolicy("telemetry_events_service_insert", {
+      to: workspaceServiceRole,
+      for: "insert",
+      withCheck: sql`true`,
+    }),
+  ],
+);
+export type DBTelemetryEvent = typeof telemetryEvents.$inferSelect;

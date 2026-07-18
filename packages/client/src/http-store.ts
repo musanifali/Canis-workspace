@@ -17,6 +17,19 @@ export type GenerationAllowance =
 export type UsageSummary = components["schemas"]["UsageSummaryDto"];
 export type DataContract = components["schemas"]["DataContractDto"];
 export type AuditEntry = components["schemas"]["AuditEntryDto"];
+export type TelemetrySummary = components["schemas"]["TelemetrySummaryDto"];
+
+/** One anonymous SDK event — see the docs' telemetry reference (default OFF). */
+export interface TelemetryEventInput {
+  event:
+    | "provider.mounted"
+    | "sandbox.rendered"
+    | "store.first_save"
+    | "block.degraded"
+    | "spec.rejected";
+  props?: Record<string, unknown>;
+  sdkVersion?: string;
+}
 
 export interface ListAuditParams {
   workspaceId?: string;
@@ -132,6 +145,9 @@ export interface WorkspaceServiceClient {
   ): Promise<DataContract>;
   removeContract(entityName: string): Promise<void>;
   listAudit(params?: ListAuditParams): Promise<AuditEntry[]>;
+  /** Anonymous, opt-in — send only when the vendor explicitly enabled it. */
+  sendTelemetry(events: TelemetryEventInput[]): Promise<number>;
+  getTelemetrySummary(): Promise<TelemetrySummary>;
 }
 
 /**
@@ -319,6 +335,17 @@ export function createWorkspaceServiceClient(
         "DELETE",
         `/contracts/${encodeURIComponent(entityName)}`,
       );
+    },
+    async sendTelemetry(events) {
+      const response = await request<{ accepted: number }>(
+        "POST",
+        "/telemetry",
+        { events },
+      );
+      return response.accepted;
+    },
+    async getTelemetrySummary() {
+      return await request<TelemetrySummary>("GET", "/telemetry/summary");
     },
     async listAudit(params = {}) {
       const search = new URLSearchParams();
