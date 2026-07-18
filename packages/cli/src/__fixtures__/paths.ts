@@ -1,0 +1,16 @@
+import { fileURLToPath } from "node:url";
+
+/** Absolute path to a file under src/__fixtures__, resolved from this module. */
+export function fixture(relative: string): string {
+  return fileURLToPath(new URL(`./${relative}`, import.meta.url));
+}
+
+export const CONTRACTS = {
+  baseline: fixture("contracts/case.baseline.mjs"),
+  narrowed: fixture("contracts/case.narrowed.mjs"),
+  widened: fixture("contracts/case.widened.mjs"),
+  broken: fixture("contracts/case.broken.mjs"),
+  empty: fixture("contracts/empty.mjs"),
+};
+
+export const SPECS_DIR = fixture("specs");

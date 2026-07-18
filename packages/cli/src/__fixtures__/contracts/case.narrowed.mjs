@@ -1,0 +1,35 @@
+// Proposed `case` contract that DROPS the `sla_deadline` field and its
+// capabilities — the breaking change the diff must catch.
+import { z } from "zod";
+import { defineEntity } from "@workspace-engine/core";
+
+const caseSchema = z.object({
+  id: z.string().describe("Stable case identifier assigned at intake."),
+  title: z.string().describe("Short human summary of the case."),
+  risk: z
+    .enum(["low", "medium", "high", "critical"])
+    .describe("Risk tier: low, medium, high, or critical exposure."),
+  status: z.enum(["open", "closed"]).describe("Whether the case is open or closed."),
+  analyst: z.string().describe("Name of the analyst who owns the case."),
+  riskScore: z.number().describe("Model risk score from 0 to 100."),
+  amountUsd: z.number().describe("Financial exposure in US dollars."),
+  dueDate: z.string().describe("Day the case review is due (YYYY-MM-DD)."),
+  // sla_deadline removed.
+});
+
+export const caseContract = defineEntity({
+  name: "case",
+  schema: caseSchema,
+  fieldKinds: { dueDate: "date" },
+  capabilities: {
+    filterable: ["risk", "status", "analyst", "riskScore", "amountUsd", "dueDate", "title"],
+    sortable: ["riskScore", "amountUsd", "dueDate"],
+    groupable: ["risk", "status", "analyst"],
+    aggregations: { riskScore: ["avg", "max"], amountUsd: ["sum", "avg"] },
+    defaultLimit: 50,
+    maxLimit: 200,
+  },
+  fetch: async () => [],
+});
+
+export default [caseContract];

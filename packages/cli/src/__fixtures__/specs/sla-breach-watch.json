@@ -1,0 +1,23 @@
+{
+  "specVersion": 1,
+  "title": "SLA breach watch",
+  "timezone": "viewer",
+  "refresh": { "mode": "manual" },
+  "layout": { "columns": 12 },
+  "blocks": [
+    {
+      "id": "blk_table",
+      "type": "CasesTable",
+      "frame": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "config": { "title": "Overdue SLAs", "columns": ["id", "title", "sla_deadline"] },
+      "binding": {
+        "entity": "case",
+        "query": {
+          "filters": [{ "field": "sla_deadline", "op": "before", "value": { "rel": "today" } }],
+          "sort": [{ "field": "sla_deadline", "dir": "asc" }],
+          "limit": 50
+        }
+      }
+    }
+  ]
+}

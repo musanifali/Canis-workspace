@@ -1,0 +1,24 @@
+{
+  "specVersion": 1,
+  "title": "By analyst",
+  "timezone": "viewer",
+  "refresh": { "mode": "manual" },
+  "layout": { "columns": 12 },
+  "blocks": [
+    {
+      "id": "blk_board",
+      "type": "GroupedBoard",
+      "frame": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "config": { "title": "By analyst" },
+      "binding": {
+        "entity": "case",
+        "query": {
+          "filters": [{ "field": "risk", "op": "in", "value": ["high", "critical"] }],
+          "groupBy": "analyst",
+          "sort": [{ "field": "riskScore", "dir": "desc" }],
+          "limit": 100
+        }
+      }
+    }
+  ]
+}

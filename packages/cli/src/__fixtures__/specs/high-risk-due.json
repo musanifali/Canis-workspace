@@ -1,0 +1,25 @@
+{
+  "specVersion": 1,
+  "title": "High-risk due this month",
+  "timezone": "viewer",
+  "refresh": { "mode": "manual" },
+  "layout": { "columns": 12 },
+  "blocks": [
+    {
+      "id": "blk_kpis",
+      "type": "KpiCards",
+      "frame": { "x": 0, "y": 0, "w": 12, "h": 2 },
+      "config": { "cards": [{ "alias": "total", "label": "High-risk due this month" }] },
+      "binding": {
+        "entity": "case",
+        "query": {
+          "filters": [
+            { "field": "risk", "op": "in", "value": ["high", "critical"] },
+            { "field": "dueDate", "op": "between", "value": { "rel": "this_month" } }
+          ],
+          "aggregations": [{ "fn": "count", "alias": "total" }]
+        }
+      }
+    }
+  ]
+}

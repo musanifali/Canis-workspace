@@ -1,0 +1,45 @@
+{
+  "name": "@workspace-engine/cli",
+  "version": "0.1.0",
+  "description": "canis — vendor CLI for the Workspace Engine. `contracts diff` gates breaking contract changes against saved workspaces; `contracts lint` checks contract quality. All IO lives here; validation reuses @workspace-engine/core's validateSpec unchanged.",
+  "type": "module",
+  "bin": {
+    "canis": "./dist/bin/canis.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@workspace-engine/client": "0.1.0",
+    "@workspace-engine/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0",
+    "zod": "^3.25.0"
+  }
+}
