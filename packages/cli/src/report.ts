@@ -3,6 +3,7 @@
  * ASCII (no color codes) so it reads cleanly in CI logs and is easy to assert
  * against in tests.
  */
+import type { EntityContract } from "@workspace-engine/core";
 import type { ContractDiff, EntityContractDiff } from "./contracts/static-diff.js";
 import type { DiffAnalysis, SpecImpact } from "./diff/analyze.js";
 import type { LintFinding } from "./contracts/lint.js";
@@ -159,6 +160,81 @@ export function lintJson(findings: readonly LintFinding[], meta: LintMeta): unkn
     command: "contracts lint",
     contracts: meta.contracts,
     entityCount: meta.entityCount,
+    summary: {
+      errors: findings.filter((f) => f.severity === "error").length,
+      warnings: findings.filter((f) => f.severity === "warning").length,
+    },
+    findings,
+  };
+}
+
+/** Declarative summary of one contract for the dev playground. */
+function summarizeContract(contract: EntityContract): string[] {
+  const caps = contract.capabilities;
+  const serverOps = (["filter", "sort", "group", "aggregate"] as const)
+    .filter((op) => caps.execution[op] === "server");
+  const lines = [`${contract.name}:`];
+  lines.push(
+    `  fields: ${Object.entries(contract.fields)
+      .map(([field, kind]) => `${field}(${kind})`)
+      .join(", ")}`,
+  );
+  lines.push(`  filterable: ${[...caps.filterable].join(", ") || "(none)"}`);
+  lines.push(`  sortable:   ${[...caps.sortable].join(", ") || "(none)"}`);
+  lines.push(`  groupable:  ${[...caps.groupable].join(", ") || "(none)"}`);
+  const aggs = Object.entries(caps.aggregations)
+    .map(([field, fns]) => `${field}[${fns.join(",")}]`)
+    .join(", ");
+  lines.push(`  aggregations: ${aggs || "(none)"}`);
+  lines.push(
+    `  execution: ${serverOps.length > 0 ? `server for ${serverOps.join("/")}` : "client (engine enforces everything)"}` +
+      `; limits ${caps.defaultLimit}/${caps.maxLimit}`,
+  );
+  return lines;
+}
+
+/** Render the dev playground report: summary + merged lint/probe findings. */
+export function formatDevHuman(
+  contracts: readonly EntityContract[],
+  findings: readonly LintFinding[],
+  meta: LintMeta,
+): string {
+  const lines: string[] = [];
+  lines.push("canis contracts dev");
+  lines.push(`  contracts: ${meta.contracts} (${meta.entityCount} entit${meta.entityCount === 1 ? "y" : "ies"})`);
+  lines.push("");
+  for (const contract of contracts) {
+    lines.push(...summarizeContract(contract));
+    lines.push("");
+  }
+  lines.push("Checks (lint + conformance probes):");
+  lines.push(formatLintHuman(findings, meta).split("\n").slice(3).join("\n"));
+  return lines.join("\n");
+}
+
+/** Render the dev playground report as a stable JSON object. */
+export function devJson(
+  contracts: readonly EntityContract[],
+  findings: readonly LintFinding[],
+  meta: LintMeta,
+): unknown {
+  return {
+    command: "contracts dev",
+    contracts: meta.contracts,
+    entityCount: meta.entityCount,
+    entities: contracts.map((contract) => ({
+      name: contract.name,
+      fields: contract.fields,
+      capabilities: {
+        filterable: [...contract.capabilities.filterable],
+        sortable: [...contract.capabilities.sortable],
+        groupable: [...contract.capabilities.groupable],
+        aggregations: contract.capabilities.aggregations,
+        execution: contract.capabilities.execution,
+        defaultLimit: contract.capabilities.defaultLimit,
+        maxLimit: contract.capabilities.maxLimit,
+      },
+    })),
     summary: {
       errors: findings.filter((f) => f.severity === "error").length,
       warnings: findings.filter((f) => f.severity === "warning").length,

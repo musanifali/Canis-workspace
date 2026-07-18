@@ -8,6 +8,7 @@
 import { loadContractModule, toContractMap, ContractLoadError } from "./contracts/load.js";
 import { diffContracts } from "./contracts/static-diff.js";
 import { lintContracts, hasLintErrors, type LintFinding } from "./contracts/lint.js";
+import { probeContracts } from "./contracts/probe.js";
 import { analyzeBreakingChanges } from "./diff/analyze.js";
 import { loadSpecsFromDir, loadSpecsFromService, type LoadedSpec } from "./specs/load.js";
 import { parseArgs, resolveOption, type ParsedArgs } from "./args.js";
@@ -16,6 +17,8 @@ import {
   diffJson,
   formatLintHuman,
   lintJson,
+  formatDevHuman,
+  devJson,
 } from "./report.js";
 
 export interface CliIo {
@@ -43,6 +46,16 @@ contracts diff — does a contract change break saved workspaces?
 
 contracts lint — static contract-quality checks
   --contracts <module> Contract module to lint
+  --probe              Also run conformance probes: sample queries through the
+                       REAL fetch, verifying execution:"server" capabilities
+                       (declared sortable but sort unimplemented, etc.)
+  --auth <json>        Auth value handed to the fetch during probes
+  --json               Machine-readable output
+  Exit: non-zero when >=1 error-severity finding.
+
+contracts dev — vendor playground: contract summary + lint + conformance probes
+  --contracts <module> Contract module to inspect
+  --auth <json>        Auth value handed to the fetch during probes
   --json               Machine-readable output
   Exit: non-zero when >=1 error-severity finding.
 
@@ -69,9 +82,20 @@ export async function run(argv: readonly string[], io: CliIo): Promise<number> {
   }
   if (sub === "diff") return runDiff(parsed, io);
   if (sub === "lint") return runLint(parsed, io);
+  if (sub === "dev") return runDev(parsed, io);
 
   io.stderr(USAGE);
-  return fail(io, `unknown "contracts" subcommand "${sub ?? ""}" (expected diff|lint)`);
+  return fail(io, `unknown "contracts" subcommand "${sub ?? ""}" (expected diff|lint|dev)`);
+}
+
+/** Parse --auth as JSON when it looks like JSON; else pass the raw string. */
+function parseAuth(raw: string | undefined): unknown {
+  if (raw === undefined) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
 }
 
 async function runDiff(parsed: ParsedArgs, io: CliIo): Promise<number> {
@@ -168,6 +192,14 @@ async function runLint(parsed: ParsedArgs, io: CliIo): Promise<number> {
     const contracts = await loadContractModule(contractsPath, io.cwd);
     entityCount = contracts.length;
     findings = lintContracts(contracts);
+    if (parsed.flags.has("probe")) {
+      findings = [
+        ...findings,
+        ...(await probeContracts(contracts, {
+          auth: parseAuth(parsed.options.auth),
+        })),
+      ];
+    }
   } catch (error) {
     if (error instanceof ContractLoadError) {
       // A module that fails to load (e.g. defineEntity threw on a bad
@@ -191,6 +223,39 @@ async function runLint(parsed: ParsedArgs, io: CliIo): Promise<number> {
     io.stdout(JSON.stringify(lintJson(findings, meta), null, 2));
   } else {
     io.stdout(formatLintHuman(findings, meta));
+  }
+
+  return hasLintErrors(findings) ? 1 : 0;
+}
+
+async function runDev(parsed: ParsedArgs, io: CliIo): Promise<number> {
+  if (parsed.flags.has("help")) {
+    io.stdout(USAGE);
+    return 0;
+  }
+  const contractsPath = parsed.options.contracts;
+  if (!contractsPath) {
+    return fail(io, "contracts dev requires --contracts <module>");
+  }
+
+  let contracts;
+  try {
+    contracts = await loadContractModule(contractsPath, io.cwd);
+  } catch (error) {
+    if (error instanceof ContractLoadError) return fail(io, error.message);
+    throw error;
+  }
+
+  const findings = [
+    ...lintContracts(contracts),
+    ...(await probeContracts(contracts, { auth: parseAuth(parsed.options.auth) })),
+  ];
+  const meta = { contracts: contractsPath, entityCount: contracts.length };
+
+  if (parsed.flags.has("json")) {
+    io.stdout(JSON.stringify(devJson(contracts, findings, meta), null, 2));
+  } else {
+    io.stdout(formatDevHuman(contracts, findings, meta));
   }
 
   return hasLintErrors(findings) ? 1 : 0;

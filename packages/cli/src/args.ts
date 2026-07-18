@@ -10,7 +10,7 @@ export interface ParsedArgs {
   flags: Set<string>;
 }
 
-const KNOWN_BOOLEAN_FLAGS = new Set(["json", "help"]);
+const KNOWN_BOOLEAN_FLAGS = new Set(["json", "help", "probe"]);
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
   const positionals: string[] = [];

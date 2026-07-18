@@ -99,6 +99,53 @@ describe("canis contracts lint", () => {
     expect(parsed.summary.warnings).toBeGreaterThan(0);
     expect(parsed.summary.errors).toBe(0);
   });
+
+  it("--probe fails a fetch that ignores its server-mode capabilities", async () => {
+    const h = harness();
+    const code = await run(
+      ["contracts", "lint", "--contracts", CONTRACTS.serverBroken, "--probe"],
+      h.io,
+    );
+    expect(code).toBe(1);
+    expect(h.out()).toContain("server_sort_unimplemented");
+    expect(h.out()).toContain("server_filter_unimplemented");
+  });
+
+  it("--probe passes a fetch that honors its server-mode capabilities", async () => {
+    const h = harness();
+    const code = await run(
+      ["contracts", "lint", "--contracts", CONTRACTS.serverOk, "--probe"],
+      h.io,
+    );
+    expect(code).toBe(0);
+    expect(h.out()).toContain("no contract quality issues");
+  });
+});
+
+describe("canis contracts dev", () => {
+  it("prints the contract summary plus merged lint+probe findings", async () => {
+    const h = harness();
+    const code = await run(["contracts", "dev", "--contracts", CONTRACTS.serverBroken], h.io);
+    expect(code).toBe(1);
+    expect(h.out()).toContain("orders:");
+    expect(h.out()).toContain("fields: id(string), region(enum), total(number)");
+    expect(h.out()).toContain("server for filter/sort");
+    expect(h.out()).toContain("server_sort_unimplemented");
+  });
+
+  it("exits zero for a conforming module and emits JSON with --json", async () => {
+    const h = harness();
+    const code = await run(
+      ["contracts", "dev", "--contracts", CONTRACTS.serverOk, "--json"],
+      h.io,
+    );
+    expect(code).toBe(0);
+    const parsed = JSON.parse(h.out());
+    expect(parsed.command).toBe("contracts dev");
+    expect(parsed.entities[0].name).toBe("orders");
+    expect(parsed.entities[0].capabilities.execution.sort).toBe("server");
+    expect(parsed.summary.errors).toBe(0);
+  });
 });
 
 describe("canis dispatch", () => {

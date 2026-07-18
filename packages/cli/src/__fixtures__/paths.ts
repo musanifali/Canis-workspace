@@ -13,6 +13,8 @@ export const CONTRACTS = {
   smelly: fixture("contracts/case.smelly.mjs"),
   broken: fixture("contracts/case.broken.mjs"),
   empty: fixture("contracts/empty.mjs"),
+  serverOk: fixture("contracts/orders.server-ok.mjs"),
+  serverBroken: fixture("contracts/orders.server-broken.mjs"),
 };
 
 export const SPECS_DIR = fixture("specs");
