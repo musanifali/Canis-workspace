@@ -43,6 +43,42 @@ jobs:
       - run: npm run verify:artifacts
       - run: npm run size
 
+  api-surface:
+    # Public-surface snapshot + breaking-change gate (card #51): the snapshot
+    # must match the built packages, and export removals require a `major`
+    # changeset (devdocs/release-policy.md).
+    name: api surface (semver gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+      - run: npm run api-surface:check
+
+  compat:
+    # Previous-minor compat suite (card #51, decision D4): the previous
+    # minor's example apps must type-check and pass against the CURRENT
+    # packages. Exits cleanly while no previous minor tag exists.
+    name: previous-minor compat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+      - run: npm run compat
+
   type-tests:
     # defineEntity's literal-type inference is a product feature; verify it across
     # every TypeScript version we claim to support (core devDep is ^5.6).

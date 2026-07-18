@@ -38,6 +38,12 @@ jobs:
         run: |
           count=$(find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
           echo "count=$count" >> "$GITHUB_OUTPUT"
+      - name: Semver gate (api surface + previous-minor compat)
+        if: steps.pending.outputs.count != '0'
+        run: |
+          npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+          npm run api-surface:check
+          npm run compat
       - name: Version packages and tag
         if: steps.pending.outputs.count != '0'
         run: |

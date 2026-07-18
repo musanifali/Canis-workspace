@@ -18,7 +18,10 @@
     "size": "npm run size --workspace=@workspace-engine/react",
     "changeset": "changeset",
     "release:version": "changeset version",
-    "pack:canary": "mkdir -p canary-dist && npm pack --workspace @workspace-engine/core --workspace @workspace-engine/react --workspace @workspace-engine/ui --workspace @workspace-engine/client --workspace @workspace-engine/cli --workspace @workspace-engine/devtools --pack-destination canary-dist"
+    "pack:canary": "mkdir -p canary-dist && npm pack --workspace @workspace-engine/core --workspace @workspace-engine/react --workspace @workspace-engine/ui --workspace @workspace-engine/client --workspace @workspace-engine/cli --workspace @workspace-engine/devtools --pack-destination canary-dist",
+    "api-surface": "node scripts/api-surface.mjs --write",
+    "api-surface:check": "node scripts/api-surface.mjs --check",
+    "compat": "node scripts/compat-suite.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
