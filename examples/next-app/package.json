@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/example-next-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Next.js App Router example (#50): the RSC/client boundary drawn explicitly — server layout + data route, client workspace module. CI builds it against the current packages — it feeds the compat suite (#51).",
   "scripts": {
@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0",
-    "@workspace-engine/react": "0.1.0",
-    "@workspace-engine/ui": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
+    "@workspace-engine/react": "0.2.0",
+    "@workspace-engine/ui": "0.2.0",
     "next": "^15.5.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/devtools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Dev-only inspector for the Workspace Engine — current spec + history, validator verdicts with per-field reasons, and a query timeline. Excluded from production bundles.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,7 +30,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0"
+    "@workspace-engine/core": "0.2.0"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.0.0",

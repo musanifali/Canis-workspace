@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/example-recipes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "The adapter recipes from the docs (REST/GraphQL/Prisma/Supabase fetch implementations), as compiled + unit-tested code. The docs' adapters page syncs against these files.",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

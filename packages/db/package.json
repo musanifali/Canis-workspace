@@ -1,7 +1,7 @@
 {
   "name": "@workspace-engine/db",
-  "version": "0.1.0",
-  "description": "Workspace Service persistence: Drizzle schema, migrations, and the operations layer. All DB access lives here \u2014 services call operations, never inline SQL.",
+  "version": "0.1.1",
+  "description": "Workspace Service persistence: Drizzle schema, migrations, and the operations layer. All DB access lives here — services call operations, never inline SQL.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -37,7 +37,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.21.0"
   },

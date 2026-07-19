@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/example-vite-spa",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Vite SPA example (#50): contract + validated spec + renderer in a plain client-side React app. CI builds it against the current packages — it feeds the compat suite (#51).",
@@ -12,9 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0",
-    "@workspace-engine/react": "0.1.0",
-    "@workspace-engine/ui": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
+    "@workspace-engine/react": "0.2.0",
+    "@workspace-engine/ui": "0.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zod": "^3.25.0"

@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Default themeable block set for the Workspace Engine — table, KPIs, queue, board, filter bar, chart. Works before you customize; swap one block at a time.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,8 +30,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.1.0",
-    "@workspace-engine/react": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
+    "@workspace-engine/react": "0.2.0",
     "zod": "^3.25.0"
   },
   "peerDependencies": {

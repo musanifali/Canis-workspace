@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Workspace Service — the /v1 HTTP API. NestJS, mirroring the vendored Tambo backend's discipline: controllers → services → packages/db operations.",
   "private": true,
   "scripts": {
@@ -18,8 +18,8 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/swagger": "^11.0.0",
-    "@workspace-engine/core": "0.1.0",
-    "@workspace-engine/db": "0.1.0",
+    "@workspace-engine/core": "0.2.0",
+    "@workspace-engine/db": "0.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "zod": "^3.25.0"
@@ -29,7 +29,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^26.1.0",
     "@types/supertest": "^6.0.2",
-    "@workspace-engine/client": "0.1.0",
+    "@workspace-engine/client": "0.2.0",
     "supertest": "^7.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",

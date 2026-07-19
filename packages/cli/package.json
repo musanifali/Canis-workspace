@@ -1,6 +1,6 @@
 {
   "name": "@workspace-engine/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "canis — vendor CLI for the Workspace Engine. `contracts diff` gates breaking contract changes against saved workspaces; `contracts lint` checks contract quality. All IO lives here; validation reuses @workspace-engine/core's validateSpec unchanged.",
   "type": "module",
   "bin": {
@@ -32,8 +32,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/client": "0.1.0",
-    "@workspace-engine/core": "0.1.0"
+    "@workspace-engine/client": "0.2.0",
+    "@workspace-engine/core": "0.2.0"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
