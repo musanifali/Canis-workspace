@@ -18,7 +18,7 @@ import { caseSpecBody, registerCaseContract } from "./e2e-support.js";
 
 const TEST_DATABASE_URL =
   process.env.DATABASE_URL ??
-  "postgres://postgres:postgres@localhost:5443/workspace_engine";
+  "postgres://postgres:postgres@localhost:5443/workspace_engine_test";
 
 let app: INestApplication;
 let httpServer: App;
