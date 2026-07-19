@@ -32,7 +32,7 @@ import {
   type WorkspaceDbClient,
 } from "@workspace-engine/db";
 import type { Request } from "express";
-import { TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
+import { RequireScope, TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import {
@@ -63,6 +63,7 @@ const entityNamePipe = new ZodValidationPipe(entityNameSchema);
 })
 @ApiUnauthorizedResponse({ description: "Missing/unknown API key or user" })
 @UseGuards(TenantGuard)
+@RequireScope("admin")
 @Controller("contracts")
 export class ContractsController {
   constructor(

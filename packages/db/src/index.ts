@@ -92,7 +92,9 @@ export {
   createApiKey,
   resolveApiKey,
   revokeApiKey,
+  type ApiKeyScope,
   type CreatedApiKey,
+  type ResolvedApiKey,
 } from "./operations/api-keys.js";
 export {
   writeAudit,

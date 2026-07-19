@@ -1,0 +1,1 @@
+ALTER TABLE "api_keys" ADD COLUMN "scope" text DEFAULT 'admin' NOT NULL;

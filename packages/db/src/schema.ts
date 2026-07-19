@@ -93,6 +93,15 @@ export const apiKeys = pgTable(
       .references(() => tenants.id)
       .notNull(),
     name: text("name").notNull(),
+    /**
+     * Key power domain: "runtime" (workspaces + telemetry ingest — the most a
+     * browser-adjacent key can do) vs "admin" (adds the contracts registry,
+     * audit, usage, telemetry summary — dashboard/CLI/CI credentials).
+     * Defaults to "admin" so keys minted before scopes existed keep working.
+     */
+    scope: text("scope", { enum: ["runtime", "admin"] })
+      .notNull()
+      .default("admin"),
     /** sha256 hex of the raw key — the raw key is shown once and never stored. */
     keyHash: text("key_hash").notNull().unique(),
     createdAt: timestamp("created_at", { withTimezone: true })

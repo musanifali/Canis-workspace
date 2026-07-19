@@ -53,8 +53,10 @@ jobs:
           version=$(node -p "require('./packages/core/package.json').version")
           git add -A
           git commit -m "chore(release): v${version}"
-          git tag "v${version}"
-          git push --follow-tags
+          # Annotated + explicitly pushed: `--follow-tags` silently drops
+          # lightweight tags (v0.2.0's tag died in the runner exactly this way).
+          git tag -a "v${version}" -m "v${version}"
+          git push origin HEAD "refs/tags/v${version}"
 
   canary:
     name: canary tarballs

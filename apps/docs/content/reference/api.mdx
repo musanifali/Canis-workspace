@@ -91,6 +91,16 @@ Blocks read `--we-*` CSS custom properties from any ancestor — no CSS import:
   service is one line. Keep the API key server-side — proxy pattern in the
   [dashboard reference integration](https://github.com/musanifali/Canis-workspace/tree/main/apps/dashboard).
 
+### API key scopes
+
+Keys are minted with one of two scopes. **`runtime`** covers the SDK's own
+traffic — workspace CRUD, telemetry ingest, usage allowance/generation — and
+is the most a browser-adjacent key should ever hold. **`admin`** adds the
+contracts registry, the audit trail, and the usage/telemetry summaries: a
+dashboard, CLI, or CI credential. A runtime key hitting an admin endpoint
+gets a machine-readable `403` with `code: "insufficient_key_scope"`. Keys
+minted before scopes existed behave as `admin`.
+
 ## `@workspace-engine/cli`
 
 The `canis` binary — see the [vendor CI guide](/guides/vendor-ci):

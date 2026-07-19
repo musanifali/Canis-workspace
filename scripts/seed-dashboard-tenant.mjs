@@ -20,12 +20,16 @@ try {
     .insert(tenants)
     .values({ id: TENANT_ID, name: "Canis Internal (dashboard)" })
     .onConflictDoNothing();
+  // Admin scope: the dashboard reads contracts/audit/summaries, and its key
+  // never leaves the server (GET-only proxy) — the exact credential split the
+  // key-scope model exists for ([review][P3]).
   const key = await createApiKey(client.db, {
     tenantId: TENANT_ID,
     name: `dashboard-${new Date().toISOString().slice(0, 10)}`,
+    scope: "admin",
   });
   console.log(`tenant:  ${TENANT_ID}`);
-  console.log(`api key: ${key.rawKey}`);
+  console.log(`api key: ${key.rawKey} (scope: admin)`);
   console.log("\napps/dashboard/.env.local:");
   console.log("WORKSPACE_API_URL=http://localhost:8270");
   console.log(`WORKSPACE_API_KEY=${key.rawKey}`);

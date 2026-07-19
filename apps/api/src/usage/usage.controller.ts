@@ -26,7 +26,7 @@ import {
   type WorkspaceDbClient,
 } from "@workspace-engine/db";
 import type { Request } from "express";
-import { TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
+import { RequireScope, TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import {
@@ -101,6 +101,7 @@ export class UsageController {
   }
 
   @Get("summary")
+  @RequireScope("admin")
   @ApiOperation({
     summary:
       "This month's cost picture: totals + per-workspace breakdown (reads " +

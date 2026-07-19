@@ -1,21 +1,43 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Inject,
   Injectable,
+  SetMetadata,
   UnauthorizedException,
 } from "@nestjs/common";
-import { resolveApiKey, type TenantContext, type WorkspaceDbClient } from "@workspace-engine/db";
+import { Reflector } from "@nestjs/core";
+import {
+  resolveApiKey,
+  type ApiKeyScope,
+  type TenantContext,
+  type WorkspaceDbClient,
+} from "@workspace-engine/db";
 import type { Request } from "express";
 import { DB_CLIENT } from "../db.provider.js";
 
 /** Request key the resolved tenant context is stored under. */
 export const TENANT_CTX = "tenantCtx";
+/** Request key the resolved key scope is stored under. */
+export const KEY_SCOPE = "keyScope";
+
+const REQUIRED_SCOPE = "requiredKeyScope";
 
 /**
- * Resolves `x-api-key` → tenant (sha256 lookup, owner connection) and
- * `x-user-id` → acting end user. Runs before every /v1 handler; nothing
- * downstream executes without a TenantContext.
+ * Declare the key scope a handler/controller needs ([review][P3]). Undecorated
+ * routes accept any live key ("runtime" is enough); `@RequireScope("admin")`
+ * routes refuse runtime keys with a machine-readable 403 — an admin key is a
+ * dashboard/CLI/CI credential, never a browser-adjacent one.
+ */
+export const RequireScope = (scope: ApiKeyScope): MethodDecorator & ClassDecorator =>
+  SetMetadata(REQUIRED_SCOPE, scope);
+
+/**
+ * Resolves `x-api-key` → tenant + key scope (sha256 lookup, owner connection)
+ * and `x-user-id` → acting end user, then enforces any `@RequireScope`
+ * metadata. Runs before every /v1 handler; nothing downstream executes
+ * without a TenantContext.
  *
  * The end-user identity is client-supplied here, like the vendored platform's
  * `userKey` mechanism — cryptographic per-user auth is the vendor backend's
@@ -25,6 +47,8 @@ export const TENANT_CTX = "tenantCtx";
 export class TenantGuard implements CanActivate {
   constructor(
     @Inject(DB_CLIENT) private readonly client: WorkspaceDbClient,
+    // Explicit token: this repo compiles without emitDecoratorMetadata.
+    @Inject(Reflector) private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,8 +57,8 @@ export class TenantGuard implements CanActivate {
     if (!apiKey) {
       throw new UnauthorizedException("missing x-api-key header");
     }
-    const tenantId = await resolveApiKey(this.client.db, apiKey);
-    if (!tenantId) {
+    const resolved = await resolveApiKey(this.client.db, apiKey);
+    if (!resolved) {
       throw new UnauthorizedException("unknown or revoked API key");
     }
     const userId = request.header("x-user-id");
@@ -43,13 +67,26 @@ export class TenantGuard implements CanActivate {
         "missing x-user-id header (acting end user)",
       );
     }
+    const required = this.reflector.getAllAndOverride<ApiKeyScope | undefined>(
+      REQUIRED_SCOPE,
+      [context.getHandler(), context.getClass()],
+    );
+    if (required === "admin" && resolved.scope !== "admin") {
+      throw new ForbiddenException({
+        statusCode: 403,
+        code: "insufficient_key_scope",
+        message:
+          "this endpoint requires an admin-scope API key; the presented key " +
+          `is scope "${resolved.scope}"`,
+      });
+    }
     // Optional team memberships for team shares (#28), comma-separated.
     const teamIds = (request.header("x-user-teams") ?? "")
       .split(",")
       .map((team) => team.trim())
       .filter((team) => team.length > 0);
-    const ctx: TenantContext = { tenantId, userId, teamIds };
-    Object.assign(request, { [TENANT_CTX]: ctx });
+    const ctx: TenantContext = { tenantId: resolved.tenantId, userId, teamIds };
+    Object.assign(request, { [TENANT_CTX]: ctx, [KEY_SCOPE]: resolved.scope });
     return true;
   }
 }

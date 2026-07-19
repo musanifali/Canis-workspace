@@ -12,12 +12,25 @@ import { apiKeys } from "../schema.js";
 const hashKey = (rawKey: string): string =>
   createHash("sha256").update(rawKey).digest("hex");
 
+/**
+ * Key power domain ([review][P3]): "runtime" covers workspace CRUD and
+ * telemetry ingest — the most a browser-adjacent key may hold. "admin" adds
+ * the contracts registry, audit, usage, and telemetry summary.
+ */
+export type ApiKeyScope = "runtime" | "admin";
+
 export interface CreatedApiKey {
   id: string;
   tenantId: string;
   name: string;
+  scope: ApiKeyScope;
   /** Shown exactly once — only the sha256 hash is stored. */
   rawKey: string;
+}
+
+export interface ResolvedApiKey {
+  tenantId: string;
+  scope: ApiKeyScope;
 }
 
 /**
@@ -26,7 +39,7 @@ export interface CreatedApiKey {
  */
 export async function createApiKey(
   db: WorkspaceDb,
-  params: { tenantId: string; name: string },
+  params: { tenantId: string; name: string; scope?: ApiKeyScope },
 ): Promise<CreatedApiKey> {
   const rawKey = `wek_${randomBytes(24).toString("base64url")}`;
   const [row] = await db
@@ -35,28 +48,35 @@ export async function createApiKey(
       id: `key_${randomUUID()}`,
       tenantId: params.tenantId,
       name: params.name,
+      scope: params.scope ?? "admin",
       keyHash: hashKey(rawKey),
     })
     .returning();
   if (!row) {
     throw new Error(`Failed to create API key "${params.name}"`);
   }
-  return { id: row.id, tenantId: row.tenantId, name: row.name, rawKey };
+  return {
+    id: row.id,
+    tenantId: row.tenantId,
+    name: row.name,
+    scope: row.scope,
+    rawKey,
+  };
 }
 
 /**
- * Resolve a presented API key to its tenant.
- * @returns The tenant id, or null for unknown/revoked keys.
+ * Resolve a presented API key to its tenant and scope.
+ * @returns The tenant id + key scope, or null for unknown/revoked keys.
  */
 export async function resolveApiKey(
   db: WorkspaceDb,
   rawKey: string,
-): Promise<string | null> {
+): Promise<ResolvedApiKey | null> {
   const [row] = await db
-    .select({ tenantId: apiKeys.tenantId })
+    .select({ tenantId: apiKeys.tenantId, scope: apiKeys.scope })
     .from(apiKeys)
     .where(and(eq(apiKeys.keyHash, hashKey(rawKey)), isNull(apiKeys.revokedAt)));
-  return row?.tenantId ?? null;
+  return row ? { tenantId: row.tenantId, scope: row.scope } : null;
 }
 
 /**

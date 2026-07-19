@@ -20,7 +20,7 @@ import {
   recordTelemetryEvents,
   type WorkspaceDbClient,
 } from "@workspace-engine/db";
-import { TenantGuard } from "../auth/tenant.guard.js";
+import { RequireScope, TenantGuard } from "../auth/tenant.guard.js";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import {
@@ -69,6 +69,7 @@ export class TelemetryController {
   }
 
   @Get("summary")
+  @RequireScope("admin")
   @ApiOperation({
     summary:
       "Aggregate funnel + degradation-reason counts (the internal dashboard " +

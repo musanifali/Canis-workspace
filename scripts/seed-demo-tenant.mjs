@@ -78,13 +78,17 @@ try {
       target: [dataContracts.tenantId, dataContracts.entityName],
       set: { definition: serializeContract(caseContract), updatedAt: new Date() },
     });
+  // The demo ships this key to the browser (NEXT_PUBLIC_) — runtime scope
+  // only: it can save workspaces and emit telemetry, but can never touch the
+  // contracts registry, audit trail, or summaries ([review][P3]).
   const key = await createApiKey(client.db, {
     tenantId: TENANT_ID,
     name: `demo-${new Date().toISOString().slice(0, 10)}`,
+    scope: "runtime",
   });
   console.log(`tenant:   ${TENANT_ID}`);
   console.log(`contract: case (registered)`);
-  console.log(`api key:  ${key.rawKey}`);
+  console.log(`api key:  ${key.rawKey} (scope: runtime)`);
   console.log("\ndemo/.env.local:");
   console.log("NEXT_PUBLIC_WORKSPACE_API_URL=http://localhost:8270");
   console.log(`NEXT_PUBLIC_WORKSPACE_API_KEY=${key.rawKey}`);
