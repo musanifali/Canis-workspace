@@ -1,6 +1,7 @@
 {
   "name": "@workspace-engine/cli",
   "version": "0.2.0",
+  "license": "Apache-2.0",
   "description": "canis — vendor CLI for the Workspace Engine. `contracts diff` gates breaking contract changes against saved workspaces; `contracts lint` checks contract quality. All IO lives here; validation reuses @workspace-engine/core's validateSpec unchanged.",
   "type": "module",
   "bin": {

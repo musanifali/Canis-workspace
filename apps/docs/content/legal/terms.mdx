@@ -1,0 +1,84 @@
+# Terms of Service
+
+> **Draft — name frozen as Ticora (vault ADR-7); `{{LEGAL_ENTITY}}` is still a
+> placeholder pending incorporation.** This template has not been reviewed by
+> counsel.
+
+_Last updated: 2026-07-19 · Effective: on public launch_
+
+These Terms govern use of the hosted Ticora service (the
+"Service") operated by `{{LEGAL_ENTITY}}` ("we", "us"). By creating a
+tenant, using an API key, or accessing the dashboard, you agree to them. If
+you use the Service on behalf of an organization, you represent that you can
+bind that organization.
+
+## 1. The Service
+
+The Service stores and versions workspace specifications ("specs"),
+validates and renders them via the open-source Ticora SDKs (published under
+the `@workspace-engine` npm scope pending the `@ticora` rename, card #99), and
+exposes tenant-scoped APIs for workspaces, versions, sharing, API keys, and
+audit. The SDKs themselves are licensed separately under Apache-2.0 and are
+not part of these Terms.
+
+## 2. Your account and keys
+
+- You are responsible for safeguarding API keys and dashboard credentials.
+  Keys are scoped (runtime vs admin); use the narrowest scope that works.
+- You must notify us promptly of any suspected compromise; rotate keys via
+  the dashboard or API.
+- One person or legal entity per tenant unless otherwise agreed.
+
+## 3. Your data
+
+- **Specs and metadata you store with us remain yours.** You grant us only
+  the rights needed to operate the Service (storage, versioning, rendering,
+  backup).
+- **Your application's row data never rests with us**: the SDK fetches your
+  data directly in your application; it is not transmitted to or stored by
+  the Service (see the [Privacy Policy](/legal/privacy)).
+- We keep an append-only audit trail and version history of actions in your
+  tenant; soft-deleted workspaces retain their version and audit history.
+
+## 4. Acceptable use
+
+You may not: attempt to access another tenant's data; probe, scan, or test
+the vulnerability of the Service except under a responsible-disclosure
+agreement; resell the Service without agreement; use the Service to violate
+law or third-party rights; or interfere with service operation (including
+circumventing rate limits or plan quotas).
+
+## 5. Plans, availability, changes
+
+Free and paid tiers may impose quotas (workspaces, requests, seats). We may
+change or discontinue features with reasonable notice; material degradations
+of paid functionality entitle you to a pro-rata refund of prepaid fees. The
+Service is provided without an SLA unless one is agreed in writing.
+
+## 6. Open source and third parties
+
+The public SDK packages are Apache-2.0; the Service builds on Tambo
+(MIT, © Fractal Dynamics Inc.). Third-party components remain under their
+own licenses.
+
+## 7. Disclaimers and liability
+
+The Service is provided **"as is"** without warranties of any kind. To the
+maximum extent permitted by law, our aggregate liability under these Terms
+is limited to the fees you paid in the twelve months preceding the claim (or
+US$100 if you paid none). Neither party is liable for indirect or
+consequential damages. Nothing limits liability that cannot lawfully be
+limited.
+
+## 8. Termination
+
+You may delete your tenant at any time. We may suspend or terminate for
+material breach (including non-payment or abuse) with notice where
+practicable. On termination we delete tenant data per the retention terms in
+the Privacy Policy, except records we must keep by law.
+
+## 9. General
+
+These Terms are governed by the laws of `{{GOVERNING_LAW_JURISDICTION}}`.
+We may update these Terms; material changes are announced at least 14 days
+in advance via the dashboard or email. Questions: `{{CONTACT_EMAIL}}`.
