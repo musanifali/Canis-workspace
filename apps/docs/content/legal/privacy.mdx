@@ -1,0 +1,90 @@
+# Privacy Policy
+
+> **Draft — name frozen as Ticora (vault ADR-7); `{{LEGAL_ENTITY}}` is still a
+> placeholder pending incorporation.** This template has not been reviewed by
+> counsel.
+
+_Last updated: 2026-07-19 · Effective: on public launch_
+
+This policy describes what the hosted Ticora service (the
+"Service"), the documentation site, and the marketing site collect — and,
+just as importantly, what they deliberately do not.
+
+## The short version
+
+- **Your application's row data never rests with us.** The SDK fetches your
+  data inside your application; nothing from your `fetch` results is sent to
+  or stored by the Service.
+- **SDK telemetry is off by default, opt-in, and anonymous** — a pinned enum
+  of events with no user identifiers, validated server-side; anything
+  outside the schema is rejected.
+- **No tracking cookies.** The docs and marketing sites set no cookies at
+  all; the dashboard uses only an essential session cookie once session
+  auth ships.
+
+## What we store, per surface
+
+### Hosted service (tenant data)
+
+To operate your tenant we store: tenant name and settings; workspace
+**specs** and their full version history; sharing records; hashed API keys
+with their scopes and last-used timestamps; and an **append-only audit
+trail**. An audit entry contains: tenant id, the acting user id, the action
+name, a small JSON detail object (e.g. which workspace, which key id — not
+spec contents), and a timestamp. Audit and version history are retained for
+the life of the tenant — including through workspace soft-deletes — because
+they are the tamper-evidence the product promises. Deleting your tenant
+deletes all of it within 30 days, backups included, except records we must
+keep by law.
+
+### SDK telemetry (opt-in, anonymous)
+
+Exactly as documented in [Telemetry](/reference/telemetry): five enum-pinned
+events (`provider.mounted`, `sandbox.rendered`, `store.first_save`,
+`block.degraded`, `spec.rejected`) plus `sdkVersion`. The ingest endpoint
+requires an API key purely as an abuse gate and **does not persist the key
+or the tenant**; the store has no tenant or user columns, and only
+aggregates are readable. No IPs are stored, no user identifiers, no spec
+contents, prompts, titles, or field names — ever. If telemetry is not
+explicitly enabled, the code path is inert: no queue, no timers, no network.
+
+### Dashboard and account
+
+When session auth ships, we store your login identifier (email), a salted
+credential hash, and session records; the session cookie is essential-only
+(no advertising or cross-site tracking use).
+
+### Docs and marketing sites
+
+Static content. No cookies, no analytics beacons, no third-party trackers.
+If we ever add analytics it will be cookieless and aggregate, and this
+policy will be updated first.
+
+### Operational logs
+
+Service request logs (IP, endpoint, status, latency) are kept for security
+and debugging and rotated within 30 days.
+
+## What we never collect
+
+Your end-users' data; your database contents; spec prompts or LLM
+conversations from your application; browsing behavior across other sites.
+
+## Sharing
+
+We share data only with hosting/infrastructure subprocessors needed to run
+the Service (listed at `{{SUBPROCESSOR_PAGE_URL}}` before launch), under
+data-processing terms. We do not sell personal data. We disclose only when
+legally compelled, and we notify you unless prohibited.
+
+## Your rights
+
+Export your specs and audit trail via the API at any time. Request account
+deletion or a copy of your personal data at `{{CONTACT_EMAIL}}`. EU/UK
+users: legal bases are contract performance (tenant data) and consent
+(telemetry); you may lodge complaints with your supervisory authority.
+
+## Changes and contact
+
+Material changes are announced at least 14 days ahead via the dashboard or
+email. Controller: `{{LEGAL_ENTITY}}` · `{{CONTACT_EMAIL}}`.

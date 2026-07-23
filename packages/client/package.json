@@ -1,6 +1,7 @@
 {
   "name": "@workspace-engine/client",
   "version": "0.2.0",
+  "license": "Apache-2.0",
   "description": "Typed client for the Workspace Service /v1 API, generated from its OpenAPI document. Ships the HTTP-backed WorkspaceStore the SDK consumes.",
   "type": "module",
   "main": "./dist/index.cjs",

@@ -1,6 +1,7 @@
 {
   "name": "@workspace-engine/react",
   "version": "0.2.0",
+  "license": "Apache-2.0",
   "description": "React SDK for Workspace Engine — deterministic renderer, headless hooks, and provider. Headless-first; React is the only peer, no react-dom requirement, SSR-compatible.",
   "type": "module",
   "main": "./dist/index.cjs",
