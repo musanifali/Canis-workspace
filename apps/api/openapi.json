@@ -1171,6 +1171,132 @@
           "auth"
         ]
       }
+    },
+    "/v1/keys": {
+      "get": {
+        "operationId": "KeysController_list",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key (admin scope)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "List the tenant's API keys (metadata only — never the hash)",
+        "tags": [
+          "keys"
+        ]
+      },
+      "post": {
+        "operationId": "KeysController_mint",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key (admin scope)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MintedKeyDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/unknown API key or user"
+          }
+        },
+        "summary": "Mint a key — the raw value is returned exactly once",
+        "tags": [
+          "keys"
+        ]
+      }
+    },
+    "/v1/keys/{id}": {
+      "delete": {
+        "operationId": "KeysController_revoke",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "description": "Acting end user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Tenant API key (admin scope)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Missing/unknown API key or user"
+          },
+          "404": {
+            "description": "No live key with that id in this tenant"
+          }
+        },
+        "summary": "Revoke a key (tenant-scoped; idempotent)",
+        "tags": [
+          "keys"
+        ]
+      }
     }
   },
   "info": {
@@ -1681,6 +1807,91 @@
           "email",
           "role",
           "createdAt"
+        ]
+      },
+      "ApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "runtime",
+              "admin"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scope",
+          "createdAt",
+          "lastUsedAt",
+          "revokedAt"
+        ]
+      },
+      "MintedKeyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "runtime",
+              "admin"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "rawKey": {
+            "type": "string",
+            "description": "The raw key — shown exactly once, never retrievable again."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scope",
+          "createdAt",
+          "lastUsedAt",
+          "revokedAt",
+          "rawKey"
         ]
       }
     }
