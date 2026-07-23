@@ -3,6 +3,7 @@ import { dbProviders } from "./db.provider.js";
 import { AuditController } from "./audit/audit.controller.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
 import { ContractsController } from "./contracts/contracts.controller.js";
+import { SignupController } from "./signup/signup.controller.js";
 import { TelemetryController } from "./telemetry/telemetry.controller.js";
 import { UsageController } from "./usage/usage.controller.js";
 import { WorkspacesController } from "./workspaces/workspaces.controller.js";
@@ -24,6 +25,7 @@ export class AppModule {
         ContractsController,
         AuditController,
         TelemetryController,
+        SignupController,
       ],
       providers: [...dbProviders(databaseUrl), TenantGuard, WorkspacesService],
     };

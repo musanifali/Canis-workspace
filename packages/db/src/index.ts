@@ -14,6 +14,7 @@ export {
 export { withTenant, type TenantContext, type TenantTx } from "./tenant.js";
 export {
   tenants,
+  users,
   apiKeys,
   workspaces,
   workspaceVersions,
@@ -24,6 +25,7 @@ export {
   telemetryEvents,
   workspaceServiceRole,
   type DBTenant,
+  type DBUser,
   type DBApiKey,
   type DBWorkspace,
   type DBWorkspaceVersion,
@@ -95,7 +97,17 @@ export {
   type ApiKeyScope,
   type CreatedApiKey,
   type ResolvedApiKey,
+  type OwnerWriter,
 } from "./operations/api-keys.js";
+export {
+  provisionTenant,
+  slugify,
+  SLUG_PATTERN,
+  InvalidSlugError,
+  TenantSlugTakenError,
+  type ProvisionTenantParams,
+  type ProvisionedTenant,
+} from "./operations/signup.js";
 export {
   writeAudit,
   listAuditEntries,

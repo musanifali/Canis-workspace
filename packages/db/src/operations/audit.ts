@@ -17,7 +17,9 @@ export type AuditAction =
   | "workspace.spec_rejected"
   | "contract.registered"
   | "contract.updated"
-  | "contract.removed";
+  | "contract.removed"
+  /** A tenant was self-provisioned at signup (#91); actor is the owner user. */
+  | "tenant.provisioned";
 
 export interface WriteAuditParams {
   action: AuditAction;

@@ -8,6 +8,15 @@ import { and, eq, isNull } from "drizzle-orm";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { WorkspaceDb } from "../client.js";
 import { apiKeys } from "../schema.js";
+import type { TenantTx } from "../tenant.js";
+
+/**
+ * Owner-connection writer: either the pooled client or a transaction on it.
+ * Key provisioning runs on the owner connection (before/outside a tenant
+ * context), and callers like `provisionTenant` need it to enlist in their own
+ * transaction so tenant + owner + key commit atomically.
+ */
+export type OwnerWriter = WorkspaceDb | TenantTx;
 
 const hashKey = (rawKey: string): string =>
   createHash("sha256").update(rawKey).digest("hex");
@@ -38,7 +47,7 @@ export interface ResolvedApiKey {
  * @returns The key metadata including the raw key, which is never stored.
  */
 export async function createApiKey(
-  db: WorkspaceDb,
+  db: OwnerWriter,
   params: { tenantId: string; name: string; scope?: ApiKeyScope },
 ): Promise<CreatedApiKey> {
   const rawKey = `wek_${randomBytes(24).toString("base64url")}`;

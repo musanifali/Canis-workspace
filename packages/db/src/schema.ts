@@ -63,6 +63,11 @@ export const tenants = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    /**
+     * URL-safe org handle, unique across all tenants (#91 self-signup). Chosen
+     * at signup and immutable; the public identifier for a tenant.
+     */
+    slug: text("slug").notNull().unique(),
     /** Max generation events per calendar month; null = unlimited (#48). */
     monthlyGenerationBudget: integer("monthly_generation_budget"),
     /** Per-user generation events per minute (#48). */
@@ -84,6 +89,49 @@ export const tenants = pgTable(
   ],
 );
 export type DBTenant = typeof tenants.$inferSelect;
+
+/**
+ * People who can sign into the dashboard for a tenant (#91 self-signup, #93
+ * sessions). Like tenants and api_keys, users are provisioned and read on the
+ * OWNER connection — the signup path runs before any tenant context exists,
+ * and session lookup resolves a user the same way key resolution resolves a
+ * tenant. Hence only a tenant-scoped SELECT policy for the service role.
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .references(() => tenants.id)
+      .notNull(),
+    /**
+     * Stable identity from the auth provider, `"<provider>:<id>"` — e.g.
+     * `"github:12345"`. Uses the provider's numeric id, not the handle, so a
+     * rename doesn't orphan the account. Globally unique: one external
+     * identity maps to exactly one user (team invites / multi-tenant
+     * membership are a documented fast-follow, not v1).
+     */
+    externalId: text("external_id").notNull().unique(),
+    email: text("email"),
+    name: text("name"),
+    /** owner = the signer-upper (billing, member list); member = invited later. */
+    role: text("role", { enum: ["owner", "member"] })
+      .notNull()
+      .default("member"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("users_tenant_id_idx").on(table.tenantId),
+    pgPolicy("users_service_select", {
+      to: workspaceServiceRole,
+      for: "select",
+      using: sql`${table.tenantId} = ${tenantIdSetting}`,
+    }),
+  ],
+);
+export type DBUser = typeof users.$inferSelect;
 
 export const apiKeys = pgTable(
   "api_keys",

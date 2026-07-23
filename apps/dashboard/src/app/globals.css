@@ -165,3 +165,81 @@ details.def pre {
   overflow: auto;
   font-size: 0.78rem;
 }
+
+/* Self-signup (#91) */
+.signup,
+.welcome {
+  max-width: 640px;
+  margin: 2rem auto;
+}
+.signup-lead {
+  color: #4b5563;
+}
+.signup-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+}
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-top: 1.5rem;
+}
+.signup-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.signup-form input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 400;
+}
+.signup-form input:focus {
+  outline: none;
+  border-color: var(--canis-accent);
+}
+.signup-form small {
+  font-weight: 400;
+  color: #6b7280;
+}
+.signup-submit {
+  align-self: flex-start;
+  background: var(--canis-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.signup-submit:hover {
+  filter: brightness(1.08);
+}
+.welcome-key,
+.welcome-snippet {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.welcome-key {
+  font-weight: 700;
+  color: #a5f3fc;
+}
+.welcome-skip {
+  font-size: 0.85rem;
+}

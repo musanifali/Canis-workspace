@@ -39,7 +39,9 @@ async function bootInstance(): Promise<INestApplication> {
 beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   const tenantId = `ten_${randomUUID()}`;
-  await admin.db.insert(tenants).values({ id: tenantId, name: "Persistence Tenant" });
+  await admin.db
+    .insert(tenants)
+    .values({ id: tenantId, name: "Persistence Tenant", slug: tenantId });
   await registerCaseContract(admin.db, tenantId);
   const key = await createApiKey(admin.db, { tenantId, name: "persist" });
   headers = { "x-api-key": key.rawKey, "x-user-id": "user_persist" };

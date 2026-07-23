@@ -33,7 +33,9 @@ let apiKey: string;
 beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   const tenantId = `ten_${randomUUID()}`;
-  await admin.db.insert(tenants).values({ id: tenantId, name: "Client Tenant" });
+  await admin.db
+    .insert(tenants)
+    .values({ id: tenantId, name: "Client Tenant", slug: tenantId });
   await registerCaseContract(admin.db, tenantId);
   apiKey = (await createApiKey(admin.db, { tenantId, name: "client" })).rawKey;
 
