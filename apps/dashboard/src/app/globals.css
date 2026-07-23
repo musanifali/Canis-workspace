@@ -267,3 +267,15 @@ details.def pre {
   border-color: var(--canis-accent);
   color: var(--canis-accent);
 }
+
+/* Branded error pages (#96) */
+.error-page {
+  max-width: 480px;
+  margin: 4rem auto;
+  text-align: center;
+}
+.error-page h1 {
+  font-size: 3rem;
+  color: var(--canis-accent);
+  margin-bottom: 0.5rem;
+}
