@@ -15,6 +15,8 @@ const DEV_DATABASE_URL =
 export function loadConfig(): ApiConfig {
   return {
     databaseUrl: process.env.WORKSPACE_DATABASE_URL ?? DEV_DATABASE_URL,
-    port: Number(process.env.WORKSPACE_API_PORT ?? 8270),
+    // Most PaaS (Render, Fly, Railway) inject the bind port as PORT; honor it
+    // first, then our own var, then the local default.
+    port: Number(process.env.PORT ?? process.env.WORKSPACE_API_PORT ?? 8270),
   };
 }
