@@ -7,7 +7,7 @@
  */
 import { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { createDbClient, provisionTenant } from "@workspace-engine/db";
+import { createDbClient, provisionTenant, users } from "@workspace-engine/db";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -39,7 +39,6 @@ beforeAll(async () => {
   });
   owner = { externalId: prov.owner.externalId, userId: prov.owner.id, tenantId: prov.tenant.id };
   // Add a second user (a "member") directly into the same tenant.
-  const { users } = await import("@workspace-engine/db");
   const memberExternal = `github:${uniq()}`;
   const [m] = await admin.db
     .insert(users)
