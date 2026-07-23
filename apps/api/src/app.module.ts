@@ -1,6 +1,7 @@
 import { Module, type DynamicModule } from "@nestjs/common";
 import { dbProviders } from "./db.provider.js";
 import { AuditController } from "./audit/audit.controller.js";
+import { AuthController } from "./auth/auth.controller.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
 import { ContractsController } from "./contracts/contracts.controller.js";
 import { SignupController } from "./signup/signup.controller.js";
@@ -26,6 +27,7 @@ export class AppModule {
         AuditController,
         TelemetryController,
         SignupController,
+        AuthController,
       ],
       providers: [...dbProviders(databaseUrl), TenantGuard, WorkspacesService],
     };

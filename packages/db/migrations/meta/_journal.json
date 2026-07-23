@@ -71,6 +71,13 @@
       "when": 1784765592677,
       "tag": "0009_phase6_signup_users",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784769366464,
+      "tag": "0010_phase6_sessions",
+      "breakpoints": true
     }
   ]
 }
