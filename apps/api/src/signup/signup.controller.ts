@@ -18,8 +18,6 @@ import {
   HttpCode,
   Inject,
   Post,
-  ServiceUnavailableException,
-  UnauthorizedException,
   UnprocessableEntityException,
   UseGuards,
 } from "@nestjs/common";
@@ -35,9 +33,9 @@ import {
   TenantSlugTakenError,
   type WorkspaceDbClient,
 } from "@workspace-engine/db";
-import { timingSafeEqual } from "node:crypto";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
+import { verifyProvisionSecret } from "../auth/provision-secret.js";
 import { isDisposableEmail } from "./disposable-emails.js";
 import { SignupRateLimitGuard } from "./rate-limit.guard.js";
 import {
@@ -47,14 +45,6 @@ import {
 } from "./dto.js";
 
 const bodyPipe = new ZodValidationPipe(signupRequestSchema);
-
-/** Constant-time compare that also survives length differences. */
-function secretMatches(provided: string, expected: string): boolean {
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 @ApiTags("signup")
 @Controller("signup")
@@ -79,16 +69,7 @@ export class SignupController {
     @Headers("x-provision-secret") provisionSecret: string | undefined,
     @Body(bodyPipe) body: SignupRequest,
   ): Promise<SignupResponseDto> {
-    const expected = process.env.WORKSPACE_PROVISION_SECRET;
-    if (!expected) {
-      // Fail closed: never provision without a configured secret.
-      throw new ServiceUnavailableException(
-        "signup is not configured (WORKSPACE_PROVISION_SECRET unset)",
-      );
-    }
-    if (!provisionSecret || !secretMatches(provisionSecret, expected)) {
-      throw new UnauthorizedException("invalid provisioning secret");
-    }
+    verifyProvisionSecret(provisionSecret);
 
     if (isDisposableEmail(body.owner.email)) {
       throw new UnprocessableEntityException({

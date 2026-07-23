@@ -15,6 +15,7 @@ export { withTenant, type TenantContext, type TenantTx } from "./tenant.js";
 export {
   tenants,
   users,
+  sessions,
   apiKeys,
   workspaces,
   workspaceVersions,
@@ -26,6 +27,7 @@ export {
   workspaceServiceRole,
   type DBTenant,
   type DBUser,
+  type DBSession,
   type DBApiKey,
   type DBWorkspace,
   type DBWorkspaceVersion,
@@ -108,6 +110,16 @@ export {
   type ProvisionTenantParams,
   type ProvisionedTenant,
 } from "./operations/signup.js";
+export {
+  createSession,
+  resolveSession,
+  deleteSession,
+  deleteUserSessions,
+  getUserByExternalId,
+  listTenantMembers,
+  type CreatedSession,
+  type SessionUser,
+} from "./operations/sessions.js";
 export {
   writeAudit,
   listAuditEntries,

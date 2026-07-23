@@ -4,10 +4,14 @@
  * are never exposed by the API surface.
  */
 import { createWorkspaceServiceClient } from "@workspace-engine/client";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function TelemetryPage(): Promise<React.ReactElement> {
+  const session = await getSession();
+  if (!session) redirect("/login");
   const apiKey = process.env.WORKSPACE_API_KEY;
   if (!apiKey) {
     return (
@@ -22,7 +26,7 @@ export default async function TelemetryPage(): Promise<React.ReactElement> {
   const client = createWorkspaceServiceClient({
     baseUrl: process.env.WORKSPACE_API_URL ?? "http://localhost:8270",
     apiKey,
-    userId: process.env.WORKSPACE_DASHBOARD_USER ?? "canis_ops",
+    userId: session.userId,
   });
 
   let summary;

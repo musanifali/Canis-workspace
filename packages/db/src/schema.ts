@@ -133,6 +133,34 @@ export const users = pgTable(
 );
 export type DBUser = typeof users.$inferSelect;
 
+/**
+ * Dashboard login sessions (#93). Server-side so logout is a real revocation
+ * (delete the row) and a stolen cookie dies the moment the user signs out —
+ * not something a stateless JWT could offer. Managed on the OWNER connection
+ * (the dashboard resolves a session before any tenant context exists), so no
+ * RLS policy; only the id **hash** is stored, never the raw token.
+ */
+export const sessions = pgTable(
+  "sessions",
+  {
+    /** sha256 hex of the opaque session token; the raw token lives only in the cookie. */
+    tokenHash: text("token_hash").primaryKey(),
+    userId: text("user_id")
+      .references(() => users.id)
+      .notNull(),
+    /** Denormalized from the user so session resolution needs no join for scoping. */
+    tenantId: text("tenant_id")
+      .references(() => tenants.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
+export type DBSession = typeof sessions.$inferSelect;
+
 export const apiKeys = pgTable(
   "api_keys",
   {
