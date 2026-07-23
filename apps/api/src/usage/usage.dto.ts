@@ -20,6 +20,15 @@ export class GenerationAllowanceDto {
   })
   remainingThisMonth!: number | null;
   @ApiProperty({ type: Number }) remainingThisMinute!: number;
+  @ApiProperty({ type: String, enum: ["free", "pro", "internal"] })
+  plan!: string;
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: "Effective monthly cap after plan + override; null = unlimited.",
+  })
+  monthlyCap!: number | null;
+  @ApiProperty({ type: Number }) usedThisMonth!: number;
 }
 
 export class RecordGenerationResponseDto {

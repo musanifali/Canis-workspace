@@ -28,8 +28,12 @@ export default async function RootLayout({
               <Link href="/">Views</Link>
               <Link href="/contracts">Contracts</Link>
               <Link href="/telemetry">Telemetry</Link>
+              <Link href="/plan">Plan</Link>
               {session.role === "owner" ? (
-                <Link href="/members">Members</Link>
+                <>
+                  <Link href="/keys">API keys</Link>
+                  <Link href="/members">Members</Link>
+                </>
               ) : null}
               <span className="nav-user">{session.name ?? session.email ?? "signed in"}</span>
               <form method="POST" action="/api/auth/logout" className="nav-logout">

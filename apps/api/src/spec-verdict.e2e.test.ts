@@ -102,8 +102,8 @@ beforeAll(async () => {
   const tenantWith = `ten_${randomUUID()}`;
   const tenantWithout = `ten_${randomUUID()}`;
   await admin.db.insert(tenants).values([
-    { id: tenantWith, name: "Contracted Tenant", slug: tenantWith },
-    { id: tenantWithout, name: "Contractless Tenant", slug: tenantWithout },
+    { id: tenantWith, name: "Contracted Tenant", slug: tenantWith, plan: "internal" },
+    { id: tenantWithout, name: "Contractless Tenant", slug: tenantWithout, plan: "internal" },
   ]);
   await registerCaseContract(admin.db, tenantWith);
   const keyWith = (await createApiKey(admin.db, { tenantId: tenantWith, name: "w" })).rawKey;

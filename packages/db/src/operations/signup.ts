@@ -137,6 +137,7 @@ export async function provisionTenant(
           id: `ten_${randomUUID()}`,
           name: params.orgName,
           slug,
+          plan: "free", // new self-signups start on the free tier (#94)
         })
         .returning();
       if (!tenant) throw new Error("tenant insert returned no row");

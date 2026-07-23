@@ -267,3 +267,102 @@ details.def pre {
   border-color: var(--canis-accent);
   color: var(--canis-accent);
 }
+
+/* API keys (#92) */
+.keys { max-width: 900px; }
+.key-reveal {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  margin: 1rem 0;
+}
+.key-reveal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0;
+}
+.key-reveal-row code {
+  background: #1e293b;
+  color: #a5f3fc;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  flex: 1;
+  word-break: break-all;
+}
+.copy-btn, .key-dismiss {
+  background: var(--canis-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.key-dismiss { margin-top: 0.4rem; background: #334155; }
+.key-mint { margin: 1rem 0; }
+.key-mint summary { cursor: pointer; color: var(--canis-accent); font-weight: 600; }
+.key-mint-form {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+.key-mint-form input, .key-mint-form select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.key-actions { display: flex; gap: 0.4rem; }
+.key-actions form { display: inline; margin: 0; }
+.key-actions button {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.key-revoke-btn { color: #b91c1c; border-color: #fecaca !important; }
+.key-revoked { opacity: 0.5; }
+
+/* Plan & usage (#94) */
+.plan { max-width: 640px; }
+.plan-card {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  margin: 1rem 0;
+}
+.plan-badge {
+  background: var(--canis-accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.plan-usage { flex: 1; }
+.plan-unlimited { color: #059669; font-weight: 600; }
+.plan-meter {
+  height: 10px;
+  background: #eef2ff;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+.plan-meter-fill {
+  height: 100%;
+  background: var(--canis-accent);
+  border-radius: 999px;
+}
+.plan-upgrade { color: #4b5563; font-size: 0.9rem; }
