@@ -96,9 +96,11 @@ export {
   createApiKey,
   resolveApiKey,
   revokeApiKey,
+  listApiKeys,
   type ApiKeyScope,
   type CreatedApiKey,
   type ResolvedApiKey,
+  type ApiKeyMetadata,
   type OwnerWriter,
 } from "./operations/api-keys.js";
 export {
