@@ -4,6 +4,7 @@
  * read time, so reads are never metered here. Budgets are per calendar
  * month per tenant; rate limits are per user per minute.
  */
+import { PLAN_CAPS, isPlan, type Plan } from "@workspace-engine/core";
 import { and, count, eq, gte, sql, sum } from "drizzle-orm";
 import {
   tenants,
@@ -30,6 +31,12 @@ export interface GenerationAllowance {
   remainingThisMonth: number | null;
   /** Generations left in the current per-user minute window. */
   remainingThisMinute: number;
+  /** The tenant's plan (#94) — for the dashboard's usage-vs-cap view. */
+  plan: Plan;
+  /** The effective monthly cap after plan + override; null = unlimited. */
+  monthlyCap: number | null;
+  /** Generations used this month (so callers can render used/cap). */
+  usedThisMonth: number;
 }
 
 /**
@@ -44,6 +51,7 @@ export async function getGenerationAllowance(
 ): Promise<GenerationAllowance> {
   const [tenant] = await tx
     .select({
+      plan: tenants.plan,
       budget: tenants.monthlyGenerationBudget,
       ratePerMinute: tenants.generationRatePerMinute,
     })
@@ -52,6 +60,12 @@ export async function getGenerationAllowance(
   if (!tenant) {
     throw new Error(`tenant "${ctx.tenantId}" not visible — withTenant missing?`);
   }
+  // Effective cap: the per-tenant override wins; otherwise the plan drives it
+  // (resolved from PLAN_CAPS here, so a plan change needs no restart). null =
+  // unlimited. Enforcement below is unchanged — one ledger, no second path.
+  const plan: Plan = isPlan(tenant.plan) ? tenant.plan : "free";
+  const monthlyCap =
+    tenant.budget ?? PLAN_CAPS[plan].generationsPerMonth;
 
   const [monthRow] = await tx
     .select({ used: count() })
@@ -77,29 +91,20 @@ export async function getGenerationAllowance(
   const usedThisMinute = minuteRow?.used ?? 0;
 
   const remainingThisMonth =
-    tenant.budget === null ? null : Math.max(0, tenant.budget - usedThisMonth);
+    monthlyCap === null ? null : Math.max(0, monthlyCap - usedThisMonth);
   const remainingThisMinute = Math.max(
     0,
     tenant.ratePerMinute - usedThisMinute,
   );
+  const base = { remainingThisMonth, remainingThisMinute, plan, monthlyCap, usedThisMonth };
 
   if (remainingThisMonth !== null && remainingThisMonth === 0) {
-    return {
-      allowed: false,
-      reason: "budget_exceeded",
-      remainingThisMonth,
-      remainingThisMinute,
-    };
+    return { allowed: false, reason: "budget_exceeded", ...base };
   }
   if (remainingThisMinute === 0) {
-    return {
-      allowed: false,
-      reason: "rate_limited",
-      remainingThisMonth,
-      remainingThisMinute,
-    };
+    return { allowed: false, reason: "rate_limited", ...base };
   }
-  return { allowed: true, remainingThisMonth, remainingThisMinute };
+  return { allowed: true, ...base };
 }
 
 export interface RecordGenerationParams {
@@ -186,6 +191,28 @@ export async function getUsageSummary(tx: TenantTx): Promise<UsageSummary> {
     perWorkspace,
     readCostCents: 0,
   };
+}
+
+/**
+ * Change a tenant's plan (#94, admin operation, owner connection). Caps are
+ * resolved from the plan at read time, so this takes effect immediately — no
+ * restart, no cap columns to restamp.
+ * @returns The tenant's new plan.
+ */
+export async function setTenantPlan(
+  db: WorkspaceDb,
+  tenantId: string,
+  plan: Plan,
+): Promise<Plan> {
+  const [updated] = await db
+    .update(tenants)
+    .set({ plan })
+    .where(eq(tenants.id, tenantId))
+    .returning({ plan: tenants.plan });
+  if (!updated) {
+    throw new Error(`tenant not found: "${tenantId}"`);
+  }
+  return updated.plan;
 }
 
 /**

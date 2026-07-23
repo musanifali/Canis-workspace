@@ -28,6 +28,7 @@ export default async function RootLayout({
               <Link href="/">Views</Link>
               <Link href="/contracts">Contracts</Link>
               <Link href="/telemetry">Telemetry</Link>
+              <Link href="/plan">Plan</Link>
               {session.role === "owner" ? (
                 <>
                   <Link href="/keys">API keys</Link>

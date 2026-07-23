@@ -106,3 +106,11 @@ export {
   type ClarifyQuestion,
   type SpecValidationError,
 } from "./validate/validate-spec.js";
+export {
+  PLANS,
+  PLAN_CAPS,
+  PLAN_LABELS,
+  isPlan,
+  type Plan,
+  type PlanCaps,
+} from "./plans.js";
