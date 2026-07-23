@@ -43,8 +43,8 @@ beforeAll(async () => {
   const tenantA = `ten_${randomUUID()}`;
   const tenantB = `ten_${randomUUID()}`;
   await admin.db.insert(tenants).values([
-    { id: tenantA, name: "Contracts Tenant A" },
-    { id: tenantB, name: "Contracts Tenant B" },
+    { id: tenantA, name: "Contracts Tenant A", slug: tenantA },
+    { id: tenantB, name: "Contracts Tenant B", slug: tenantB },
   ]);
   asA["x-api-key"] = (
     await createApiKey(admin.db, { tenantId: tenantA, name: "a" })

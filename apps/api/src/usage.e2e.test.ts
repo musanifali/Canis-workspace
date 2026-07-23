@@ -37,7 +37,9 @@ let baseUrl: string;
 beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   tenantId = `ten_${randomUUID()}`;
-  await admin.db.insert(tenants).values({ id: tenantId, name: "Usage API Tenant" });
+  await admin.db
+    .insert(tenants)
+    .values({ id: tenantId, name: "Usage API Tenant", slug: tenantId });
   const key = await createApiKey(admin.db, { tenantId, name: "usage" });
   headers = { "x-api-key": key.rawKey, "x-user-id": "user_usage" };
 

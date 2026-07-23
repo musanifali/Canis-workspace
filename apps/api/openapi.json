@@ -1016,6 +1016,38 @@
           "telemetry"
         ]
       }
+    },
+    "/v1/signup": {
+      "post": {
+        "operationId": "SignupController_signup",
+        "parameters": [
+          {
+            "name": "x-provision-secret",
+            "in": "header",
+            "description": "Shared bootstrap secret proving the caller is the dashboard",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Provision a new tenant + owner user + admin key from a verified identity (idempotent on the owner's external id)",
+        "tags": [
+          "signup"
+        ]
+      }
     }
   },
   "info": {
@@ -1404,6 +1436,40 @@
         "required": [
           "byEvent",
           "degradedByReason"
+        ]
+      },
+      "SignupResponseDto": {
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "orgName": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Raw admin API key — shown exactly once, only on first provision. null on an idempotent replay (the key already exists, hash-only)."
+          },
+          "created": {
+            "type": "boolean",
+            "description": "false = idempotent replay of an already-provisioned identity."
+          }
+        },
+        "required": [
+          "tenantId",
+          "slug",
+          "orgName",
+          "userId",
+          "apiKey",
+          "created"
         ]
       }
     }

@@ -64,6 +64,13 @@
       "when": 1784429419719,
       "tag": "0008_huge_longshot",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784765592677,
+      "tag": "0009_phase6_signup_users",
+      "breakpoints": true
     }
   ]
 }

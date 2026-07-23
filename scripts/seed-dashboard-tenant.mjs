@@ -18,7 +18,11 @@ const client = createDbClient(DATABASE_URL);
 try {
   await client.db
     .insert(tenants)
-    .values({ id: TENANT_ID, name: "Canis Internal (dashboard)" })
+    .values({
+      id: TENANT_ID,
+      name: "Canis Internal (dashboard)",
+      slug: "canis-internal",
+    })
     .onConflictDoNothing();
   // Admin scope: the dashboard reads contracts/audit/summaries, and its key
   // never leaves the server (GET-only proxy) — the exact credential split the

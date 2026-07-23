@@ -32,7 +32,9 @@ beforeAll(async () => {
   await admin.pool.query("select 1");
 
   const tenantId = `ten_${randomUUID()}`;
-  await admin.db.insert(tenants).values([{ id: tenantId, name: "Scoped Tenant" }]);
+  await admin.db
+    .insert(tenants)
+    .values([{ id: tenantId, name: "Scoped Tenant", slug: tenantId }]);
   await registerCaseContract(admin.db, tenantId);
 
   const runtime = await createApiKey(admin.db, {

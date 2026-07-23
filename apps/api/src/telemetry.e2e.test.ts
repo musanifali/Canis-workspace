@@ -31,7 +31,9 @@ beforeAll(async () => {
   admin = createDbClient(TEST_DATABASE_URL);
   await admin.pool.query("select 1");
   const tenantId = `ten_${randomUUID()}`;
-  await admin.db.insert(tenants).values({ id: tenantId, name: "Telemetry T" });
+  await admin.db
+    .insert(tenants)
+    .values({ id: tenantId, name: "Telemetry T", slug: tenantId });
   headers["x-api-key"] = (
     await createApiKey(admin.db, { tenantId, name: "tel" })
   ).rawKey;

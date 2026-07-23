@@ -49,7 +49,9 @@ export async function createTestTenant(
   name = "Test Tenant",
 ): Promise<{ tenantId: string; ctx: TenantContext }> {
   const tenantId = `ten_${randomUUID()}`;
-  await client.db.insert(tenants).values({ id: tenantId, name });
+  await client.db
+    .insert(tenants)
+    .values({ id: tenantId, name, slug: `t-${tenantId.slice(4, 16)}` });
   return {
     tenantId,
     ctx: { tenantId, userId: `user_${randomUUID().slice(0, 8)}` },
