@@ -122,6 +122,15 @@ export async function recordGenerationUsage(
   ctx: TenantContext,
   params: RecordGenerationParams = {},
 ): Promise<{ event: DBUsageEvent; allowance: GenerationAllowance }> {
+  // Serialize concurrent generations for this tenant so the count-then-insert
+  // can't overshoot the cap at the boundary (#94 review). A transaction-scoped
+  // advisory lock keyed by the tenant — released at commit — rather than
+  // SELECT ... FOR UPDATE on the tenants row, which RLS blocks (the service
+  // role has only a SELECT policy there, so a row lock is denied). Different
+  // tenants take different keys and never contend.
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtext(${ctx.tenantId})::bigint)`,
+  );
   const before = await getGenerationAllowance(tx, ctx);
   if (!before.allowed) {
     const message =
