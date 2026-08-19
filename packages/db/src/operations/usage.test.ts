@@ -3,8 +3,10 @@
  * enforced with named reasons (never a silent failure), the summary breaks
  * cost down per workspace, and reads never appear in the ledger.
  */
+import { count, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { WorkspaceDbClient } from "../client.js";
+import { usageEvents } from "../schema.js";
 import { withTenant, type TenantContext } from "../tenant.js";
 import {
   buildVerdict,
@@ -74,6 +76,36 @@ describe("generation budget", () => {
     );
     expect(allowance.allowed).toBe(true);
     expect(allowance.remainingThisMonth).toBeNull();
+  });
+});
+
+describe("concurrent generations cannot overshoot the cap (#94 review)", () => {
+  it("fires many at once against a budget of 5 — exactly 5 land, no more", async () => {
+    const { tenantId, ctx } = await freshTenant({ monthlyGenerationBudget: 5 });
+
+    // 12 generations racing, each in its own transaction/connection. The
+    // per-tenant advisory lock serializes the count-then-insert so the cap
+    // holds exactly; without it, concurrent checks would overshoot.
+    const attempts = await Promise.allSettled(
+      Array.from({ length: 12 }, () =>
+        withTenant(client.db, ctx, (tx) => recordGenerationUsage(tx, ctx)),
+      ),
+    );
+    const ok = attempts.filter((a) => a.status === "fulfilled").length;
+    const denied = attempts.filter(
+      (a) => a.status === "rejected" && a.reason instanceof GenerationLimitError,
+    ).length;
+    expect(ok).toBe(5);
+    expect(denied).toBe(7);
+
+    // And the ledger agrees — exactly 5 rows, never 6+.
+    const [row] = await withTenant(client.db, ctx, (tx) =>
+      tx
+        .select({ used: count() })
+        .from(usageEvents)
+        .where(eq(usageEvents.tenantId, tenantId)),
+    );
+    expect(row?.used).toBe(5);
   });
 });
 

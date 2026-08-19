@@ -331,3 +331,38 @@ details.def pre {
 }
 .key-revoke-btn { color: #b91c1c; border-color: #fecaca !important; }
 .key-revoked { opacity: 0.5; }
+
+/* Plan & usage (#94) */
+.plan { max-width: 640px; }
+.plan-card {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  margin: 1rem 0;
+}
+.plan-badge {
+  background: var(--canis-accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.plan-usage { flex: 1; }
+.plan-unlimited { color: #059669; font-weight: 600; }
+.plan-meter {
+  height: 10px;
+  background: #eef2ff;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+.plan-meter-fill {
+  height: 100%;
+  background: var(--canis-accent);
+  border-radius: 999px;
+}
+.plan-upgrade { color: #4b5563; font-size: 0.9rem; }

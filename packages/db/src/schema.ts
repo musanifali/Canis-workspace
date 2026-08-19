@@ -68,7 +68,20 @@ export const tenants = pgTable(
      * at signup and immutable; the public identifier for a tenant.
      */
     slug: text("slug").notNull().unique(),
-    /** Max generation events per calendar month; null = unlimited (#48). */
+    /**
+     * Billing tier (#94). Drives the effective caps via core's PLAN_CAPS,
+     * resolved at read time — a plan change (even a raw SQL UPDATE) takes
+     * effect on the next allowance check, no restart. Defaults to "free" so a
+     * tenant created without a plan fails CLOSED on cost; signup sets it
+     * explicitly, seeds/tests use "internal".
+     */
+    plan: text("plan", { enum: ["free", "pro", "internal"] })
+      .notNull()
+      .default("free"),
+    /**
+     * Explicit per-tenant budget OVERRIDE (#48/#94). null = follow the plan's
+     * cap; a number wins over the plan. Kept for design-partner one-offs.
+     */
     monthlyGenerationBudget: integer("monthly_generation_budget"),
     /** Per-user generation events per minute (#48). */
     generationRatePerMinute: integer("generation_rate_per_minute")

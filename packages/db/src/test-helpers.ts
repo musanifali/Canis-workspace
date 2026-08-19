@@ -49,9 +49,11 @@ export async function createTestTenant(
   name = "Test Tenant",
 ): Promise<{ tenantId: string; ctx: TenantContext }> {
   const tenantId = `ten_${randomUUID()}`;
+  // Test tenants are "internal" (unlimited) unless a test sets explicit limits,
+  // so plan caps never surprise suites that predate tiers (#94).
   await client.db
     .insert(tenants)
-    .values({ id: tenantId, name, slug: `t-${tenantId.slice(4, 16)}` });
+    .values({ id: tenantId, name, slug: `t-${tenantId.slice(4, 16)}`, plan: "internal" });
   return {
     tenantId,
     ctx: { tenantId, userId: `user_${randomUUID().slice(0, 8)}` },

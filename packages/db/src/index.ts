@@ -80,6 +80,7 @@ export {
   recordGenerationUsage,
   getUsageSummary,
   setTenantLimits,
+  setTenantPlan,
   GenerationLimitError,
   type GenerationAllowance,
   type GenerationDenialReason,
