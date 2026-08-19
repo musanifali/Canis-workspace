@@ -39,7 +39,7 @@ beforeAll(async () => {
   tenantId = `ten_${randomUUID()}`;
   await admin.db
     .insert(tenants)
-    .values({ id: tenantId, name: "Usage API Tenant", slug: tenantId });
+    .values({ id: tenantId, name: "Usage API Tenant", slug: tenantId, plan: "internal" });
   const key = await createApiKey(admin.db, { tenantId, name: "usage" });
   headers = { "x-api-key": key.rawKey, "x-user-id": "user_usage" };
 
