@@ -5,6 +5,7 @@ import { AuditController } from "./audit/audit.controller.js";
 import { AuthController } from "./auth/auth.controller.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
 import { ContractsController } from "./contracts/contracts.controller.js";
+import { KeysController } from "./keys/keys.controller.js";
 import { AllExceptionsFilter } from "./observability/all-exceptions.filter.js";
 import { HealthController } from "./observability/health.controller.js";
 import { RequestLoggerInterceptor } from "./observability/request-logger.interceptor.js";
@@ -32,6 +33,7 @@ export class AppModule {
         TelemetryController,
         SignupController,
         AuthController,
+        KeysController,
         HealthController,
       ],
       providers: [
