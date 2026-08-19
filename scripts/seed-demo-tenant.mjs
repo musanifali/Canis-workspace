@@ -64,7 +64,7 @@ const client = createDbClient(DATABASE_URL);
 try {
   await client.db
     .insert(tenants)
-    .values({ id: TENANT_ID, name: "Canis Demo", slug: "canis-demo" })
+    .values({ id: TENANT_ID, name: "Canis Demo", slug: "canis-demo", plan: "internal" })
     .onConflictDoNothing();
   await client.db
     .insert(dataContracts)

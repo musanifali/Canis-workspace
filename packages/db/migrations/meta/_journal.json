@@ -78,6 +78,20 @@
       "when": 1784769366464,
       "tag": "0010_phase6_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784809259650,
+      "tag": "0011_phase6_key_last_used",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1784811674687,
+      "tag": "0012_phase6_tenant_plan",
+      "breakpoints": true
     }
   ]
 }

@@ -25,6 +25,7 @@ try {
       id: TENANT_ID,
       name: "Canis Internal (dashboard)",
       slug: "canis-internal",
+      plan: "internal",
     })
     .onConflictDoNothing();
   // Admin scope: the dashboard reads contracts/audit/summaries, and its key
