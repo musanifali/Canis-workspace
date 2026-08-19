@@ -8,7 +8,9 @@ import { buildOpenApiDocument } from "./openapi.js";
 async function bootstrap(): Promise<void> {
   const config = loadConfig();
   const app = await NestFactory.create(AppModule.forDatabase(config.databaseUrl));
-  app.setGlobalPrefix("v1");
+  // Health endpoints live at the root so a black-box prober hits /health,
+  // not /v1/health; everything else is under /v1.
+  app.setGlobalPrefix("v1", { exclude: ["health", "health/ready"] });
   app.enableShutdownHooks();
   // Browser clients (the demo SDK) call /v1 cross-origin. Dev default is
   // open; set WORKSPACE_CORS_ORIGIN in any non-local deployment.
