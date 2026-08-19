@@ -1,0 +1,51 @@
+# CI-gated production deploy of the Workspace Service (#95). No manual steps:
+# main → CI green → this workflow → Render deploy (which runs migrations in its
+# preDeployCommand) → smoke test. Render's own auto-deploy is OFF (render.yaml
+# `autoDeploy: false`); this is the only path to prod.
+#
+# Required repo secrets/vars:
+#   secret RENDER_DEPLOY_HOOK_URL  Render service → Settings → Deploy Hook
+#   var    API_BASE_URL           e.g. https://ticora-api.onrender.com
+name: Deploy API
+
+on:
+  workflow_run:
+    workflows: ["CI"] # the lint · types · test · build workflow
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: migrate + deploy + smoke
+    runs-on: ubuntu-latest
+    # Only deploy when the gating CI run actually succeeded.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Trigger Render deploy (runs preDeploy migrations, then rolls out)
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" > /dev/null
+          echo "Render deploy triggered."
+
+      - name: Smoke test — wait for readiness, then hit /v1
+        env:
+          BASE: ${{ vars.API_BASE_URL }}
+        run: |
+          echo "Waiting for ${BASE}/health/ready …"
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE}/health/ready" || true)
+            if [ "$code" = "200" ]; then echo "ready"; break; fi
+            echo "  attempt $i: $code"; sleep 10
+          done
+          # Readiness must be 200 (DB reachable) …
+          curl -fsS "${BASE}/health/ready" | grep -q '"db":"ok"'
+          # … and /v1 must reject an unauthenticated call (guard is live), not 5xx.
+          code=$(curl -s -o /dev/null -w '%{http_code}' "${BASE}/v1/workspaces")
+          echo "GET /v1/workspaces (no key) → $code"
+          case "$code" in 401|403) echo "smoke ok";; *) echo "unexpected $code"; exit 1;; esac

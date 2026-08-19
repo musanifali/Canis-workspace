@@ -1,0 +1,41 @@
+# Render Blueprint for the Workspace Service (#95). Deploys apps/api as a Docker
+# web service; Postgres is Neon (external — NOT a Render DB, whose free tier
+# expires at 90 days). Secrets live in Render's store (`sync: false`), never in
+# this repo.
+#
+# Setup: Render Dashboard → New → Blueprint → connect this repo → it reads this
+# file. Then fill the `sync: false` vars in the Render dashboard.
+services:
+  - type: web
+    name: ticora-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    # Liveness (no DB) for zero-downtime health gating; readiness (/health/ready)
+    # is checked by the smoke test after deploy.
+    healthCheckPath: /health
+    # CI gates the deploy: the release workflow triggers Render's deploy hook
+    # only after `main` is green (see .github/workflows/deploy-api.yml).
+    autoDeploy: false
+    # Applied before the new instance takes traffic — schema is always current.
+    preDeployCommand: node packages/db/scripts/migrate-prod.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Neon connection string, incl. ?sslmode=require. Set in the dashboard.
+      - key: WORKSPACE_DATABASE_URL
+        sync: false
+      # MUST equal the dashboard/playground's WORKSPACE_PROVISION_SECRET.
+      - key: WORKSPACE_PROVISION_SECRET
+        sync: false
+      # Comma-separated allowed origins (the dashboard + playground URLs).
+      - key: WORKSPACE_CORS_ORIGIN
+        sync: false
+      # Release tag stamped on logs/errors. Render exposes the commit sha.
+      - key: WORKSPACE_RELEASE
+        fromService:
+          type: web
+          name: ticora-api
+          property: commitId

@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/coverage
+.git
+.github
+vault
+tambo
+tambo-landing
+demo
+examples
+**/*.log
+.env
+.env.*
+!.env.example

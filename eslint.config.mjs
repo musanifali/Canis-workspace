@@ -25,4 +25,17 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Node scripts (migrations, seeds) run under Node, not the browser.
+    files: ["**/scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        console: "readonly",
+        URL: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+      },
+    },
+  },
 );
