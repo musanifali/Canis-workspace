@@ -8,8 +8,8 @@ import { redirect } from "next/navigation";
 import type { ReactElement } from "react";
 import { getSession } from "@/lib/session";
 import { listKeys } from "@/lib/keys";
-import { unseal } from "@/lib/oauth-state";
-import { CopyButton } from "./copy-button";
+import { openSecret } from "@/lib/secret-box";
+import { KeyReveal } from "./key-reveal";
 import { RevokeForm } from "./revoke-form";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,7 @@ export default async function KeysPage({
 
   const { error } = await searchParams;
   const jar = await cookies();
-  const minted = unseal(jar.get("minted_key")?.value);
+  const minted = openSecret(jar.get("minted_key")?.value);
   const keys = (await listKeys()) ?? [];
 
   return (
@@ -46,23 +46,12 @@ export default async function KeysPage({
       ) : null}
 
       {minted?.rawKey ? (
-        <div className="key-reveal">
-          <p>
-            <strong>
-              {minted.rotated === "1" ? "Rotated key" : "New key"} “{minted.name}”
-              ({minted.scope}) — copy it now, it won’t be shown again.
-            </strong>
-          </p>
-          <div className="key-reveal-row">
-            <code>{minted.rawKey}</code>
-            <CopyButton value={minted.rawKey} />
-          </div>
-          <form method="POST" action="/api/keys/dismiss">
-            <button type="submit" className="key-dismiss">
-              I’ve saved it
-            </button>
-          </form>
-        </div>
+        <KeyReveal
+          rawKey={minted.rawKey}
+          name={minted.name ?? ""}
+          scope={minted.scope ?? ""}
+          rotated={minted.rotated === "1"}
+        />
       ) : null}
 
       <details className="key-mint">

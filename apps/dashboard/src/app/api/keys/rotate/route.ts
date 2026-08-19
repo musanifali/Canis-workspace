@@ -7,7 +7,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/session";
 import { mintKey, revokeKey } from "@/lib/keys";
-import { seal } from "@/lib/oauth-state";
+import { sealSecret } from "@/lib/secret-box";
 
 function back(request: NextRequest, params: Record<string, string> = {}) {
   const url = new URL("/keys", request.nextUrl.origin);
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const res = back(request);
   res.cookies.set(
     "minted_key",
-    seal({ rawKey: minted.rawKey, name: minted.name, scope: minted.scope, rotated: "1" }),
+    sealSecret({ rawKey: minted.rawKey, name: minted.name, scope: minted.scope, rotated: "1" }),
     { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 300 },
   );
   return res;
