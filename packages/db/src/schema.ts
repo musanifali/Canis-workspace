@@ -183,6 +183,12 @@ export const apiKeys = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    /**
+     * Last time this key resolved a request (#92 key-management UI). Updated
+     * throttled on the auth hot path — at most once per throttle window per
+     * key — so a busy key doesn't amplify into a write per request.
+     */
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
   },
   (table) => [

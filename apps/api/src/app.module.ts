@@ -4,6 +4,7 @@ import { AuditController } from "./audit/audit.controller.js";
 import { AuthController } from "./auth/auth.controller.js";
 import { TenantGuard } from "./auth/tenant.guard.js";
 import { ContractsController } from "./contracts/contracts.controller.js";
+import { KeysController } from "./keys/keys.controller.js";
 import { SignupController } from "./signup/signup.controller.js";
 import { TelemetryController } from "./telemetry/telemetry.controller.js";
 import { UsageController } from "./usage/usage.controller.js";
@@ -28,6 +29,7 @@ export class AppModule {
         TelemetryController,
         SignupController,
         AuthController,
+        KeysController,
       ],
       providers: [...dbProviders(databaseUrl), TenantGuard, WorkspacesService],
     };

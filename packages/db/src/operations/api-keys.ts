@@ -4,7 +4,7 @@
  * is known (it's how the tenant becomes known). Neither goes through
  * withTenant — everything after resolution does.
  */
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { WorkspaceDb } from "../client.js";
 import { apiKeys } from "../schema.js";
@@ -74,32 +74,97 @@ export async function createApiKey(
 }
 
 /**
- * Resolve a presented API key to its tenant and scope.
+ * How stale `last_used_at` must be before a resolve refreshes it (#92). Bounds
+ * write amplification on the auth hot path: a key hammered 1000×/s still writes
+ * at most once per window. 60s also satisfies the "revoked within 60s" AC's
+ * freshness expectations without per-request writes.
+ */
+const LAST_USED_THROTTLE_MS = 60_000;
+
+/**
+ * Resolve a presented API key to its tenant and scope, and record usage
+ * (throttled — see LAST_USED_THROTTLE_MS). Revoked keys never resolve.
  * @returns The tenant id + key scope, or null for unknown/revoked keys.
  */
 export async function resolveApiKey(
   db: WorkspaceDb,
   rawKey: string,
 ): Promise<ResolvedApiKey | null> {
+  const hash = hashKey(rawKey);
   const [row] = await db
-    .select({ tenantId: apiKeys.tenantId, scope: apiKeys.scope })
+    .select({
+      tenantId: apiKeys.tenantId,
+      scope: apiKeys.scope,
+      lastUsedAt: apiKeys.lastUsedAt,
+    })
     .from(apiKeys)
-    .where(and(eq(apiKeys.keyHash, hashKey(rawKey)), isNull(apiKeys.revokedAt)));
-  return row ? { tenantId: row.tenantId, scope: row.scope } : null;
+    .where(and(eq(apiKeys.keyHash, hash), isNull(apiKeys.revokedAt)));
+  if (!row) return null;
+
+  // Touch last_used_at only when stale, so hot keys don't write per request.
+  const now = Date.now();
+  const stale =
+    !row.lastUsedAt || now - row.lastUsedAt.getTime() >= LAST_USED_THROTTLE_MS;
+  if (stale) {
+    await db
+      .update(apiKeys)
+      .set({ lastUsedAt: new Date(now) })
+      .where(and(eq(apiKeys.keyHash, hash), isNull(apiKeys.revokedAt)));
+  }
+  return { tenantId: row.tenantId, scope: row.scope };
+}
+
+export interface ApiKeyMetadata {
+  id: string;
+  name: string;
+  scope: ApiKeyScope;
+  createdAt: Date;
+  lastUsedAt: Date | null;
+  revokedAt: Date | null;
 }
 
 /**
- * Revoke an API key (admin operation). Idempotent.
+ * List a tenant's API keys as metadata — never the hash or raw key. Newest
+ * first; includes revoked keys (the UI greys them out for the audit trail).
+ * @returns The tenant's keys.
+ */
+export async function listApiKeys(
+  db: OwnerWriter,
+  tenantId: string,
+): Promise<ApiKeyMetadata[]> {
+  return await db
+    .select({
+      id: apiKeys.id,
+      name: apiKeys.name,
+      scope: apiKeys.scope,
+      createdAt: apiKeys.createdAt,
+      lastUsedAt: apiKeys.lastUsedAt,
+      revokedAt: apiKeys.revokedAt,
+    })
+    .from(apiKeys)
+    .where(eq(apiKeys.tenantId, tenantId))
+    .orderBy(desc(apiKeys.createdAt));
+}
+
+/**
+ * Revoke an API key (admin operation). Scoped to the tenant so one tenant can
+ * never revoke another's key by guessing an id. Idempotent.
  * @returns True when a live key was revoked.
  */
 export async function revokeApiKey(
-  db: WorkspaceDb,
-  keyId: string,
+  db: OwnerWriter,
+  params: { keyId: string; tenantId: string },
 ): Promise<boolean> {
   const revoked = await db
     .update(apiKeys)
     .set({ revokedAt: new Date() })
-    .where(and(eq(apiKeys.id, keyId), isNull(apiKeys.revokedAt)))
+    .where(
+      and(
+        eq(apiKeys.id, params.keyId),
+        eq(apiKeys.tenantId, params.tenantId),
+        isNull(apiKeys.revokedAt),
+      ),
+    )
     .returning({ id: apiKeys.id });
   return revoked.length > 0;
 }
