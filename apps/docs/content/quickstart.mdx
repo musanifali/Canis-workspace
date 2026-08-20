@@ -194,6 +194,24 @@ test("the ticket board builds under the ticket contract", () => {
 now only ever propose screens your contract allows, and anything else comes
 back as a [`REJECT` or `CLARIFY`](/reference/errors) — never a broken render.
 
+## Step 6 — point at the hosted service (1 min)
+
+To generate, save, and version workspaces, point
+`createWorkspaceServiceClient` at the **live hosted service**. Mint an API key
+in your [dashboard](/reference/api#workspace-service-client) → **API keys**:
+
+{/* hosted-api:start — the base URL is synced from apps/docs/hosted-api.json (hosted-api.test.ts) */}
+```ts
+import { createWorkspaceServiceClient } from "@workspace-engine/client";
+
+const client = createWorkspaceServiceClient({
+  baseUrl: "https://ticora-api.onrender.com",
+  apiKey: process.env.WORKSPACE_API_KEY!, // dashboard → API keys (shown once)
+  userId: "your-end-user-id",
+});
+```
+{/* hosted-api:end */}
+
 ## Next
 
 - Wire generation + persistence: the [Workspace Service](/reference/api#workspace-service-client).
