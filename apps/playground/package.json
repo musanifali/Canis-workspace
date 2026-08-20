@@ -1,0 +1,31 @@
+{
+  "name": "@workspace-engine/playground",
+  "version": "0.1.1",
+  "private": true,
+  "description": "Zero-signup public playground (#101): type a sentence, watch a validated workspace render — and watch the gate refuse exfil/injection with a grounded reason. Points at the hosted service; DeepSeek behind a shared server key with budget + rate limits.",
+  "scripts": {
+    "dev": "next dev -p 3004",
+    "build": "next build",
+    "start": "next start -p 3004",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@workspace-engine/core": "0.2.0",
+    "@workspace-engine/react": "0.2.0",
+    "@workspace-engine/ui": "0.2.0",
+    "next": "^15.5.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
