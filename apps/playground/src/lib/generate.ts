@@ -12,6 +12,7 @@ import {
   validateSpec,
   type ValidationVerdict,
 } from "@workspace-engine/core";
+import { CANNED_PROMPTS } from "@/lib/canned";
 import { playgroundContract, SAMPLE_CAPS, SAMPLE_FIELDS } from "@/lib/contract";
 
 /** Gate a candidate spec against the sample contract (pure, no IO). */
@@ -27,15 +28,20 @@ export function gate(candidate: unknown): ValidationVerdict {
  * re-exposed as arrays).
  */
 export function systemPrompt(): string {
+  // A real, gate-valid spec as the concrete example the model must match.
+  const example = JSON.stringify(
+    CANNED_PROMPTS.find((c) => c.id === "build")!.spec,
+  );
   return [
     "You turn a user's request into a WorkspaceSpec (JSON) over ONE entity, `sample`.",
     `The sample entity has fields: ${SAMPLE_FIELDS.join(", ")}.`,
-    `You may filter on: ${SAMPLE_CAPS.filterable.join(", ")}.`,
-    `Sort on: ${SAMPLE_CAPS.sortable.join(", ")}. Group on: ${SAMPLE_CAPS.groupable.join(", ")}.`,
-    "Never reference a field or operation not listed above — if the request needs one, still return your best spec; a validator will reject it.",
-    "Block types: KpiCards, CasesTable, GroupedBoard, Graph, CaseQueue, FilterBar.",
-    "A spec is: {specVersion:1, title, timezone:'UTC', layout:{columns:12}, refresh:{mode:'manual'}, blocks:[{id, type, frame:{x,y,w,h}, config, binding:{entity:'sample', query:{...}}}]}.",
-    "Output ONLY the JSON spec, no prose.",
+    `You may filter on: ${SAMPLE_CAPS.filterable.join(", ")}. Sort on: ${SAMPLE_CAPS.sortable.join(", ")}. Group on: ${SAMPLE_CAPS.groupable.join(", ")}.`,
+    "Every block MUST have: id, type (one of KpiCards, CasesTable, GroupedBoard, Graph), frame{x,y,w,h}, config, and binding{entity:\"sample\", query:{...}}.",
+    "Put filters/sort/groupBy/aggregations INSIDE binding.query — NEVER at the block top level.",
+    "Never reference a field or operation not listed above; if the request needs one, still return your best spec (a validator will reject it with a reason).",
+    "Match this COMPLETE valid example's exact structure:",
+    example,
+    "Output ONLY the JSON spec for the user's request, no prose.",
   ].join("\n");
 }
 
