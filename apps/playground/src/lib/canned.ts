@@ -11,7 +11,7 @@
  * reason in the contract's own terms. That's the differentiator: an attack
  * becomes a sales demo.
  */
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import type { WorkspaceSpec } from "@ticora/core";
 
 export interface CannedPrompt {
   id: string;

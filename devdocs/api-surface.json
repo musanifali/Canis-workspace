@@ -1,5 +1,5 @@
 {
-  "@workspace-engine/core": {
+  "@ticora/core": {
     "ContractDefinitionError": "function",
     "ContractRevivalError": "function",
     "DEFAULT_EXECUTION": "object",
@@ -52,7 +52,7 @@
     "validateSpec": "function",
     "workspaceSpecSchema": "object"
   },
-  "@workspace-engine/react": {
+  "@ticora/react": {
     "BindingFetchError": "function",
     "BlockErrorBoundary": "function",
     "BlockHost": "function",
@@ -91,7 +91,7 @@
     "useWorkspaceValidationContext": "function",
     "workspaceKey": "function"
   },
-  "@workspace-engine/ui": {
+  "@ticora/ui": {
     "Board": "function",
     "FilterBar": "function",
     "Graph": "function",
@@ -106,14 +106,14 @@
     "sampleSpec": "object",
     "tokens": "object"
   },
-  "@workspace-engine/client": {
+  "@ticora/client": {
     "GenerationLimitedError": "function",
     "WorkspaceNotFoundError": "function",
     "WorkspaceServiceError": "function",
     "createHttpWorkspaceStore": "function",
     "createWorkspaceServiceClient": "function"
   },
-  "@workspace-engine/cli": {
+  "@ticora/cli": {
     "ContractLoadError": "function",
     "analyzeBreakingChanges": "function",
     "diffContracts": "function",
@@ -131,7 +131,7 @@
     "run": "function",
     "toContractMap": "function"
   },
-  "@workspace-engine/devtools": {
+  "@ticora/devtools": {
     "DevtoolsQueryReporter": "function",
     "WorkspaceDevtools": "function",
     "clearDevtoolsLog": "function",

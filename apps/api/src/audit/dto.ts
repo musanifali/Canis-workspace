@@ -3,7 +3,7 @@
  * layer (policy-absence + REVOKE); this surface only pages over it.
  */
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import type { AuditAction, DBAuditEntry } from "@workspace-engine/db";
+import type { AuditAction, DBAuditEntry } from "@ticora/db";
 import { z } from "zod";
 
 /** Mirrors the operations layer's AuditAction union (compile-checked below). */

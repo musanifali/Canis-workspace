@@ -6,7 +6,7 @@
  * hand-authored workspaces against the seeded case data — no LLM in the loop.
  */
 import { useState } from "react";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
 import { contracts, blocks } from "@/workspace-engine/kit";
 import { demoWorkspaces } from "@/workspace-engine/specs";
 

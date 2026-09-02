@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
 import { blocks, contracts } from "./kit";
 import { demoWorkspaces } from "./specs";
 
@@ -21,7 +21,7 @@ describe("demo workspaces render live against the case contract", () => {
       await waitFor(() => {
         expect(container.querySelector("[data-workspace-broken-block]")).toBeNull();
         expect(container.querySelector("[data-workspace-skeleton]")).toBeNull();
-        // At least one real @workspace-engine/ui block body rendered.
+        // At least one real @ticora/ui block body rendered.
         expect(container.querySelector('[data-testid^="ui-"]')).not.toBeNull();
       });
 

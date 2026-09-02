@@ -19,7 +19,7 @@ import {
   getTelemetrySummary,
   recordTelemetryEvents,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { RequireScope, TenantGuard } from "../auth/tenant.guard.js";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";

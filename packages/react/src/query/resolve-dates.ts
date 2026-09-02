@@ -18,7 +18,7 @@ import type {
   Filter,
   QuerySpec,
   RelativeToken,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 
 export interface ResolveOptions {
   /** The instant to resolve against — pass `new Date()` at fetch time. */

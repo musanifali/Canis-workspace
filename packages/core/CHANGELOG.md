@@ -1,3 +1,3 @@
-# @workspace-engine/core
+# @ticora/core
 
 ## 0.2.0

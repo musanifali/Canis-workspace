@@ -13,7 +13,7 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import type { WorkspaceDbClient } from "@workspace-engine/db";
+import type { WorkspaceDbClient } from "@ticora/db";
 import { DB_CLIENT } from "../db.provider.js";
 import { RELEASE } from "./release.js";
 

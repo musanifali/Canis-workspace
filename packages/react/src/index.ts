@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/react — the read-time SDK.
+ * @ticora/react — the read-time SDK.
  *
  * A validated WorkspaceSpec becomes a live screen with zero LLM involvement:
  * WorkspaceProvider wires contracts + blocks once (#16); the deterministic
@@ -111,4 +111,4 @@ export {
   SpecMigrationError,
 } from "./errors";
 
-export type { WorkspaceSpec } from "@workspace-engine/core";
+export type { WorkspaceSpec } from "@ticora/core";

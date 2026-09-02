@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && npm ci",
-  "buildCommand": "cd ../.. && npx turbo build --filter=@workspace-engine/docs",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@ticora/docs",
   "headers": [
     {
       "source": "/(.*)",

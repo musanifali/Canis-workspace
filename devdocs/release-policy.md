@@ -9,17 +9,17 @@ number, one changelog cadence):
 
 | Package | Public surface |
 |---|---|
-| `@workspace-engine/core` | every export of `src/index.ts`: spec schemas, `parseSpec`/`serializeSpec`, `defineEntity`, contract compiler, `executeQuery`, `validateSpec`, `DEFAULT_REGISTRY` |
-| `@workspace-engine/react` | provider, renderer, hooks, `WorkspaceStore` port |
-| `@workspace-engine/ui` | `defaultBlocks`, block components, `--we-*` theme token names, sandbox |
-| `@workspace-engine/client` | typed /v1 client, `createHttpWorkspaceStore`, error classes |
-| `@workspace-engine/cli` | `canis` commands, flags, JSON output shapes, **exit codes** |
-| `@workspace-engine/devtools` | devtools bus + panel API |
+| `@ticora/core` | every export of `src/index.ts`: spec schemas, `parseSpec`/`serializeSpec`, `defineEntity`, contract compiler, `executeQuery`, `validateSpec`, `DEFAULT_REGISTRY` |
+| `@ticora/react` | provider, renderer, hooks, `WorkspaceStore` port |
+| `@ticora/ui` | `defaultBlocks`, block components, `--we-*` theme token names, sandbox |
+| `@ticora/client` | typed /v1 client, `createHttpWorkspaceStore`, error classes |
+| `@ticora/cli` | `canis` commands, flags, JSON output shapes, **exit codes** |
+| `@ticora/devtools` | devtools bus + panel API |
 
 `db`, `api`, `dashboard`, and the demo are **private** — internal, versioned
 only as dependents, never tagged. The **/v1 wire format** is governed by the
 service's own OpenAPI document; a breaking /v1 change requires a major of
-`@workspace-engine/client` at minimum.
+`@ticora/client` at minimum.
 
 ## Where versions live (D4)
 

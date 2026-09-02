@@ -6,7 +6,7 @@
  */
 import { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { createDbClient, provisionTenant } from "@workspace-engine/db";
+import { createDbClient, provisionTenant } from "@ticora/db";
 import request from "supertest";
 import type { App } from "supertest/types";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

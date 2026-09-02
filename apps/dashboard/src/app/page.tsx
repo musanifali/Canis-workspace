@@ -7,7 +7,7 @@
  */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { WorkspaceSummary } from "@workspace-engine/client";
+import type { WorkspaceSummary } from "@ticora/client";
 import { canisStore } from "@/lib/browser-client";
 
 type LoadState =
@@ -45,9 +45,9 @@ export default function HomePage(): React.ReactElement {
       <div className="notice error">
         <p>Could not reach the Workspace Service: {state.message}</p>
         <p>
-          Start it (<code>npm run dev -w @workspace-engine/api</code>), provision
+          Start it (<code>npm run dev -w @ticora/api</code>), provision
           with <code>node scripts/seed-dashboard-tenant.mjs</code>, then seed the
-          views with <code>npm run seed -w @workspace-engine/dashboard</code>.
+          views with <code>npm run seed -w @ticora/dashboard</code>.
         </p>
       </div>
     );
@@ -57,7 +57,7 @@ export default function HomePage(): React.ReactElement {
       <div className="notice">
         <p>
           No saved views yet — run{" "}
-          <code>npm run seed -w @workspace-engine/dashboard</code> to save the
+          <code>npm run seed -w @ticora/dashboard</code> to save the
           analytics workspaces into the service.
         </p>
       </div>

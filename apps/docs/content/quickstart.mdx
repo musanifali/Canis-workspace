@@ -14,7 +14,7 @@ Drop the zero-config sandbox into any React app to see a working workspace
 with bundled sample data — no contract, no network, no keys:
 
 ```tsx
-import { WorkspaceSandbox } from "@workspace-engine/ui";
+import { WorkspaceSandbox } from "@ticora/ui";
 
 export default function Page() {
   return <WorkspaceSandbox />;
@@ -26,7 +26,7 @@ Now replace the sample with your data, in three files.
 ## Step 1 — install (30s)
 
 ```sh
-npm install @workspace-engine/core @workspace-engine/react @workspace-engine/ui zod
+npm install @ticora/core @ticora/react @ticora/ui zod
 ```
 
 *(In this monorepo the packages are workspace-linked; from outside, install
@@ -43,7 +43,7 @@ them for a colleague, not a compiler:
 // Step 2 — declare what your data looks like and what queries you allow.
 // This is the whole integration contract: the model, the validator, and the
 // renderer all work from this one declaration.
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 import { z } from "zod";
 
 export const ticketContract = defineEntity({
@@ -91,8 +91,8 @@ aggregates client-side up to the row cap) but must never under-return — see
 // Step 3 — mount the provider once, then any validated spec renders.
 // defaultBlocks is the complete built-in block set; swap components later,
 // one block at a time.
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
 import { ticketContract } from "./contract";
 import { ticketBoardSpec } from "./spec";
 
@@ -119,7 +119,7 @@ hand-written so you can see all there is to it:
 // Step 4 — a workspace is data, not code. This one came out of the
 // generation pipeline; you could also write it by hand, like here. Either
 // way it only renders after validateSpec says BUILD.
-import { parseSpec } from "@workspace-engine/core";
+import { parseSpec } from "@ticora/core";
 
 export const ticketBoardSpec = parseSpec({
   specVersion: 1,
@@ -175,9 +175,9 @@ export const ticketBoardSpec = parseSpec({
 ```ts filename="src/validate.test.ts"
 // Step 5 — the gate. Everything that reaches the renderer passes this same
 // check, so run it in YOUR CI too: a contract change that would break this
-// workspace fails here (and `canis contracts diff` tells you across all of
+// workspace fails here (and `ticora contracts diff` tells you across all of
 // your saved workspaces).
-import { validateSpec } from "@workspace-engine/core";
+import { validateSpec } from "@ticora/core";
 import { expect, test } from "vitest";
 import { ticketContract } from "./contract";
 import { ticketBoardSpec } from "./spec";
@@ -202,7 +202,7 @@ in your [dashboard](/reference/api#workspace-service-client) → **API keys**:
 
 {/* hosted-api:start — the base URL is synced from apps/docs/hosted-api.json (hosted-api.test.ts) */}
 ```ts
-import { createWorkspaceServiceClient } from "@workspace-engine/client";
+import { createWorkspaceServiceClient } from "@ticora/client";
 
 const client = createWorkspaceServiceClient({
   baseUrl: "https://ticora-api.onrender.com",
@@ -215,5 +215,5 @@ const client = createWorkspaceServiceClient({
 ## Next
 
 - Wire generation + persistence: the [Workspace Service](/reference/api#workspace-service-client).
-- Put [`canis contracts diff`](/guides/vendor-ci) in CI before you change a contract.
+- Put [`ticora contracts diff`](/guides/vendor-ci) in CI before you change a contract.
 - Restyle blocks with the [`--we-*` theme tokens](/reference/api#theming), or swap any block for your own component.

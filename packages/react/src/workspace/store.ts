@@ -2,7 +2,7 @@ import {
   serializeSpec,
   parseSpec,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 
 /**
  * Persistence port for saved workspaces.

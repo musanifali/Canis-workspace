@@ -11,7 +11,7 @@
 import {
   validateSpec,
   type ValidationVerdict,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { CANNED_PROMPTS } from "@/lib/canned";
 import { playgroundContract, SAMPLE_CAPS, SAMPLE_FIELDS } from "@/lib/contract";
 

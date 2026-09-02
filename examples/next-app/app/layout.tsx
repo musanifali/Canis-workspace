@@ -1,5 +1,5 @@
 // SERVER component (no "use client") — layouts, metadata, and data routes
-// stay on the server. Nothing from @workspace-engine/react is imported here:
+// stay on the server. Nothing from @ticora/react is imported here:
 // the SDK is a client-side surface (contracts hold functions, the renderer
 // uses state), so it lives behind the "use client" boundary in components/.
 import type { Metadata } from "next";

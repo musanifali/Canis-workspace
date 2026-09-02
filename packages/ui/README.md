@@ -1,4 +1,12 @@
-# @workspace-engine/ui
+# @ticora/ui
+
+[![npm](https://img.shields.io/npm/v/%40ticora%2Fui)](https://www.npmjs.com/package/@ticora/ui) [![license](https://img.shields.io/npm/l/%40ticora%2Fui)](../../LICENSE)
+
+```sh
+npm install @ticora/ui
+```
+
+📖 [Quickstart](https://ticora-docs.vercel.app/quickstart) · [API reference](https://ticora-docs.vercel.app/reference/api)
 
 The **default block set** for the Workspace Engine: a complete, themeable set of
 blocks so day-1 integration needs **zero component work** and looks decent.
@@ -12,11 +20,11 @@ clickable divs, no ARIA gymnastics.
 Zero contracts, zero blocks, zero network. Drop one component into your app:
 
 ```bash
-npm install @workspace-engine/react @workspace-engine/ui
+npm install @ticora/react @ticora/ui
 ```
 
 ```tsx
-import { WorkspaceSandbox } from "@workspace-engine/ui";
+import { WorkspaceSandbox } from "@ticora/ui";
 
 export default function Page() {
   return <WorkspaceSandbox />;
@@ -42,8 +50,8 @@ data:
 ## Day 1 — works before you customize
 
 ```tsx
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
 
 <WorkspaceProvider apiKey={apiKey} userToken={userToken} contracts={contracts} blocks={defaultBlocks}>
   <WorkspaceRenderer spec={spec} />
@@ -75,8 +83,8 @@ one block at a time.** A block is just a component registered for a type, so
 overriding one is a one-line `map`:
 
 ```tsx
-import { defineBlock } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
+import { defineBlock } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
 import { MyCasesTable } from "@/components/MyCasesTable"; // your own component
 
 const blocks = defaultBlocks.map((b) =>

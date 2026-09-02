@@ -1,7 +1,7 @@
 // Proposed `case` contract that DROPS the `sla_deadline` field and its
 // capabilities — the breaking change the diff must catch.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z.object({
   id: z.string().describe("Stable case identifier assigned at intake."),

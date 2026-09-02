@@ -5,7 +5,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import type { ValidationContext } from "@workspace-engine/core";
+import type { ValidationContext } from "@ticora/core";
 import type { WorkspaceStore } from "./store";
 
 interface WorkspaceStoreContextValue {

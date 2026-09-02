@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { z } from "zod";
-import { defineEntity, parseSpec, type EntityContract, type WorkspaceSpec } from "@workspace-engine/core";
+import { defineEntity, parseSpec, type EntityContract, type WorkspaceSpec } from "@ticora/core";
 import { WorkspaceProvider } from "./WorkspaceProvider";
 import { useWorkspaceConfig } from "./config-context";
 import { defineBlock, buildBlockRegistry, BlockRegistrationError } from "./defineBlock";

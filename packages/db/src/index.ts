@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/db — Workspace Service persistence.
+ * @ticora/db — Workspace Service persistence.
  *
  * All DB access for the service lives here: the Drizzle schema (with
  * tenant-scoped RLS policies), the tenant-scoped transaction helper, and the

@@ -1,7 +1,7 @@
 // Supabase recipe — supabase-js query builder with the user's JWT so
 // Postgres RLS applies to every row. Same rule as always: map what's cheap
 // (eq/in, order, limit), let the engine do the rest.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 /** The slice of supabase-js the recipe touches — substitute your client. */
 export interface SupabaseQuery {

@@ -7,8 +7,8 @@
  * provide the canonical demo `case` contract (serialized the same way the
  * service revives it) and BUILD-valid spec bodies bound to it.
  */
-import { defineEntity, serializeContract } from "@workspace-engine/core";
-import { dataContracts, type WorkspaceDb } from "@workspace-engine/db";
+import { defineEntity, serializeContract } from "@ticora/core";
+import { dataContracts, type WorkspaceDb } from "@ticora/db";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 

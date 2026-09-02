@@ -14,7 +14,7 @@ to keep the key server-side. A vendor on Next will face exactly this on day 1.
 **Feed:** #50 adapter recipes must include a same-origin proxy recipe (and the
 Next guide should draw the key-handling boundary explicitly); consider shipping
 a `createProxiedWorkspaceStore` helper or a documented `baseUrl`-relative
-pattern in `@workspace-engine/client`.
+pattern in `@ticora/client`.
 
 ## 2. A 404 for a missing *contract* throws `WorkspaceNotFoundError`
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSpec, type Filter, type QuerySpec } from "@workspace-engine/core";
+import { parseSpec, type Filter, type QuerySpec } from "@ticora/core";
 import { resolveQueryDates } from "./resolve-dates";
 
 /** Build a QuerySpec around one filter, through the real schema. */

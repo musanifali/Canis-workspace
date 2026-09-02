@@ -1,5 +1,5 @@
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
 import { ticketContract, triageSpec } from "./workspace";
 
 export function App() {

@@ -8,7 +8,7 @@
  */
 import { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { createApiKey, createDbClient, tenants } from "@workspace-engine/db";
+import { createApiKey, createDbClient, tenants } from "@ticora/db";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
 import type { App } from "supertest/types";

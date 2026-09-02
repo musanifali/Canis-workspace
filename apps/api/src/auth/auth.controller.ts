@@ -36,7 +36,7 @@ import {
   resolveSession,
   type SessionUser,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import { verifyProvisionSecret } from "./provision-secret.js";

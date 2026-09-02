@@ -4,12 +4,12 @@
   "commit": false,
   "fixed": [
     [
-      "@workspace-engine/core",
-      "@workspace-engine/react",
-      "@workspace-engine/ui",
-      "@workspace-engine/client",
-      "@workspace-engine/cli",
-      "@workspace-engine/devtools"
+      "@ticora/core",
+      "@ticora/react",
+      "@ticora/ui",
+      "@ticora/client",
+      "@ticora/cli",
+      "@ticora/devtools"
     ]
   ],
   "linked": [],

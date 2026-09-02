@@ -1,4 +1,4 @@
-import { SpecParseError } from "@workspace-engine/core";
+import { SpecParseError } from "@ticora/core";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { WorkspaceDbClient } from "../client.js";

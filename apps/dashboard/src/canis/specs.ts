@@ -4,7 +4,7 @@
  * vendor spec (see canis.test.ts), saved to the Phase 4 service by the seed,
  * and rendered by WorkspaceRenderer + the default block set.
  */
-import { parseSpec, type WorkspaceSpec } from "@workspace-engine/core";
+import { parseSpec, type WorkspaceSpec } from "@ticora/core";
 
 export interface DashboardView {
   /** Stable slug the seed uses to find-or-create by title. */

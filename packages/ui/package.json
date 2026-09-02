@@ -1,8 +1,20 @@
 {
-  "name": "@workspace-engine/ui",
+  "name": "@ticora/ui",
   "version": "0.2.0",
   "license": "Apache-2.0",
-  "description": "Default themeable block set for the Workspace Engine — table, KPIs, queue, board, filter bar, chart. Works before you customize; swap one block at a time.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/musanifali/Canis-workspace.git",
+    "directory": "packages/ui"
+  },
+  "homepage": "https://ticora-docs.vercel.app",
+  "bugs": {
+    "url": "https://github.com/musanifali/Canis-workspace/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Default themeable block set for the Workspace Engine \u2014 table, KPIs, queue, board, filter bar, chart. Works before you customize; swap one block at a time.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,8 +43,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.2.0",
-    "@workspace-engine/react": "0.2.0",
+    "@ticora/core": "0.2.0",
+    "@ticora/react": "0.2.0",
     "zod": "^3.25.0"
   },
   "peerDependencies": {

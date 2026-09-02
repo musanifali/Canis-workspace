@@ -3,7 +3,7 @@
  * enforces. This reads the marked table out of the mdx and asserts every cell
  * against core's PLAN_CAPS — the page can't silently drift from the config.
  */
-import { PLAN_CAPS, PLAN_LABELS, type Plan } from "@workspace-engine/core";
+import { PLAN_CAPS, PLAN_LABELS, type Plan } from "@ticora/core";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";

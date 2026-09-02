@@ -8,7 +8,7 @@
  * the test files so both runners stay identical.
  */
 import type { Browser } from "playwright";
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import type { WorkspaceSpec } from "@ticora/core";
 import { assertSpec } from "./assert";
 import type { EvalCase } from "./dataset";
 import type { CaseRun } from "./metrics";

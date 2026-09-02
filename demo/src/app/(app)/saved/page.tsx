@@ -17,7 +17,7 @@ import {
   WorkspaceRenderer,
   type WorkspaceSummary,
   type WorkspaceRecord,
-} from "@workspace-engine/react";
+} from "@ticora/react";
 import { blocks } from "@/workspace-engine/kit";
 import { useAnonymousUserKey } from "@/lib/use-anonymous-user-key";
 import { useVendorDataAccess } from "@/workspace-engine/vendor-data";

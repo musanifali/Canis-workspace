@@ -9,7 +9,7 @@
  * contract keeps everything local.
  */
 import { useEffect, useMemo, useState } from "react";
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import { caseContract, createRemoteCaseContract } from "./case-contract";
 import { serviceModeConfig } from "./workspace-store";
 

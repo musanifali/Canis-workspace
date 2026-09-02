@@ -1,10 +1,10 @@
-# @workspace-engine/example-vite-spa
+# @ticora/example-vite-spa
 
 ## 0.1.1
 
 ### Patch Changes
 
 - Updated dependencies [5b9280b]
-  - @workspace-engine/react@0.2.0
-  - @workspace-engine/ui@0.2.0
-  - @workspace-engine/core@0.2.0
+  - @ticora/react@0.2.0
+  - @ticora/ui@0.2.0
+  - @ticora/core@0.2.0

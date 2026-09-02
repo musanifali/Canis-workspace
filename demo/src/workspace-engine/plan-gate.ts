@@ -24,7 +24,7 @@ import {
   type SpecValidationError,
   type ValidationContext,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 
 /** Top-level keys the spec root accepts; anything else its strict schema rejects. */
 const SPEC_ROOT_KEYS = ["specVersion", "title", "timezone", "refresh", "layout", "blocks"];

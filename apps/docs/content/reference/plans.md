@@ -19,5 +19,5 @@ during launch — there's no self-serve payment yet. To upgrade, get in touch an
 we'll move you over; the change takes effect immediately, no redeploy.
 
 > These numbers are generated from the same config the service enforces
-> (`PLAN_CAPS` in `@workspace-engine/core`) and checked in CI, so this page can
+> (`PLAN_CAPS` in `@ticora/core`) and checked in CI, so this page can
 > never drift from the real caps.

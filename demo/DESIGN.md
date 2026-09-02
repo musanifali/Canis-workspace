@@ -70,7 +70,7 @@ Three families, one job each — never mixed within a single text role:
   buttons.
 - **Geist Mono** (`--font-geist-mono`, default `font-mono`) — data: case
   IDs, amounts, timestamps, code. Also the default `--we-font-family` for
-  `@workspace-engine/ui` blocks, so table/KPI data reads as data everywhere.
+  `@ticora/ui` blocks, so table/KPI data reads as data everywhere.
 
 | Role | Family | Size / line-height | Notes |
 |---|---|---|---|
@@ -146,7 +146,7 @@ this is the spec; build them where first needed and keep them here.
   header row: Geist Mono, uppercase, `text-muted-foreground`, `--we-border`
   bottom rule.
 
-## `@workspace-engine/ui` baseline
+## `@ticora/ui` baseline
 
 `packages/ui/src/theme.ts` themes every default block through `--we-*`
 custom properties on any ancestor (see that file's docstring). This ticket
@@ -164,6 +164,6 @@ product card, not a demo token change.
 
 This ticket's deliverable is this document + the token layer + font wiring
 (`globals.css`, `src/lib/fonts.ts`, `src/app/layout.tsx`). It does not touch
-`@workspace-engine/{core,react,ui,devtools}` package source, and it does not
+`@ticora/{core,react,ui,devtools}` package source, and it does not
 build out every primitive component — later tickets do that, against this
 spec.

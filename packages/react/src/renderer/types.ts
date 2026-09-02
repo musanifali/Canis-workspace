@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Block, EntityContract } from "@workspace-engine/core";
+import type { Block, EntityContract } from "@ticora/core";
 import type { BlockDataState } from "../query/useBlockQuery";
 
 /**

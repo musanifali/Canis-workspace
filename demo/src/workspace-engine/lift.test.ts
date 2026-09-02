@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EntityContract, ValidationContext } from "@workspace-engine/core";
+import type { EntityContract, ValidationContext } from "@ticora/core";
 import { liftWorkspaceSpec, LiftError } from "./lift";
 import { contracts } from "./kit";
 import { demoWorkspaces } from "./specs";

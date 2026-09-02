@@ -2,7 +2,7 @@ import {
   parseSpec,
   serializeSpec,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import type { components } from "./generated/v1.js";
 
 type RecordDto = components["schemas"]["WorkspaceRecordDto"];

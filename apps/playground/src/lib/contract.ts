@@ -1,10 +1,10 @@
 /**
  * The playground's sample contract + seeded rows (#101), defined locally and
  * PURE (defineEntity only) so the server gate can import it without dragging in
- * the UI package's client components. Mirrors @workspace-engine/ui's bundled
+ * the UI package's client components. Mirrors @ticora/ui's bundled
  * sample so the rendered result matches what people would get from the SDK.
  */
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 import { z } from "zod";
 
 const STATUSES = ["todo", "in_progress", "done"] as const;

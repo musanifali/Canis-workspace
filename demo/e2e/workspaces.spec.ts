@@ -13,7 +13,7 @@ test.describe("hand-written specs render live in the demo app", () => {
     await expect(page.getByTestId("workspaces-page")).toBeVisible();
 
     // Default tab: Compliance Overview → KPI cards + a cases table, with data.
-    // Blocks come from @workspace-engine/ui (data-testid="ui-*").
+    // Blocks come from @ticora/ui (data-testid="ui-*").
     await expect(page.getByTestId("ui-kpis")).toBeVisible();
     await expect(page.getByTestId("ui-table").first()).toBeVisible();
     // Assert rendered DATA, not just that a row element exists: the first cell

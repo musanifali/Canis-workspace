@@ -7,7 +7,7 @@
 import {
   createHttpWorkspaceStore,
   createWorkspaceServiceClient,
-} from "@workspace-engine/client";
+} from "@ticora/client";
 
 const options = {
   baseUrl: "/api/canis",

@@ -2,7 +2,7 @@
  * Contract registry UI (#31): what each entity exposes, straight from
  * GET /v1/contracts. Server component — reads with the server-held key.
  */
-import { createWorkspaceServiceClient } from "@workspace-engine/client";
+import { createWorkspaceServiceClient } from "@ticora/client";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 
@@ -55,7 +55,7 @@ export default async function ContractsPage(): Promise<React.ReactElement> {
       <div className="notice">
         <p>
           No contracts registered yet — run{" "}
-          <code>npm run seed -w @workspace-engine/dashboard</code>.
+          <code>npm run seed -w @ticora/dashboard</code>.
         </p>
       </div>
     );

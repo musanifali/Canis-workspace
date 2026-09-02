@@ -2,7 +2,7 @@
 // defineEntity throws ContractDefinitionError at module load, which the loader
 // surfaces as a ContractLoadError — lint reports it as an error, exit non-zero.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z.object({
   id: z.string().describe("Stable case identifier."),

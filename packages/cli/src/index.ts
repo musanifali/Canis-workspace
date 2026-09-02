@@ -1,8 +1,8 @@
 /**
- * @workspace-engine/cli — the `canis` vendor CLI.
+ * @ticora/cli — the `canis` vendor CLI.
  *
  * All contract/spec IO lives in this package; the actual gating decision reuses
- * @workspace-engine/core's validateSpec unchanged (no forked validation). The
+ * @ticora/core's validateSpec unchanged (no forked validation). The
  * library exports below let the diff/lint logic be embedded programmatically
  * (and unit-tested) without going through argv.
  */

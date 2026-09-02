@@ -1,7 +1,7 @@
 // The whole integration in one module: a contract over local data and a
 // hand-written, validated spec. See examples/quickstart for the annotated
 // walk-through of each piece.
-import { defineEntity, parseSpec } from "@workspace-engine/core";
+import { defineEntity, parseSpec } from "@ticora/core";
 import { z } from "zod";
 import { TICKETS } from "./data";
 

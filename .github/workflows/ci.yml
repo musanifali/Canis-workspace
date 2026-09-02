@@ -58,7 +58,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+      - run: npx turbo build --filter='@ticora/core' --filter='@ticora/react' --filter='@ticora/ui' --filter='@ticora/client' --filter='@ticora/cli' --filter='@ticora/devtools'
       - run: npm run api-surface:check
 
   compat:
@@ -76,7 +76,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+      - run: npx turbo build --filter='@ticora/core' --filter='@ticora/react' --filter='@ticora/ui' --filter='@ticora/client' --filter='@ticora/cli' --filter='@ticora/devtools'
       - run: npm run compat
 
   type-tests:
@@ -95,5 +95,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --no-save typescript@${{ matrix.ts }} -w @workspace-engine/core
-      - run: npm run test-types -w @workspace-engine/core
+      - run: npm install --no-save typescript@${{ matrix.ts }} -w @ticora/core
+      - run: npm run test-types -w @ticora/core

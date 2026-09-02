@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactElement } from "react";
-import { useWorkspaceFilters, type BlockComponentProps } from "@workspace-engine/react";
-import type { Filter } from "@workspace-engine/core";
+import { useWorkspaceFilters, type BlockComponentProps } from "@ticora/react";
+import type { Filter } from "@ticora/core";
 import { tokens } from "../theme";
 
 const inputStyle: CSSProperties = {

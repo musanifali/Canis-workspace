@@ -1,8 +1,20 @@
 {
-  "name": "@workspace-engine/devtools",
+  "name": "@ticora/devtools",
   "version": "0.2.0",
   "license": "Apache-2.0",
-  "description": "Dev-only inspector for the Workspace Engine — current spec + history, validator verdicts with per-field reasons, and a query timeline. Excluded from production bundles.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/musanifali/Canis-workspace.git",
+    "directory": "packages/devtools"
+  },
+  "homepage": "https://ticora-docs.vercel.app",
+  "bugs": {
+    "url": "https://github.com/musanifali/Canis-workspace/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Dev-only inspector for the Workspace Engine \u2014 current spec + history, validator verdicts with per-field reasons, and a query timeline. Excluded from production bundles.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,7 +43,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.2.0"
+    "@ticora/core": "0.2.0"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.0.0",

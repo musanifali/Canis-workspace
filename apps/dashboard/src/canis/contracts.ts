@@ -6,7 +6,7 @@
  * "backend" the fetches call is the typed public client; the in-memory query
  * engine applies filters/sort/aggregations on top, so fetches just return rows.
  */
-import { defineEntity, type EntityContract } from "@workspace-engine/core";
+import { defineEntity, type EntityContract } from "@ticora/core";
 import { z } from "zod";
 
 /** The slice of the public client the contracts read (structural, test-fakeable). */

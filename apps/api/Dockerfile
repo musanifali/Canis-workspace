@@ -11,12 +11,12 @@
 FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
 
-# 1. Prune the monorepo to just @workspace-engine/api + its deps.
+# 1. Prune the monorepo to just @ticora/api + its deps.
 FROM base AS pruner
 WORKDIR /app
 RUN npm i -g turbo@^2
 COPY . .
-RUN turbo prune @workspace-engine/api --docker
+RUN turbo prune @ticora/api --docker
 
 # 2. Install pruned deps and build (turbo builds api's dependency graph:
 #    core → db → client → api).
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 RUN npm ci
 COPY --from=pruner /app/out/full/ .
-RUN npx turbo build --filter=@workspace-engine/api
+RUN npx turbo build --filter=@ticora/api
 
 # 3. Runtime. Copies the built workspace (dists + node_modules + db migrations).
 FROM base AS runner

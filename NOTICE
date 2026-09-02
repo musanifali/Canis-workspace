@@ -7,6 +7,6 @@ This product builds on Tambo (https://tambo.co), which is licensed under
 the MIT License, Copyright (c) 2025 Fractal Dynamics Inc. Tambo is consumed
 as npm dependencies (@tambo-ai/react, @tambo-ai/typescript-sdk,
 @tambo-ai/client) and as a self-hosted backend; it is not forked or
-redistributed within the @workspace-engine packages. The demo application
+redistributed within the @ticora packages. The demo application
 applies a patch-package patch to @tambo-ai/client 1.1.3 (see vault ADR-6);
 the patched code remains under Tambo's MIT license and copyright notice.

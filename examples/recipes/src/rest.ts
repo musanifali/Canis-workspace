@@ -2,7 +2,7 @@
 // Push cheap narrowing (eq filters, limit) into query params when your API
 // supports them; return everything else as-is. Over-returning is safe — the
 // engine filters/sorts/groups client-side. Under-returning is not.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 export function restFetch(baseUrl: string) {
   return async ({ query, auth }: { query: QuerySpec; auth: unknown }) => {

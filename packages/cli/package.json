@@ -1,11 +1,23 @@
 {
-  "name": "@workspace-engine/cli",
+  "name": "@ticora/cli",
   "version": "0.2.0",
   "license": "Apache-2.0",
-  "description": "canis — vendor CLI for the Workspace Engine. `contracts diff` gates breaking contract changes against saved workspaces; `contracts lint` checks contract quality. All IO lives here; validation reuses @workspace-engine/core's validateSpec unchanged.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/musanifali/Canis-workspace.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://ticora-docs.vercel.app",
+  "bugs": {
+    "url": "https://github.com/musanifali/Canis-workspace/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "ticora \u2014 vendor CLI for the Workspace Engine. `contracts diff` gates breaking contract changes against saved workspaces; `contracts lint` checks contract quality. All IO lives here; validation reuses @ticora/core's validateSpec unchanged.",
   "type": "module",
   "bin": {
-    "canis": "./dist/bin/canis.js"
+    "ticora": "./dist/bin/ticora.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -33,8 +45,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@workspace-engine/client": "0.2.0",
-    "@workspace-engine/core": "0.2.0"
+    "@ticora/client": "0.2.0",
+    "@ticora/core": "0.2.0"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",

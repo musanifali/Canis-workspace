@@ -12,7 +12,7 @@ import {
   type EntityContract,
   type ValidationVerdict,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import {
   createWorkspace,
   duplicateWorkspace,
@@ -38,7 +38,7 @@ import {
   type TenantContext,
   type TenantTx,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { DB_CLIENT } from "../db.provider.js";
 import {
   toRecordDto,

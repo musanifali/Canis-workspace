@@ -3,7 +3,7 @@
  * ASCII (no color codes) so it reads cleanly in CI logs and is easy to assert
  * against in tests.
  */
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import type { ContractDiff, EntityContractDiff } from "./contracts/static-diff.js";
 import type { DiffAnalysis, SpecImpact } from "./diff/analyze.js";
 import type { LintFinding } from "./contracts/lint.js";

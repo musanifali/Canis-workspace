@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/devtools — dev-only inspector for the generative loop.
+ * @ticora/devtools — dev-only inspector for the generative loop.
  *
  * Mount <WorkspaceDevtools /> once (it returns null in production), wrap the
  * renderer's provider with <DevtoolsQueryReporter />, and call recordSpec /

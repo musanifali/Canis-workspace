@@ -9,14 +9,14 @@ import {
   createHttpWorkspaceStore,
   createWorkspaceServiceClient,
   GenerationLimitedError,
-} from "@workspace-engine/client";
+} from "@ticora/client";
 import {
   createApiKey,
   createDbClient,
   setTenantLimits,
   tenants,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
 import type { App } from "supertest/types.js";

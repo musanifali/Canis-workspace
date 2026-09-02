@@ -14,7 +14,7 @@
  * interaction is a plain `onPick` / `onRefine` callback the host wires to the
  * chat, so the user answers without losing the conversation.
  */
-import type { SpecValidationError } from "@workspace-engine/core";
+import type { SpecValidationError } from "@ticora/core";
 
 /** Pull the supported alternatives the validator named across all errors. */
 function supportedAlternatives(errors: readonly SpecValidationError[]): string[] {

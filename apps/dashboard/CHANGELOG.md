@@ -1,11 +1,11 @@
-# @workspace-engine/dashboard
+# @ticora/dashboard
 
 ## 0.1.1
 
 ### Patch Changes
 
 - Updated dependencies [5b9280b]
-  - @workspace-engine/react@0.2.0
-  - @workspace-engine/client@0.2.0
-  - @workspace-engine/ui@0.2.0
-  - @workspace-engine/core@0.2.0
+  - @ticora/react@0.2.0
+  - @ticora/client@0.2.0
+  - @ticora/ui@0.2.0
+  - @ticora/core@0.2.0

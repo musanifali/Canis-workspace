@@ -2,7 +2,7 @@
 // sortable/filterable with execution "server" but unimplemented. The probe
 // must flag both (card #49: "declared sortable but sort unimplemented").
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const ROWS = [
   { id: "o1", region: "emea", total: 40 },

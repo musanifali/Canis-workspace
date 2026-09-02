@@ -2,7 +2,7 @@
 // filterable) and keeps everything else. A purely additive change: no saved
 // workspace should break.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z.object({
   id: z.string().describe("Stable case identifier assigned at intake."),

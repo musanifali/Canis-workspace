@@ -9,7 +9,7 @@
  * (quality smell). All checks are pure over the resolved EntityContract plus
  * its Zod schema; the CLI layer decides exit codes.
  */
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import { describedText, enumOptions, objectDescription } from "./zod-introspect.js";
 
 export type LintSeverity = "error" | "warning";

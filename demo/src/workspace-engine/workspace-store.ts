@@ -12,14 +12,14 @@ import {
   parseSpec,
   serializeSpec,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
-import { createHttpWorkspaceStore } from "@workspace-engine/client";
+} from "@ticora/core";
+import { createHttpWorkspaceStore } from "@ticora/client";
 import {
   WorkspaceNotFoundError,
   type WorkspaceRecord,
   type WorkspaceStore,
   type WorkspaceSummary,
-} from "@workspace-engine/react";
+} from "@ticora/react";
 
 /** Service mode is on when the demo is pointed at a Workspace Service. */
 export interface ServiceModeConfig {

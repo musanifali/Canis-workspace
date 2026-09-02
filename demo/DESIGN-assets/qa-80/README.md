@@ -1,7 +1,7 @@
 # Ticket #80 — visual QA before/after (1440px, real 240-case data)
 
 Screenshots from the Demo Polish visual-QA pass on the six
-`@workspace-engine/ui` default blocks. Captured via a throwaway QA harness
+`@ticora/ui` default blocks. Captured via a throwaway QA harness
 route that rendered all six blocks against the real case contract, then
 deleted (only the `--we-*` token tuning in `demo/src/app/globals.css` shipped).
 

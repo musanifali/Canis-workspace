@@ -18,7 +18,7 @@
  *
  * Pure and Tambo-free so it unit-tests without a browser.
  */
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 
 export interface Suggestion {
   /** Stable id — the analytics key (card #46 click-through tracking). */

@@ -15,11 +15,11 @@ import assert from "node:assert/strict";
 const require = createRequire(import.meta.url);
 
 const PACKAGES = [
-  "@workspace-engine/core",
-  "@workspace-engine/client",
-  "@workspace-engine/db",
-  "@workspace-engine/react",
-  "@workspace-engine/ui",
+  "@ticora/core",
+  "@ticora/client",
+  "@ticora/db",
+  "@ticora/react",
+  "@ticora/ui",
 ];
 
 let failed = false;

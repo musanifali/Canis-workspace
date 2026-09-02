@@ -18,3 +18,5 @@ canary-dist/
 apps/docs/content/reference/spec-v1.md
 apps/docs/content/reference/release-policy.md
 .compat-work/
+.claude/
+tambo-landing/

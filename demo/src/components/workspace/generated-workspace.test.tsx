@@ -12,7 +12,7 @@ describe("GeneratedWorkspace — Phase B renders only a gated spec (card #20)", 
     );
     await waitFor(() => {
       expect(container.querySelector("[data-testid='generated-workspace']")).not.toBeNull();
-      // A real @workspace-engine/ui block body rendered, healthy.
+      // A real @ticora/ui block body rendered, healthy.
       expect(container.querySelector('[data-testid^="ui-"]')).not.toBeNull();
       expect(container.querySelector("[data-workspace-broken-block]")).toBeNull();
     });

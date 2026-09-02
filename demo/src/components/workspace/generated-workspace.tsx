@@ -17,12 +17,12 @@
  */
 import { useEffect, useMemo, useRef } from "react";
 import { z } from "zod";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
 import {
   DevtoolsQueryReporter,
   recordSpec,
   recordVerdict,
-} from "@workspace-engine/devtools";
+} from "@ticora/devtools";
 import { blocks, contracts, validationContext } from "@/workspace-engine/kit";
 import { gatePlan } from "@/workspace-engine/plan-gate";
 import { specPropSchema } from "@/workspace-engine/spec-prop-schema";

@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/ui — the default block set.
+ * @ticora/ui — the default block set.
  *
  * A complete, themeable set of blocks (table, KPIs, queue, board, filter bar,
  * chart) so day-1 integration needs zero component adaptation and looks decent.

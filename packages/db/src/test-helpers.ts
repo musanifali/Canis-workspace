@@ -4,7 +4,7 @@
  * a skipped DB suite that reports green is the vacuous-pass trap the eval
  * harness already fell into once (review card HYVbv9k5).
  */
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import type { WorkspaceSpec } from "@ticora/core";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -28,7 +28,7 @@ export async function connectTestDb(): Promise<WorkspaceDbClient> {
     await client.close();
     throw new Error(
       `Workspace Service test Postgres is unreachable at ${TEST_DATABASE_URL}.\n` +
-        `Start it with: npm run db:up -w @workspace-engine/db\n` +
+        `Start it with: npm run db:up -w @ticora/db\n` +
         `(underlying error: ${error instanceof Error ? error.message : String(error)})`,
     );
   }

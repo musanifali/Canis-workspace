@@ -22,7 +22,7 @@ import {
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from "@nestjs/swagger";
-import { ContractRevivalError, reviveContract } from "@workspace-engine/core";
+import { ContractRevivalError, reviveContract } from "@ticora/core";
 import {
   getDataContract,
   listDataContracts,
@@ -30,7 +30,7 @@ import {
   upsertDataContract,
   withTenant,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import type { Request } from "express";
 import { RequireScope, TenantGuard, tenantCtxOf } from "../auth/tenant.guard.js";
 import { DB_CLIENT } from "../db.provider.js";

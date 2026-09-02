@@ -6,7 +6,7 @@
  * definition with core's own `reviveContract` before it is stored.
  */
 import { ApiProperty } from "@nestjs/swagger";
-import type { DBDataContract } from "@workspace-engine/db";
+import type { DBDataContract } from "@ticora/db";
 import { z } from "zod";
 
 /** Mirrors core's binding entity-name grammar (spec/block.ts). */

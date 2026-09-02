@@ -7,7 +7,7 @@
  * synchronous (no model, no IO), so this is a deterministic property of the
  * validator that CI enforces and the security collateral can cite verbatim.
  */
-import type { ValidationContext } from "@workspace-engine/core";
+import type { ValidationContext } from "@ticora/core";
 import { gatePlan } from "@/workspace-engine/plan-gate";
 import type { RedTeamCase, RedTeamCategory } from "./dataset";
 

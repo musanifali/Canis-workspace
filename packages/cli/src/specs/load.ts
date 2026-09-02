@@ -4,7 +4,7 @@
  *
  *   - a local directory of *.json spec files (air-gapped CI, and how the tests
  *     run — no live service or Docker required), and
- *   - the Phase 4 Workspace Service via @workspace-engine/client (tenant-scoped
+ *   - the Phase 4 Workspace Service via @ticora/client (tenant-scoped
  *     by API key + acting user).
  *
  * Specs are returned RAW (unparsed): validateSpec shape-checks every candidate
@@ -13,7 +13,7 @@
  */
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createWorkspaceServiceClient } from "@workspace-engine/client";
+import { createWorkspaceServiceClient } from "@ticora/client";
 
 export interface LoadedSpec {
   /** Stable identifier — workspace id (service) or file name (directory). */

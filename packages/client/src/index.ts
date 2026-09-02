@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/client — typed client for the Workspace Service /v1 API.
+ * @ticora/client — typed client for the Workspace Service /v1 API.
  *
  * Types are generated from apps/api/openapi.json (the contract's source of
  * truth); `createHttpWorkspaceStore` is the HTTP-backed implementation of the

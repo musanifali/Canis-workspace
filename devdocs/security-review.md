@@ -177,7 +177,7 @@ same phase: saved specs live in Postgres behind `/v1` (RLS-isolated per
 tenant with a cross-tenant must-fail suite, immutable versions, append-only
 audit — see `packages/db/src/rls.test.ts` and the Phase 4 cards), consumed
 through the SDK's unchanged `WorkspaceStore` port via
-`@workspace-engine/client`. We store specs; the vendor's rows still never
+`@ticora/client`. We store specs; the vendor's rows still never
 transit our service.
 
 **The stored audit verdict is server-computed (card #87).** Every create and

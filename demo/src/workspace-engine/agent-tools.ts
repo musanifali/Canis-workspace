@@ -15,7 +15,7 @@
  * engine over the returned rows. Nothing here re-describes the contract by hand,
  * so the tool the model sees and the policy the executor enforces cannot drift.
  *
- * `@workspace-engine/core` stays free of `@tambo-ai` by charter — this adapter,
+ * `@ticora/core` stays free of `@tambo-ai` by charter — this adapter,
  * living in the demo (the vendor app), is the only place the two meet.
  */
 import {
@@ -23,7 +23,7 @@ import {
   compileToTools,
   type EntityContract,
   type ValidationContext,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import type { TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
 import { gatePlan } from "./plan-gate";

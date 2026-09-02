@@ -7,7 +7,7 @@ import {
   type EntityContract,
   type Filter,
   type RefreshPolicy,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { effectiveZone, resolveQueryDates } from "./resolve-dates";
 import { BindingFetchError, toBindingFetchError } from "./errors";
 

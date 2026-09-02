@@ -3,7 +3,7 @@
  *
  * "Previous minor" = the newest `vX.Y.Z` git tag whose X.Y line is older than
  * the current fixed-group version. That tag's example apps are checked out
- * into a temp dir, their @workspace-engine/* deps are rewritten to tarballs
+ * into a temp dir, their @ticora/* deps are rewritten to tarballs
  * packed from the CURRENT tree, and each example must type-check and pass its
  * tests. A red run means current packages broke code written against the
  * previous minor — either fix it, or it ships as a major with a migration
@@ -58,14 +58,14 @@ try {
   const tarballDir = join(work, "tarballs");
   mkdirSync(tarballDir);
   run(
-    "npm pack --workspace @workspace-engine/core --workspace @workspace-engine/react " +
-      "--workspace @workspace-engine/ui --workspace @workspace-engine/client " +
-      "--workspace @workspace-engine/cli --workspace @workspace-engine/devtools " +
+    "npm pack --workspace @ticora/core --workspace @ticora/react " +
+      "--workspace @ticora/ui --workspace @ticora/client " +
+      "--workspace @ticora/cli --workspace @ticora/devtools " +
       `--pack-destination ${tarballDir}`,
   );
   const tarballByPackage = {};
   for (const file of readdirSync(tarballDir)) {
-    const name = `@workspace-engine/${file.replace(/^workspace-engine-/, "").replace(/-\d.*$/, "")}`;
+    const name = `@ticora/${file.replace(/^workspace-engine-/, "").replace(/-\d.*$/, "")}`;
     tarballByPackage[name] = join(tarballDir, file);
   }
 

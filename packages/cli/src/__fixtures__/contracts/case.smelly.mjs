@@ -7,7 +7,7 @@
 // findings are warnings — the smells that make generation quality poor without
 // breaking anything.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z.object({
   id: z.string(),

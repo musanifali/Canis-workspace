@@ -7,7 +7,7 @@ import { generatedWorkspaceSchema } from "@/components/workspace/generated-works
 import { InteractableGeneratedWorkspace } from "@/components/workspace/interactable-workspace";
 import { WorkspaceSaveBar } from "@/components/workspace/save-bar";
 import { ColdStartSuggestions } from "@/components/workspace/cold-start-suggestions";
-import { WorkspaceDevtools } from "@workspace-engine/devtools";
+import { WorkspaceDevtools } from "@ticora/devtools";
 import { workspaceGuideContextHelper } from "@/workspace-engine/system-prompt";
 import { contractContextHelper } from "@/workspace-engine/agent-tools";
 import { contracts, curatedSuggestions } from "@/workspace-engine/kit";

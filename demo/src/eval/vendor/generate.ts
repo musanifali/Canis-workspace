@@ -11,7 +11,7 @@
  * A vendor points this at their contracts and gets a representative suite for
  * free, plus a couple of out-of-contract rejects to prove the guardrail holds.
  */
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import type { EvalCase, Expected } from "../dataset";
 import type { Expectation } from "../assert";
 

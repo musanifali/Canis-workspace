@@ -32,7 +32,7 @@ import {
   provisionTenant,
   TenantSlugTakenError,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { DB_CLIENT } from "../db.provider.js";
 import { ZodValidationPipe } from "../zod-pipe.js";
 import { verifyProvisionSecret } from "../auth/provision-secret.js";

@@ -4,7 +4,7 @@
  * read time, so reads are never metered here. Budgets are per calendar
  * month per tenant; rate limits are per user per minute.
  */
-import { PLAN_CAPS, isPlan, type Plan } from "@workspace-engine/core";
+import { PLAN_CAPS, isPlan, type Plan } from "@ticora/core";
 import { and, count, eq, gte, sql, sum } from "drizzle-orm";
 import {
   tenants,
