@@ -18,6 +18,16 @@ const SYNCED_PAGES = [
     expectFiles: ["src/App.tsx", "src/contract.ts", "src/spec.ts", "src/validate.test.ts"],
   },
   {
+    page: "content/guides/host-components.mdx",
+    exampleDir: "examples/host-blocks",
+    expectFiles: [
+      "src/App.tsx",
+      "src/blocks.tsx",
+      "src/contract.ts",
+      "src/host-blocks.test.ts",
+    ],
+  },
+  {
     page: "content/guides/adapters.mdx",
     exampleDir: "examples/recipes",
     expectFiles: ["src/graphql.ts", "src/prisma.ts", "src/rest.ts", "src/supabase.ts"],

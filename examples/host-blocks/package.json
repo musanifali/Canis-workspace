@@ -1,0 +1,24 @@
+{
+  "name": "@ticora/example-host-blocks",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "description": "The host-components guide, as real compiled+tested code: a vendor's OWN components rendering a validated workspace. Every fenced code block on apps/docs' host-components page is one of these files — content-sync.test.ts fails CI if they drift.",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ticora/core": "0.2.0",
+    "@ticora/react": "0.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
