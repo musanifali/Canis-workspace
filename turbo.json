@@ -1,10 +1,25 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
+  "globalPassThroughEnv": [
+    "DEEPSEEK_API_KEY",
+    "PLAYGROUND_DAILY_BUDGET",
+    "NEXT_PUBLIC_API_URL",
+    "WORKSPACE_API_URL",
+    "WORKSPACE_API_KEY",
+    "WORKSPACE_TENANT_ID",
+    "WORKSPACE_PROVISION_SECRET",
+    "WORKSPACE_DATABASE_URL",
+    "WORKSPACE_CORS_ORIGIN",
+    "WORKSPACE_RELEASE",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "DASHBOARD_BASE_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "check-types": {
       "dependsOn": ["^build"]
