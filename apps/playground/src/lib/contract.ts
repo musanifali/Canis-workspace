@@ -30,15 +30,25 @@ export const SAMPLE_ROWS: SampleRow[] = Array.from({ length: 24 }, (_, i) => ({
   created: `2026-${String((i % 12) + 1).padStart(2, "0")}-15`,
 }));
 
+/** Field names + capability lists as plain arrays — the single source for both
+ * the contract below AND the model's grounding prompt (defineEntity's result
+ * doesn't re-expose these as arrays, so never introspect it for prompt text). */
+export const SAMPLE_FIELDS = ["id", "name", "status", "team", "effort", "created"] as const;
+export const SAMPLE_CAPS = {
+  filterable: ["status", "team", "effort", "name"],
+  sortable: ["effort", "created"],
+  groupable: ["status", "team"],
+} as const;
+
 /** The one contract the gate enforces and the render binds to. */
 export const playgroundContract = defineEntity({
   name: "sample",
   schema: sampleSchema,
   fieldKinds: { created: "date" },
   capabilities: {
-    filterable: ["status", "team", "effort", "name"],
-    sortable: ["effort", "created"],
-    groupable: ["status", "team"],
+    filterable: [...SAMPLE_CAPS.filterable],
+    sortable: [...SAMPLE_CAPS.sortable],
+    groupable: [...SAMPLE_CAPS.groupable],
     aggregations: { effort: ["sum", "avg", "max"] },
     defaultLimit: 50,
     maxLimit: 100,

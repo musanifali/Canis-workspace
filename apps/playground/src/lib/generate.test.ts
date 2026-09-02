@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CANNED_PROMPTS } from "./canned.js";
-import { gate, toResult } from "./generate.js";
+import { gate, systemPrompt, toResult } from "./generate.js";
 
 const byId = (id: string) => CANNED_PROMPTS.find((c) => c.id === id)!;
 
@@ -40,5 +40,15 @@ describe("the gate over canned prompts", () => {
     for (const c of CANNED_PROMPTS.filter((p) => p.featured)) {
       expect(gate(c.spec).verdict).toBe("REJECT");
     }
+  });
+});
+
+describe("systemPrompt (the model grounding — must not throw)", () => {
+  it("builds a string listing the fields + allowed operations", () => {
+    const p = systemPrompt();
+    expect(typeof p).toBe("string");
+    expect(p).toContain("status, team, effort, name"); // filterable
+    expect(p).toContain("effort, created"); // sortable
+    expect(p).toContain("Output ONLY the JSON spec");
   });
 });

@@ -12,7 +12,7 @@ import {
   validateSpec,
   type ValidationVerdict,
 } from "@workspace-engine/core";
-import { playgroundContract } from "@/lib/contract";
+import { playgroundContract, SAMPLE_CAPS, SAMPLE_FIELDS } from "@/lib/contract";
 
 /** Gate a candidate spec against the sample contract (pure, no IO). */
 export function gate(candidate: unknown): ValidationVerdict {
@@ -21,26 +21,17 @@ export function gate(candidate: unknown): ValidationVerdict {
 
 /**
  * System prompt: the sample contract's fields + allowed operations, plus the
- * WorkspaceSpec shape. Kept in sync with the real contract via
- * `sampleContract` so grounding never drifts from what the gate enforces.
+ * WorkspaceSpec shape. Reads the exported source arrays (SAMPLE_FIELDS /
+ * SAMPLE_CAPS) — the SAME values the contract is built from — rather than
+ * introspecting the opaque defineEntity result (whose capabilities aren't
+ * re-exposed as arrays).
  */
 export function systemPrompt(): string {
-  const c = playgroundContract as unknown as {
-    fields?: Record<string, unknown>;
-    capabilities?: {
-      filterable?: string[];
-      sortable?: string[];
-      groupable?: string[];
-      aggregations?: Record<string, string[]>;
-    };
-  };
-  const caps = c.capabilities ?? {};
-  const fields = Object.keys(c.fields ?? {}).join(", ");
   return [
     "You turn a user's request into a WorkspaceSpec (JSON) over ONE entity, `sample`.",
-    `The sample entity has fields: ${fields || "id, name, status, team, effort, created"}.`,
-    `You may filter on: ${(caps.filterable ?? []).join(", ")}.`,
-    `Sort on: ${(caps.sortable ?? []).join(", ")}. Group on: ${(caps.groupable ?? []).join(", ")}.`,
+    `The sample entity has fields: ${SAMPLE_FIELDS.join(", ")}.`,
+    `You may filter on: ${SAMPLE_CAPS.filterable.join(", ")}.`,
+    `Sort on: ${SAMPLE_CAPS.sortable.join(", ")}. Group on: ${SAMPLE_CAPS.groupable.join(", ")}.`,
     "Never reference a field or operation not listed above — if the request needs one, still return your best spec; a validator will reject it.",
     "Block types: KpiCards, CasesTable, GroupedBoard, Graph, CaseQueue, FilterBar.",
     "A spec is: {specVersion:1, title, timezone:'UTC', layout:{columns:12}, refresh:{mode:'manual'}, blocks:[{id, type, frame:{x,y,w,h}, config, binding:{entity:'sample', query:{...}}}]}.",
