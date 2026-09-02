@@ -60,6 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const canned = cannedFor(prompt);
   let candidate: unknown;
   let source: "canned" | "live" | "replay" = "canned";
+  let diagErr: string | undefined;
 
   if (canned) {
     candidate = canned.spec;
@@ -70,16 +71,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       try {
         candidate = await generateSpec(prompt, { apiKey: key });
         source = "live";
-      } catch {
+      } catch (e) {
+        diagErr = e instanceof Error ? e.message : String(e);
         candidate = CANNED_PROMPTS[0]!.spec;
         source = "replay";
       }
     } else {
+      diagErr = key ? "no-budget" : "no-key";
       candidate = CANNED_PROMPTS[0]!.spec;
       source = "replay";
     }
   }
 
   const result = toResult(gate(candidate));
-  return NextResponse.json({ ...result, source });
+  const diag = request.nextUrl.searchParams.get("diag");
+  return NextResponse.json({
+    ...result,
+    source,
+    ...(diag ? { _diag: { hasKey: !!process.env.DEEPSEEK_API_KEY, err: diagErr } } : {}),
+  });
 }
