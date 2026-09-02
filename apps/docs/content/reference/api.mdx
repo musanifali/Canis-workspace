@@ -55,7 +55,8 @@ with [`ticora contracts lint --probe`](/guides/vendor-ci).
   validated spec. Per-block error boundaries; degradations fire
   `onBlockDegraded` [once each](/reference/errors#2-read-time-degradation-renderer).
 - **`defineBlock({ type, accepts, component })`** — register a custom block
-  component; declarations are checked at mount, not at first render.
+  component; declarations are checked at mount, not at first render. See
+  [Bring your own components](/guides/host-components) for the full path.
 - **Headless hooks** — `useBlockQuery`, `useWorkspaceFilters`,
   `useRuntimeFilters`, workspace store hooks; `createInMemoryWorkspaceStore`
   and the **`WorkspaceStore` port** (list/get/create/update/remove) that the
