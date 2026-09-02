@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import type { WorkspaceSpec } from "@ticora/core";
 import { useWorkspaceStore } from "./context";
 import type { WorkspaceRecord } from "./store";
 

@@ -20,7 +20,7 @@ import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useMemo, useRef } from "react";
 import { Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import { suggestionsFor, type CuratedSuggestions, type Suggestion } from "@/workspace-engine/suggestions";
 import { suggestionStats, trackSuggestion } from "@/workspace-engine/suggestion-analytics";
 

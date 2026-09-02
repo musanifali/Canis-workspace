@@ -6,7 +6,7 @@ boundary, drawn once:
 
 | Server side (no `"use client"`) | Client side (`"use client"`) |
 |---|---|
-| layouts, `metadata`, pages that pass **plain serializable props** | everything imported from `@workspace-engine/*` |
+| layouts, `metadata`, pages that pass **plain serializable props** | everything imported from `@ticora/*` |
 | data routes (`app/api/…/route.ts`) — your ORM, your keys | `defineEntity` calls — a contract **holds a function** and cannot cross the boundary |
 | session → derive the `userToken` string | `WorkspaceProvider` + `WorkspaceRenderer` (they use state and effects) |
 

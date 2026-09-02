@@ -6,9 +6,9 @@
  * the contract's own terms — the attack is the demo. No auth, no signup.
  */
 import { useState } from "react";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
+import type { WorkspaceSpec } from "@ticora/core";
 import { playgroundContract } from "@/lib/contract";
 import { CANNED_PROMPTS } from "@/lib/canned";
 import type { PlaygroundResult } from "@/lib/generate";

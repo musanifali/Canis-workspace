@@ -8,13 +8,13 @@
  *   NEXT_PUBLIC_WORKSPACE_API_URL=http://localhost:8270
  *   NEXT_PUBLIC_WORKSPACE_API_KEY=<printed key>
  */
-import { defineEntity, serializeContract } from "@workspace-engine/core";
+import { defineEntity, serializeContract } from "@ticora/core";
 import {
   createApiKey,
   createDbClient,
   dataContracts,
   tenants,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { z } from "zod";
 
 const DATABASE_URL =

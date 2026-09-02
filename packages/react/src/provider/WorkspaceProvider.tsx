@@ -6,7 +6,7 @@ import {
   type EntityContract,
   type TenantPolicy,
   type ValidationContext,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { WorkspaceQueryClientProvider } from "../query/client";
 import { WorkspaceStoreProvider } from "../workspace/context";
 import { createInMemoryWorkspaceStore, type WorkspaceStore } from "../workspace/store";
@@ -31,7 +31,7 @@ export interface WorkspaceProviderProps {
   blocks?: readonly BlockDefinition[] | undefined;
   /**
    * Developer sandbox mode: makes apiKey/userToken/contracts/blocks optional and
-   * prints a next-step banner to the console. Pair with @workspace-engine/ui's
+   * prints a next-step banner to the console. Pair with @ticora/ui's
    * WorkspaceSandbox (or defaultBlocks + a bundled sample contract) to get a live
    * screen before writing a single contract.
    */
@@ -205,7 +205,7 @@ function useDevModeBanner(devMode: boolean): void {
       "font-weight:bold",
       "\nRendering against a bundled sample contract — no data of yours is used.\n" +
         "Next step: define your first entity with defineEntity() and pass it via `contracts`,\n" +
-        "then register your blocks (or keep @workspace-engine/ui's defaultBlocks).",
+        "then register your blocks (or keep @ticora/ui's defaultBlocks).",
     );
   }, [devMode]);
 }

@@ -1,5 +1,5 @@
 import { useContext, type ErrorInfo, type ReactElement } from "react";
-import type { Block, ValidationContext, WorkspaceSpec } from "@workspace-engine/core";
+import type { Block, ValidationContext, WorkspaceSpec } from "@ticora/core";
 import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
 import type { OnBlockDegraded } from "./degradation";
 import { WorkspaceGrid } from "./WorkspaceGrid";

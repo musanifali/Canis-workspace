@@ -5,13 +5,13 @@
  * controllers (card #26).
  */
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { workspaceSpecSchema } from "@workspace-engine/core";
+import { workspaceSpecSchema } from "@ticora/core";
 import type {
   DBWorkspace,
   DBWorkspaceShare,
   DBWorkspaceVersion,
   WorkspaceWithHead,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { z } from "zod";
 
 export const saveWorkspaceBodySchema = z

@@ -19,7 +19,7 @@
  */
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 
 export class ContractLoadError extends Error {
   constructor(

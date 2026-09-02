@@ -19,7 +19,7 @@
 import type {
   ValidationNote,
   WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { sql } from "drizzle-orm";
 import {
   bigserial,

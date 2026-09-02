@@ -1,5 +1,5 @@
 import type { OnApplicationShutdown, Provider } from "@nestjs/common";
-import { createDbClient, type WorkspaceDbClient } from "@workspace-engine/db";
+import { createDbClient, type WorkspaceDbClient } from "@ticora/db";
 
 /** Injection token for the shared database client. */
 export const DB_CLIENT = "DB_CLIENT";

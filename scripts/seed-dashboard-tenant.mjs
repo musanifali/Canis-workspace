@@ -9,7 +9,7 @@
  * values in apps/dashboard/.env.local and log in with that GitHub account.
  */
 import { randomUUID } from "node:crypto";
-import { createApiKey, createDbClient, tenants, users } from "@workspace-engine/db";
+import { createApiKey, createDbClient, tenants, users } from "@ticora/db";
 
 const DATABASE_URL =
   process.env.DATABASE_URL ??

@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
 import { defaultBlocks } from "./blocks";
 import { sampleContract, sampleSpec } from "./sample";
 
@@ -16,7 +16,7 @@ export interface WorkspaceSandboxProps {
  * your own shell:
  *
  * ```tsx
- * import { WorkspaceSandbox } from "@workspace-engine/ui";
+ * import { WorkspaceSandbox } from "@ticora/ui";
  * export default function Page() {
  *   return <WorkspaceSandbox />;
  * }

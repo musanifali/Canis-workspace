@@ -4,7 +4,7 @@ The public surface of the six released packages, curated (what the [release
 policy](/reference/release-policy) counts as semver-protected). Types are the
 source of truth — everything here re-exports from each package's `index`.
 
-## `@workspace-engine/core`
+## `@ticora/core`
 
 Pure — no React, no IO; zod is the only runtime dependency.
 
@@ -31,7 +31,7 @@ Every capability runs `client` (default — the engine enforces it, your fetch
 may over-return) or `server` (your fetch handles it; the engine trusts the
 result). Declare per-operation:
 `capabilities: { ..., execution: { sort: "server" } }`. Verify server modes
-with [`canis contracts lint --probe`](/guides/vendor-ci).
+with [`ticora contracts lint --probe`](/guides/vendor-ci).
 
 ### Specs
 
@@ -44,7 +44,7 @@ with [`canis contracts lint --probe`](/guides/vendor-ci).
 - **`migrateSpec` / `createMigrationRunner`** — forward migrations for future
   spec versions (v1 is frozen).
 
-## `@workspace-engine/react`
+## `@ticora/react`
 
 `react` is the only peer; SSR-safe.
 
@@ -61,7 +61,7 @@ with [`canis contracts lint --probe`](/guides/vendor-ci).
   and the **`WorkspaceStore` port** (list/get/create/update/remove) that the
   HTTP store implements.
 
-## `@workspace-engine/ui`
+## `@ticora/ui`
 
 - **`defaultBlocks`** — the complete built-in block set (`CasesTable`,
   `KpiCards`, `CaseQueue`, `GroupedBoard`, `FilterBar`, `Graph`); hand to
@@ -75,7 +75,7 @@ Blocks read `--we-*` CSS custom properties from any ancestor — no CSS import:
 `--we-accent`, `--we-positive`, `--we-negative`, `--we-radius`, `--we-gap`
 (exported as `tokens` / `TOKEN_NAMES`).
 
-## `@workspace-engine/client`
+## `@ticora/client`
 
 ### Workspace Service client
 
@@ -101,13 +101,13 @@ dashboard, CLI, or CI credential. A runtime key hitting an admin endpoint
 gets a machine-readable `403` with `code: "insufficient_key_scope"`. Keys
 minted before scopes existed behave as `admin`.
 
-## `@workspace-engine/cli`
+## `@ticora/cli`
 
 The `canis` binary — see the [vendor CI guide](/guides/vendor-ci):
 `contracts diff`, `contracts lint [--probe]`, `contracts dev`. Exit codes are
 public API: `0` ok, `1` gating, `2` usage.
 
-## `@workspace-engine/devtools`
+## `@ticora/devtools`
 
 In-app devtools bus + panel: `recordSpec`, `recordVerdict`,
 `DevtoolsQueryReporter`, and the panel component for inspecting gate

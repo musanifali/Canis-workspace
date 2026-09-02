@@ -1,5 +1,5 @@
 {
-  "name": "@workspace-engine/example-quickstart",
+  "name": "@ticora/example-quickstart",
   "version": "0.1.1",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.2.0",
-    "@workspace-engine/react": "0.2.0",
-    "@workspace-engine/ui": "0.2.0",
+    "@ticora/core": "0.2.0",
+    "@ticora/react": "0.2.0",
+    "@ticora/ui": "0.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zod": "^3.25.0"

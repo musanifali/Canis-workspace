@@ -1,12 +1,12 @@
 "use client";
 
-// CLIENT module — everything from @workspace-engine/* lives on this side of
+// CLIENT module — everything from @ticora/* lives on this side of
 // the boundary. The contract is created HERE (it holds a fetch function,
 // which can never cross from a server component), and its fetch calls the
 // server data route with the end user's token.
-import { defineEntity, parseSpec } from "@workspace-engine/core";
-import { WorkspaceProvider, WorkspaceRenderer } from "@workspace-engine/react";
-import { defaultBlocks } from "@workspace-engine/ui";
+import { defineEntity, parseSpec } from "@ticora/core";
+import { WorkspaceProvider, WorkspaceRenderer } from "@ticora/react";
+import { defaultBlocks } from "@ticora/ui";
 import { z } from "zod";
 
 const ticketContract = defineEntity({

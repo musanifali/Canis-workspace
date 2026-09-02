@@ -1,4 +1,4 @@
-import { defineBlock, type BlockDefinition } from "@workspace-engine/react";
+import { defineBlock, type BlockDefinition } from "@ticora/react";
 import { Board, Graph, KpiCards, Queue, Table } from "./blocks/data-blocks";
 import { FilterBar } from "./blocks/filter-bar";
 

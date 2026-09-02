@@ -1,7 +1,7 @@
 /**
  * Write the OpenAPI document to apps/api/openapi.json (committed — it is the
  * contract artifact the typed client generates from). Run via `npm run
- * openapi -w @workspace-engine/api`; the e2e suite fails if the committed
+ * openapi -w @ticora/api`; the e2e suite fails if the committed
  * file drifts from the controllers.
  */
 import "reflect-metadata";

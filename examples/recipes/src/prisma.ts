@@ -3,7 +3,7 @@
 // re-checks everything, so partial mapping is always safe. The structural
 // client type below is exactly the slice of PrismaClient the recipe touches —
 // substitute your generated client.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 export interface TicketDelegate {
   findMany(args: {

@@ -1,4 +1,4 @@
-import { validateSpec } from "@workspace-engine/core";
+import { validateSpec } from "@ticora/core";
 import { expect, test } from "vitest";
 import { ticketContract, triageSpec } from "./components/workspace";
 

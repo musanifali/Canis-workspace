@@ -27,12 +27,12 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SNAPSHOT = join(repoRoot, "devdocs", "api-surface.json");
 
 const PUBLIC_PACKAGES = [
-  "@workspace-engine/core",
-  "@workspace-engine/react",
-  "@workspace-engine/ui",
-  "@workspace-engine/client",
-  "@workspace-engine/cli",
-  "@workspace-engine/devtools",
+  "@ticora/core",
+  "@ticora/react",
+  "@ticora/ui",
+  "@ticora/client",
+  "@ticora/cli",
+  "@ticora/devtools",
 ];
 
 async function currentSurface() {

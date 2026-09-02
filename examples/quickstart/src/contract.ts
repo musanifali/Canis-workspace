@@ -1,7 +1,7 @@
 // Step 2 — declare what your data looks like and what queries you allow.
 // This is the whole integration contract: the model, the validator, and the
 // renderer all work from this one declaration.
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 import { z } from "zod";
 
 export const ticketContract = defineEntity({

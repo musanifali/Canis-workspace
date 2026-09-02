@@ -13,7 +13,7 @@ import {
   type ApiKeyScope,
   type TenantContext,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import type { Request } from "express";
 import { DB_CLIENT } from "../db.provider.js";
 

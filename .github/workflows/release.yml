@@ -1,9 +1,10 @@
 name: Release
 
-# Release engineering (card #33, decision D4): the six public packages are
-# changeset-versioned in-repo, NOT npm-published. Accumulated changesets on
+# Release engineering (cards #33 + #99): the six public @ticora packages are
+# changeset-versioned in-repo AND published to npm. Accumulated changesets on
 # main become one version commit + a single `vX.Y.Z` git tag (the semver
-# source of truth the compat suite pins to); every main build also packs
+# source of truth the compat suite pins to), then `changeset publish` pushes
+# the public packages to npm with provenance; every main build also packs
 # canary tarballs vendors can install ahead of a release.
 # Policy: devdocs/release-policy.md.
 
@@ -17,6 +18,8 @@ concurrency:
 
 permissions:
   contents: write
+  # npm provenance attestation is signed via GitHub OIDC (#99).
+  id-token: write
 
 jobs:
   version-and-tag:
@@ -41,7 +44,7 @@ jobs:
       - name: Semver gate (api surface + previous-minor compat)
         if: steps.pending.outputs.count != '0'
         run: |
-          npx turbo build --filter='@workspace-engine/core' --filter='@workspace-engine/react' --filter='@workspace-engine/ui' --filter='@workspace-engine/client' --filter='@workspace-engine/cli' --filter='@workspace-engine/devtools'
+          npx turbo build --filter='@ticora/core' --filter='@ticora/react' --filter='@ticora/ui' --filter='@ticora/client' --filter='@ticora/cli' --filter='@ticora/devtools'
           npm run api-surface:check
           npm run compat
       - name: Version packages and tag
@@ -57,6 +60,19 @@ jobs:
           # lightweight tags (v0.2.0's tag died in the runner exactly this way).
           git tag -a "v${version}" -m "v${version}"
           git push origin HEAD "refs/tags/v${version}"
+      - name: Guard — private packages must never publish
+        if: steps.pending.outputs.count != '0'
+        run: npm run check:private
+      - name: Publish public packages to npm (provenance via OIDC)
+        if: steps.pending.outputs.count != '0'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+        run: |
+          # changeset publish skips any package with "private": true, so only
+          # the six public @ticora packages go out. Requires NPM_TOKEN with
+          # publish rights on the @ticora scope.
+          npx changeset publish
 
   canary:
     name: canary tarballs

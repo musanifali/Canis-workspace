@@ -3,7 +3,7 @@ import type { ZodType } from "zod";
 
 /**
  * Body validation via zod instead of class-validator: request schemas reuse
- * @workspace-engine/core's own spec schema, so the API's idea of a valid
+ * @ticora/core's own spec schema, so the API's idea of a valid
  * spec can never drift from the validator's.
  */
 export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {

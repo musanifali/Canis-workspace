@@ -10,7 +10,7 @@ import {
   createDbClient,
   tenants,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -41,7 +41,7 @@ beforeAll(async () => {
   } catch (error) {
     throw new Error(
       `Test Postgres unreachable at ${TEST_DATABASE_URL} — start it with ` +
-        `npm run db:up -w @workspace-engine/db (${String(error)})`,
+        `npm run db:up -w @ticora/db (${String(error)})`,
     );
   }
 

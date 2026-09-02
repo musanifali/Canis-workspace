@@ -9,7 +9,7 @@
  * exact filters it also added — while still failing a spec that doesn't answer
  * the request.
  */
-import type { WorkspaceSpec } from "@workspace-engine/core";
+import type { WorkspaceSpec } from "@ticora/core";
 
 export interface FilterExpectation {
   field: string;

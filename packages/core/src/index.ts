@@ -1,5 +1,5 @@
 /**
- * @workspace-engine/core — Workspace Spec v1 schemas, types, and pure helpers.
+ * @ticora/core — Workspace Spec v1 schemas, types, and pure helpers.
  *
  * Contract source: devdocs/workspace-spec-v1.md. This package is pure by
  * charter: no React, no DB, no fetch; zod is the only runtime dependency.

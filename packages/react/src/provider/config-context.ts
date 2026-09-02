@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { ValidationContext } from "@workspace-engine/core";
+import type { ValidationContext } from "@ticora/core";
 import type { BlockComponentRegistry, WorkspaceDataSource } from "../renderer/types";
 import type { OnBlockDegraded } from "../renderer/degradation";
 

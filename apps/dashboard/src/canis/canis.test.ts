@@ -3,7 +3,7 @@
  * same validateSpec any vendor spec faces, against Canis's own contracts.
  * Plus the row mappers the contract fetches use.
  */
-import { parseSpec, validateSpec } from "@workspace-engine/core";
+import { parseSpec, validateSpec } from "@ticora/core";
 import { describe, expect, it } from "vitest";
 import {
   createCanisContracts,

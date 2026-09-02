@@ -9,7 +9,7 @@ Devtools die by breaking their integrators. This document is the promise the
   segment changes only on breaking changes.
 - `apps/api/openapi.json` — generated from the controllers and committed —
   is the **source of truth** for the /v1 contract. The typed client
-  (`@workspace-engine/client`) is generated from it, and CI fails if the
+  (`@ticora/client`) is generated from it, and CI fails if the
   committed document drifts from the code.
 
 ## What counts as a breaking change

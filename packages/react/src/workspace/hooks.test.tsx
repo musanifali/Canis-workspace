@@ -7,7 +7,7 @@ import {
   type Block,
   type ValidationContext,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { WorkspaceQueryClientProvider } from "../query/client";
 import { WorkspaceStoreProvider } from "./context";
 import { createBlankSpec, createInMemoryWorkspaceStore, type WorkspaceStore } from "./store";

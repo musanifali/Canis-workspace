@@ -1,4 +1,4 @@
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { probeContracts } from "./probe.js";

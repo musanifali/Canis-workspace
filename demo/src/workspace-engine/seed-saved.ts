@@ -10,7 +10,7 @@
  * renders live. Deduped by title so re-clicking "Load demo examples" is a no-op
  * rather than piling up duplicates. Does not touch the store interface.
  */
-import type { WorkspaceStore } from "@workspace-engine/react";
+import type { WorkspaceStore } from "@ticora/react";
 import { demoWorkspaces } from "./specs";
 
 /** Titles of the workspaces this helper seeds (for tests / dedupe checks). */

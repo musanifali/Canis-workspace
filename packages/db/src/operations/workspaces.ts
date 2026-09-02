@@ -2,7 +2,7 @@ import {
   parseSpec,
   serializeSpec,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { and, desc, eq, exists, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {

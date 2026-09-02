@@ -7,7 +7,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import type { Filter } from "@workspace-engine/core";
+import type { Filter } from "@ticora/core";
 
 /**
  * Runtime filter bus (card #39, for FilterBar). A FilterBar block writes filters

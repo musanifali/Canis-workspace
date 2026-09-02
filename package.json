@@ -2,7 +2,7 @@
   "name": "workspace-engine",
   "private": true,
   "version": "0.0.0",
-  "description": "Workspace Engine — natural language to safe, saved, native screens. Built on Tambo (consumed, never forked).",
+  "description": "Workspace Engine \u2014 natural language to safe, saved, native screens. Built on Tambo (consumed, never forked).",
   "workspaces": [
     "packages/*",
     "apps/*",
@@ -15,13 +15,14 @@
     "test": "turbo run test",
     "build": "turbo run build",
     "verify:artifacts": "node scripts/smoke-artifacts.mjs",
-    "size": "npm run size --workspace=@workspace-engine/react",
+    "size": "npm run size --workspace=@ticora/react",
     "changeset": "changeset",
     "release:version": "changeset version",
-    "pack:canary": "mkdir -p canary-dist && npm pack --workspace @workspace-engine/core --workspace @workspace-engine/react --workspace @workspace-engine/ui --workspace @workspace-engine/client --workspace @workspace-engine/cli --workspace @workspace-engine/devtools --pack-destination canary-dist",
+    "pack:canary": "mkdir -p canary-dist && npm pack --workspace @ticora/core --workspace @ticora/react --workspace @ticora/ui --workspace @ticora/client --workspace @ticora/cli --workspace @ticora/devtools --pack-destination canary-dist",
     "api-surface": "node scripts/api-surface.mjs --write",
     "api-surface:check": "node scripts/api-surface.mjs --check",
-    "compat": "node scripts/compat-suite.mjs"
+    "compat": "node scripts/compat-suite.mjs",
+    "check:private": "node scripts/check-private.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "2.31.1",

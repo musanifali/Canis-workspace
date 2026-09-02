@@ -5,7 +5,7 @@
  * no contracts, no blocks, no network. This whole page is three meaningful
  * lines; that's the <10-minute time-to-first-screen the card is about.
  */
-import { WorkspaceSandbox } from "@workspace-engine/ui";
+import { WorkspaceSandbox } from "@ticora/ui";
 
 export default function SandboxPage() {
   return (

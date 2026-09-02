@@ -3,7 +3,7 @@
  * allowance path as #48 (no second enforcement), a per-tenant override wins,
  * and a plan change takes effect immediately (no restart).
  */
-import { PLAN_CAPS } from "@workspace-engine/core";
+import { PLAN_CAPS } from "@ticora/core";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { WorkspaceDbClient } from "../client.js";

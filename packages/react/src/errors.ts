@@ -25,4 +25,4 @@ export {
   QueryPolicyError,
   SpecParseError,
   SpecMigrationError,
-} from "@workspace-engine/core";
+} from "@ticora/core";

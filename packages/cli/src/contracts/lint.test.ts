@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import { lintContracts, hasLintErrors } from "./lint.js";
 import { loadContractModule } from "./load.js";
 import { CONTRACTS } from "../__fixtures__/paths.js";

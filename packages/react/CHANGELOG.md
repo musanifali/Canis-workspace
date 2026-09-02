@@ -1,4 +1,4 @@
-# @workspace-engine/react
+# @ticora/react
 
 ## 0.2.0
 
@@ -13,4 +13,4 @@
 
 ### Patch Changes
 
-- @workspace-engine/core@0.2.0
+- @ticora/core@0.2.0

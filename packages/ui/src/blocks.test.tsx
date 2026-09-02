@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { WorkspaceFilterProvider, useRuntimeFilters, type BlockComponentProps } from "@workspace-engine/react";
-import type { Block } from "@workspace-engine/core";
+import { WorkspaceFilterProvider, useRuntimeFilters, type BlockComponentProps } from "@ticora/react";
+import type { Block } from "@ticora/core";
 import { Board, Graph, KpiCards, Queue, Table } from "./blocks/data-blocks";
 import { FilterBar } from "./blocks/filter-bar";
 import { defaultBlocks } from "./blocks";

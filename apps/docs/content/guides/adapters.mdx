@@ -21,7 +21,7 @@ Each recipe is a compiled, unit-tested file in
 // Push cheap narrowing (eq filters, limit) into query params when your API
 // supports them; return everything else as-is. Over-returning is safe — the
 // engine filters/sorts/groups client-side. Under-returning is not.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 export function restFetch(baseUrl: string) {
   return async ({ query, auth }: { query: QuerySpec; auth: unknown }) => {
@@ -48,7 +48,7 @@ export function restFetch(baseUrl: string) {
 // GraphQL recipe — one fixed document, variables for the cheap narrowing.
 // Keep the document static (persisted-query friendly); the engine handles
 // whatever your schema can't express.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 const TICKETS_QUERY = /* GraphQL */ `
   query Tickets($priority: String, $limit: Int) {
@@ -101,7 +101,7 @@ export function graphqlFetch(endpoint: string) {
 // re-checks everything, so partial mapping is always safe. The structural
 // client type below is exactly the slice of PrismaClient the recipe touches —
 // substitute your generated client.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 export interface TicketDelegate {
   findMany(args: {
@@ -136,7 +136,7 @@ export function prismaFetch(db: { ticket: TicketDelegate }) {
 // Supabase recipe — supabase-js query builder with the user's JWT so
 // Postgres RLS applies to every row. Same rule as always: map what's cheap
 // (eq/in, order, limit), let the engine do the rest.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 /** The slice of supabase-js the recipe touches — substitute your client. */
 export interface SupabaseQuery {

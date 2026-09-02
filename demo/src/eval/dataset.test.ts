@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { DEFAULT_REGISTRY, defineEntity } from "@workspace-engine/core";
+import { DEFAULT_REGISTRY, defineEntity } from "@ticora/core";
 import { GOLDEN } from "./dataset";
 import { caseContract } from "@/workspace-engine/case-contract";
 

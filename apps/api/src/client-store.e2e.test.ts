@@ -9,13 +9,13 @@ import {
   createHttpWorkspaceStore,
   createWorkspaceServiceClient,
   WorkspaceNotFoundError,
-} from "@workspace-engine/client";
+} from "@ticora/client";
 import {
   createApiKey,
   createDbClient,
   tenants,
   type WorkspaceDbClient,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";

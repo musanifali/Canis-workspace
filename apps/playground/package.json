@@ -1,5 +1,5 @@
 {
-  "name": "@workspace-engine/playground",
+  "name": "@ticora/playground",
   "version": "0.1.1",
   "private": true,
   "description": "Zero-signup public playground (#101): type a sentence, watch a validated workspace render — and watch the gate refuse exfil/injection with a grounded reason. Points at the hosted service; DeepSeek behind a shared server key with budget + rate limits.",
@@ -12,9 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workspace-engine/core": "0.2.0",
-    "@workspace-engine/react": "0.2.0",
-    "@workspace-engine/ui": "0.2.0",
+    "@ticora/core": "0.2.0",
+    "@ticora/react": "0.2.0",
+    "@ticora/ui": "0.2.0",
     "next": "^15.5.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

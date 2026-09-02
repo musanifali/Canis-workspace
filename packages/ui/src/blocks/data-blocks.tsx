@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { BlockComponentProps } from "@workspace-engine/react";
+import type { BlockComponentProps } from "@ticora/react";
 import { tokens } from "../theme";
 import { Panel, formatValue, intentColor, panelStyle } from "../primitives";
 

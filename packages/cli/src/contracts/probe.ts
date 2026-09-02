@@ -9,7 +9,7 @@
  * Findings share the LintFinding shape so `lint --probe` and `dev` merge them
  * into one report and one exit code.
  */
-import type { EntityContract } from "@workspace-engine/core";
+import type { EntityContract } from "@ticora/core";
 import type { LintFinding } from "./lint.js";
 
 export interface ProbeOptions {

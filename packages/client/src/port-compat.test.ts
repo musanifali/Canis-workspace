@@ -4,7 +4,7 @@
  * Phases 2/3 were built against — see the kickoff's "don't change the port"
  * constraint). If either side drifts, this file stops compiling.
  */
-import type { WorkspaceStore } from "@workspace-engine/react";
+import type { WorkspaceStore } from "@ticora/react";
 import { describe, expect, it } from "vitest";
 import { createHttpWorkspaceStore } from "./http-store.js";
 

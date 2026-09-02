@@ -12,7 +12,7 @@ import {
   type EntityContract,
   type TenantPolicy,
   type ValidationVerdict,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import type { LoadedSpec } from "../specs/load.js";
 
 export type Verdict = ValidationVerdict["verdict"];

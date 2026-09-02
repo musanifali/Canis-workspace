@@ -5,7 +5,7 @@
  * deliberately refused saves so the Rejected-capabilities view has data, and
  * record a few generation events so Usage & cost isn't empty.
  *
- * Usage:  WORKSPACE_API_KEY=… npm run seed -w @workspace-engine/dashboard
+ * Usage:  WORKSPACE_API_KEY=… npm run seed -w @ticora/dashboard
  * (reads apps/dashboard/.env.local when run via npm script)
  */
 import { readFileSync } from "node:fs";
@@ -14,11 +14,11 @@ import {
   parseSpec,
   serializeContract,
   serializeSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import {
   createWorkspaceServiceClient,
   WorkspaceServiceError,
-} from "@workspace-engine/client";
+} from "@ticora/client";
 import { createCanisContracts, type CanisReadClient } from "../src/canis/contracts.js";
 import { dashboardViews } from "../src/canis/specs.js";
 

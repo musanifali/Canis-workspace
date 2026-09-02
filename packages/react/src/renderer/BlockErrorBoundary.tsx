@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import type { Block } from "@workspace-engine/core";
+import type { Block } from "@ticora/core";
 import { BrokenBlock } from "./BrokenBlock";
 import type { OnBlockDegraded } from "./degradation";
 

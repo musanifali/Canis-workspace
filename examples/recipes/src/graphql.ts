@@ -1,7 +1,7 @@
 // GraphQL recipe — one fixed document, variables for the cheap narrowing.
 // Keep the document static (persisted-query friendly); the engine handles
 // whatever your schema can't express.
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 
 const TICKETS_QUERY = /* GraphQL */ `
   query Tickets($priority: String, $limit: Int) {

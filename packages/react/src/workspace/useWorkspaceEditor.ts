@@ -15,7 +15,7 @@ import {
   type RefreshPolicy,
   type ValidationVerdict,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import {
   useWorkspaceStore,
   useWorkspaceValidationContext,

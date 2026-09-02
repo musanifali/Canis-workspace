@@ -4,7 +4,7 @@ import type {
   Block,
   EntityContract,
   RefreshPolicy,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { useBlockQuery, type BlockDataState } from "../query/useBlockQuery";
 import { useRuntimeFilters } from "../query/filters";
 import type {

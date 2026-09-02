@@ -3,7 +3,7 @@
  * frequencies from GET /v1/telemetry/summary. Aggregates only — raw events
  * are never exposed by the API surface.
  */
-import { createWorkspaceServiceClient } from "@workspace-engine/client";
+import { createWorkspaceServiceClient } from "@ticora/client";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 

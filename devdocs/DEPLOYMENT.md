@@ -69,7 +69,7 @@ red CI never reaches prod.
 - **RLS holds in prod:** point the adversarial cross-tenant suite at Neon
   (creates a few ephemeral test tenants; safe on a fresh DB):
   ```
-  TEST_DATABASE_URL='<neon-url>' npx vitest run -w @workspace-engine/db src/rls.test.ts
+  TEST_DATABASE_URL='<neon-url>' npx vitest run -w @ticora/db src/rls.test.ts
   ```
   All cross-tenant reads/writes must be **denied by Postgres** (not the service
   layer). This is the pass-13 adversarial probe re-run against production.

@@ -6,14 +6,14 @@
  */
 import { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { PLAN_CAPS } from "@workspace-engine/core";
+import { PLAN_CAPS } from "@ticora/core";
 import {
   createApiKey,
   createDbClient,
   provisionTenant,
   tenants,
   usageEvents,
-} from "@workspace-engine/db";
+} from "@ticora/db";
 import { eq } from "drizzle-orm";
 import request from "supertest";
 import type { App } from "supertest/types";

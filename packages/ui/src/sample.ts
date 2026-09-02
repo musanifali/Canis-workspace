@@ -5,7 +5,7 @@
  * touches the network — the "vendor fetch" just returns the seeded rows.
  */
 import { z } from "zod";
-import { defineEntity, parseSpec, type WorkspaceSpec } from "@workspace-engine/core";
+import { defineEntity, parseSpec, type WorkspaceSpec } from "@ticora/core";
 
 const STATUSES = ["todo", "in_progress", "done"] as const;
 const TEAMS = ["alpha", "beta", "gamma"] as const;

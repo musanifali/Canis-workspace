@@ -6,7 +6,7 @@ import {
   defineEntity,
   parseSpec,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { WorkspaceGrid } from "./WorkspaceGrid";
 import { WorkspaceRenderer } from "./WorkspaceRenderer";
 import { WorkspaceQueryClientProvider } from "../query/client";

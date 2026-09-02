@@ -1,6 +1,6 @@
 import { defineConfig } from "tsup";
 
-// Dual CJS/ESM + .d.ts/.d.cts output, matching @workspace-engine/core.
+// Dual CJS/ESM + .d.ts/.d.cts output, matching @ticora/core.
 // drizzle-orm and pg are runtime deps and auto-externalized.
 export default defineConfig({
   entry: ["src/index.ts"],

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToString } from "react-dom/server";
 import { hydrateRoot } from "react-dom/client";
 import { act } from "@testing-library/react";
-import { parseSpec } from "@workspace-engine/core";
+import { parseSpec } from "@ticora/core";
 import { WorkspaceRenderer } from "./renderer/WorkspaceRenderer";
 import type { BlockComponentProps } from "./renderer/types";
 

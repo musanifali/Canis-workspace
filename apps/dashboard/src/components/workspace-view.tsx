@@ -10,9 +10,9 @@ import { useEffect, useMemo, useState } from "react";
 import {
   WorkspaceProvider,
   WorkspaceRenderer,
-} from "@workspace-engine/react";
-import type { WorkspaceRecord } from "@workspace-engine/client";
-import { defaultBlocks } from "@workspace-engine/ui";
+} from "@ticora/react";
+import type { WorkspaceRecord } from "@ticora/client";
+import { defaultBlocks } from "@ticora/ui";
 import { createCanisContracts } from "@/canis/contracts";
 import { canisClient, canisStore } from "@/lib/browser-client";
 

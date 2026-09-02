@@ -9,7 +9,7 @@ import {
   type EntityContract,
   type ValidationContext,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import { WorkspaceGrid } from "./WorkspaceGrid";
 import { WorkspaceQueryClientProvider } from "../query/client";
 import type { BlockComponentProps } from "./types";

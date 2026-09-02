@@ -5,7 +5,7 @@
  * narrowings are the changes that can break saved workspaces; additions and
  * widenings never do.
  */
-import type { EntityContract, FieldKind } from "@workspace-engine/core";
+import type { EntityContract, FieldKind } from "@ticora/core";
 
 export interface CapabilityRef {
   /** filterable | sortable | groupable | aggregation */

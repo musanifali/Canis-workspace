@@ -1,7 +1,7 @@
 // Server-execution contract whose fetch genuinely honors sort + filter.
 // Used by the conformance probe tests (card #49): this one must pass clean.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const ROWS = [
   { id: "o1", region: "emea", total: 40 },

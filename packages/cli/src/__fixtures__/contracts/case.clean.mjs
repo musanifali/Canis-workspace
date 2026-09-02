@@ -1,7 +1,7 @@
 // A well-documented `case` contract: entity described, every field described,
 // every enum value documented. `contracts lint` should report nothing.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z
   .object({

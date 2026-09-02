@@ -5,7 +5,7 @@ import {
   type Block,
   type ValidationContext,
   type WorkspaceSpec,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import type { BlockComponentRegistry, WorkspaceDataSource } from "./types";
 import { BlockHost, type BlockDriftError } from "./BlockHost";
 import type { OnBlockDegraded } from "./degradation";

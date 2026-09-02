@@ -1,4 +1,4 @@
-import type { QuerySpec } from "@workspace-engine/core";
+import type { QuerySpec } from "@ticora/core";
 import { describe, expect, it, vi } from "vitest";
 import { graphqlFetch } from "./graphql.js";
 import { prismaFetch } from "./prisma.js";

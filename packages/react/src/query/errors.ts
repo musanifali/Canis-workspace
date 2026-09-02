@@ -1,4 +1,4 @@
-import type { Block } from "@workspace-engine/core";
+import type { Block } from "@ticora/core";
 
 /**
  * A block's data binding failed to execute — the vendor `fetch` rejected, the

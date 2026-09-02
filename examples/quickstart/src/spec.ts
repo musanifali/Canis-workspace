@@ -1,7 +1,7 @@
 // Step 4 — a workspace is data, not code. This one came out of the
 // generation pipeline; you could also write it by hand, like here. Either
 // way it only renders after validateSpec says BUILD.
-import { parseSpec } from "@workspace-engine/core";
+import { parseSpec } from "@ticora/core";
 
 export const ticketBoardSpec = parseSpec({
   specVersion: 1,

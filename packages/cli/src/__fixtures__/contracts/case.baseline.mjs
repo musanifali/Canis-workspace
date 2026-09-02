@@ -1,7 +1,7 @@
 // Baseline (currently-shipped) `case` contract fixture.
 // Loaded by the CLI's real dynamic-import path during integration tests.
 import { z } from "zod";
-import { defineEntity } from "@workspace-engine/core";
+import { defineEntity } from "@ticora/core";
 
 const caseSchema = z.object({
   id: z.string().describe("Stable case identifier assigned at intake."),

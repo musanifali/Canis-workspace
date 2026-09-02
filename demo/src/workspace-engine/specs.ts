@@ -4,7 +4,7 @@
  * is run through parseSpec so it carries schema defaults and is a real
  * WorkspaceSpec; WorkspaceProvider then validates it against the contract.
  */
-import { parseSpec, type WorkspaceSpec } from "@workspace-engine/core";
+import { parseSpec, type WorkspaceSpec } from "@ticora/core";
 
 export interface DemoWorkspace {
   id: string;

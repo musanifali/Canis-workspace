@@ -13,7 +13,7 @@
  * "unliftable": save fails fast with a message that says why (card criterion 3),
  * rather than persisting a broken screen.
  */
-import type { ValidationContext, WorkspaceSpec } from "@workspace-engine/core";
+import type { ValidationContext, WorkspaceSpec } from "@ticora/core";
 import { gatePlan } from "./plan-gate";
 
 /** The subset of an interactables-snapshot entry that lifting needs. */

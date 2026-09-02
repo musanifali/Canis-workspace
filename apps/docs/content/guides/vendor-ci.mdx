@@ -7,7 +7,7 @@ it safe.
 ## `contracts diff` — does this change break saved workspaces?
 
 ```sh
-npx canis contracts diff \
+npx ticora contracts diff \
   --old contracts/shipped.ts --new contracts/proposed.ts \
   --service-url https://workspace-api.internal \
   --api-key "$CANIS_API_KEY" --user-id ci-bot
@@ -32,7 +32,7 @@ report. Purely additive changes exit `0`.
 Generation quality depends on contract quality. Lint makes that legible:
 
 ```sh
-npx canis contracts lint --contracts contracts/shipped.ts
+npx ticora contracts lint --contracts contracts/shipped.ts
 ```
 
 - **errors** (exit `1`): a capability referencing an undeclared field, a
@@ -48,7 +48,7 @@ time. The probe runs sample queries through your **real** fetch and fails CI
 when a declared capability is unimplemented:
 
 ```sh
-npx canis contracts lint --contracts contracts/shipped.ts --probe --auth '{"token":"ci"}'
+npx ticora contracts lint --contracts contracts/shipped.ts --probe --auth '{"token":"ci"}'
 ```
 
 ```
@@ -68,15 +68,15 @@ kinds, capabilities, execution modes, limits — plus every lint and probe
 finding:
 
 ```sh
-npx canis contracts dev --contracts contracts/shipped.ts
+npx ticora contracts dev --contracts contracts/shipped.ts
 ```
 
 ## Recommended CI wiring
 
 ```yaml
-- run: npx canis contracts lint --contracts contracts/shipped.ts --probe
+- run: npx ticora contracts lint --contracts contracts/shipped.ts --probe
 - run: |
-    npx canis contracts diff \
+    npx ticora contracts diff \
       --old contracts/shipped.ts --new contracts/proposed.ts \
       --specs-dir ci/saved-specs
 ```

@@ -1,4 +1,12 @@
-# @workspace-engine/react
+# @ticora/react
+
+[![npm](https://img.shields.io/npm/v/%40ticora%2Freact)](https://www.npmjs.com/package/@ticora/react) [![license](https://img.shields.io/npm/l/%40ticora%2Freact)](../../LICENSE)
+
+```sh
+npm install @ticora/react
+```
+
+📖 [Quickstart](https://ticora-docs.vercel.app/quickstart) · [API reference](https://ticora-docs.vercel.app/reference/api)
 
 The read-time SDK for the Workspace Engine: a validated `WorkspaceSpec` becomes a
 live, data-backed screen with zero LLM involvement. Deterministic renderer,

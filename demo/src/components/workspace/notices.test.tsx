@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import type { SpecValidationError } from "@workspace-engine/core";
+import type { SpecValidationError } from "@ticora/core";
 import { ClarifyNotice, RejectNotice } from "./notices";
 
 afterEach(cleanup);

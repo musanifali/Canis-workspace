@@ -3,7 +3,7 @@ import {
   type BindingShape,
   type BlockRegistry,
   type EntityContract,
-} from "@workspace-engine/core";
+} from "@ticora/core";
 import type { BlockComponent, BlockComponentRegistry } from "../renderer/types";
 
 /** The binding output a block renders; "none" = static (no data). */
