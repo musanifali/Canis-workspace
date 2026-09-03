@@ -132,7 +132,7 @@ export function IssueTable({ block, data, status }: BlockComponentProps) {
 
 /** Your board. A "groups" binding gives you `{ key, rows }` buckets. */
 export function IssueBoard({ block, data }: BlockComponentProps) {
-  const groups = (data as { key: string; rows: Issue[] }[] | undefined) ?? [];
+  const groups = (data as { group: string; rows: Issue[] }[] | undefined) ?? [];
   const title = (block.config as { title?: string }).title ?? "Board";
 
   return (
@@ -140,9 +140,9 @@ export function IssueBoard({ block, data }: BlockComponentProps) {
       <h3 className="your-card__title">{title}</h3>
       <div className="your-board">
         {groups.map((group) => (
-          <div className="your-board__column" key={group.key}>
+          <div className="your-board__column" key={group.group}>
             <h4>
-              {group.key} <span className="your-count">{group.rows.length}</span>
+              {group.group} <span className="your-count">{group.rows.length}</span>
             </h4>
             {group.rows.map((issue) => (
               <article className="your-board__card" key={issue.id}>
@@ -313,6 +313,37 @@ component. See [`defineBlockType`](/reference/api) for the current surface.
 Until you need one, prefer an existing type: `CasesTable` (rows),
 `GroupedBoard` (groups), `KpiCards` (aggregates), `Graph`, `CaseQueue`,
 `FilterBar`.
+
+## Prove your components in CI
+
+Swapping components means an SDK upgrade could change what a block receives.
+Assert the contract in **your** CI so that surfaces as a failing test, not a
+support ticket:
+
+```tsx
+import { assertBlockContract } from "@ticora/react/testing";
+import { render } from "@testing-library/react";
+import { IssueTable, IssueBoard } from "./blocks";
+
+it.each([
+  ["CasesTable", IssueTable],
+  ["GroupedBoard", IssueBoard],
+])("%s satisfies the block contract", (type, Component) => {
+  assertBlockContract(Component, { type, render });
+});
+```
+
+It renders your component through every state the renderer can hand it —
+loading, success, **empty**, error, and *stale-while-refetching* (the one most
+components forget) — and fails naming the states that broke.
+
+Pass the registry **`type`**, not a hand-written `shape`: the kit derives the
+shape the renderer actually produces, so you can't get a passing assertion
+against data your block never receives. (`Graph`, for instance, is an
+`aggregate` block, not `rows`.)
+
+You supply `render`, so the kit stays free of react-dom and any testing
+library — it works with whatever you already use.
 
 ## What to check before you ship
 
