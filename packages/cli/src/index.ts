@@ -1,5 +1,5 @@
 /**
- * @ticora/cli — the `canis` vendor CLI.
+ * @ticora/cli — the `ticora` vendor CLI.
  *
  * All contract/spec IO lives in this package; the actual gating decision reuses
  * @ticora/core's validateSpec unchanged (no forked validation). The

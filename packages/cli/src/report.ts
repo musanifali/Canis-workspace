@@ -57,7 +57,7 @@ export function formatDiffHuman(
   meta: DiffMeta,
 ): string {
   const lines: string[] = [];
-  lines.push("canis contracts diff");
+  lines.push("ticora contracts diff");
   lines.push(`  baseline: ${meta.baseline}`);
   lines.push(`  proposed: ${meta.proposed}`);
   lines.push(`  workspaces: ${analysis.total} (${meta.source})`);
@@ -124,7 +124,7 @@ export interface LintMeta {
 /** Render lint findings for humans. */
 export function formatLintHuman(findings: readonly LintFinding[], meta: LintMeta): string {
   const lines: string[] = [];
-  lines.push("canis contracts lint");
+  lines.push("ticora contracts lint");
   lines.push(`  contracts: ${meta.contracts} (${meta.entityCount} entit${meta.entityCount === 1 ? "y" : "ies"})`);
   lines.push("");
 
@@ -200,7 +200,7 @@ export function formatDevHuman(
   meta: LintMeta,
 ): string {
   const lines: string[] = [];
-  lines.push("canis contracts dev");
+  lines.push("ticora contracts dev");
   lines.push(`  contracts: ${meta.contracts} (${meta.entityCount} entit${meta.entityCount === 1 ? "y" : "ies"})`);
   lines.push("");
   for (const contract of contracts) {
