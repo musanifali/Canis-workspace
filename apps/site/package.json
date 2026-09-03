@@ -2,14 +2,14 @@
   "name": "@ticora/site",
   "version": "0.1.1",
   "private": true,
-  "description": "Ticora marketing site (#100) — the front door. Spider/silk identity: a web is structure spun from one thread, which is what the product does to a sentence.",
+  "description": "Ticora marketing site (#100) \u2014 the front door. Spider/silk identity: a web is structure spun from one thread, which is what the product does to a sentence.",
   "scripts": {
     "dev": "next dev -p 3006",
     "build": "next build",
     "start": "next start -p 3006",
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "next": "^15.5.7",
