@@ -205,6 +205,40 @@ export function Workspace({ spec }: { spec: WorkspaceSpec }) {
 component wired to the wrong data shape fails immediately — not in front of a
 user. The shapes are `rows`, `groups`, `aggregates`, and `none` (static).
 
+### Using the components you already have
+
+You register **one component per block type** — and inside it you compose the
+components your app already ships. You don't register your `<Table>` or
+`<Button>` primitives directly.
+
+That's because the block contract hands you `{ block, data, status, … }` — a
+data-shape API — while your design system component has its own props
+(`columns`, `rows`, `onSort`). Something has to map between the two. Doing it
+in a thin adapter keeps the coupling explicit and one-directional: **we never
+import your components, and you never fork ours.**
+
+In practice the adapter is a few lines:
+
+```tsx
+import { YourDataTable } from "@your-org/design-system";
+
+defineBlock({
+  type: "CasesTable",
+  accepts: { shape: "rows" },
+  component: ({ block, data }) => (
+    <YourDataTable
+      columns={ISSUE_COLUMNS}
+      rows={data as Issue[]}
+      title={(block.config as { title?: string }).title}
+    />
+  ),
+});
+```
+
+`YourDataTable` is untouched — its sorting, pagination, theming, and
+accessibility stay yours. Six block types means roughly six small adapters,
+and the next section shows you don't have to write them all at once.
+
 ### Swap one block at a time
 
 You don't have to do all six at once. Register your own where you have them and
