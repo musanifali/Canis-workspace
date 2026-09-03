@@ -1,5 +1,5 @@
 /**
- * `canis` command dispatch. `run(argv, io)` is pure-ish: all side effects go
+ * `ticora` command dispatch. `run(argv, io)` is pure-ish: all side effects go
  * through the injected `io`, and it returns an exit code instead of calling
  * process.exit — so the whole CLI is testable end-to-end without spawning a
  * process. Exit codes: 0 ok, 1 CI-gating (workspaces broken / lint errors),
@@ -28,11 +28,11 @@ export interface CliIo {
   cwd: string;
 }
 
-const USAGE = `canis — Workspace Engine vendor CLI
+const USAGE = `ticora — Workspace Engine vendor CLI
 
 Usage:
-  canis contracts diff  --old <module> --new <module> [--specs-dir <dir> | --service-url <url>] [--json]
-  canis contracts lint  --contracts <module> [--json]
+  ticora contracts diff  --old <module> --new <module> [--specs-dir <dir> | --service-url <url>] [--json]
+  ticora contracts lint  --contracts <module> [--json]
 
 contracts diff — does a contract change break saved workspaces?
   --old <module>       Baseline (currently shipped) contract module

@@ -14,7 +14,7 @@ function harness(): { io: CliIo; out: () => string; err: () => string } {
   return { io, out: () => outLines.join("\n"), err: () => errLines.join("\n") };
 }
 
-describe("canis contracts diff", () => {
+describe("ticora contracts diff", () => {
   it("exits non-zero and reports the breaking count for a narrowing", async () => {
     const h = harness();
     const code = await run(
@@ -68,7 +68,7 @@ describe("canis contracts diff", () => {
   });
 });
 
-describe("canis contracts lint", () => {
+describe("ticora contracts lint", () => {
   it("prints warnings but exits zero for a valid-but-sloppy contract", async () => {
     const h = harness();
     const code = await run(["contracts", "lint", "--contracts", CONTRACTS.smelly], h.io);
@@ -122,7 +122,7 @@ describe("canis contracts lint", () => {
   });
 });
 
-describe("canis contracts dev", () => {
+describe("ticora contracts dev", () => {
   it("prints the contract summary plus merged lint+probe findings", async () => {
     const h = harness();
     const code = await run(["contracts", "dev", "--contracts", CONTRACTS.serverBroken], h.io);
@@ -148,7 +148,7 @@ describe("canis contracts dev", () => {
   });
 });
 
-describe("canis dispatch", () => {
+describe("ticora dispatch", () => {
   it("returns usage for an unknown command with a non-zero code", async () => {
     const h = harness();
     const code = await run(["frobnicate"], h.io);
@@ -159,6 +159,6 @@ describe("canis dispatch", () => {
     const h = harness();
     const code = await run(["--help"], h.io);
     expect(code).toBe(0);
-    expect(h.out()).toContain("canis");
+    expect(h.out()).toContain("ticora");
   });
 });
