@@ -14,9 +14,19 @@ import type { BlockComponentProps, WorkspaceDataSource } from "./types";
 
 afterEach(cleanup);
 
+// These rows must fall inside `this_month`, because the spec below filters on
+// exactly that and the executor runs filters CLIENT-side by default — rows
+// outside the window are dropped before a block ever sees them.
+//
+// They used to be hardcoded to July 2026 and silently stopped matching on
+// 1 August: every "renders fetched rows" assertion then saw 0 rows. Derive them
+// from the current UTC month instead, which is the timezone the spec declares
+// and therefore the one `this_month` resolves in. Days 10 and 20 exist in every
+// month and are nowhere near a boundary.
+const UTC_MONTH = new Date().toISOString().slice(0, 7);
 const ROWS = [
-  { id: "c1", status: "open", due: "2026-07-10" },
-  { id: "c2", status: "open", due: "2026-07-20" },
+  { id: "c1", status: "open", due: `${UTC_MONTH}-10` },
+  { id: "c2", status: "open", due: `${UTC_MONTH}-20` },
 ];
 
 function makeContract(fetchImpl: (args: { query: unknown; auth: unknown }) => Promise<unknown[]>) {
