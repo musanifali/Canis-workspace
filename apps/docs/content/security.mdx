@@ -113,6 +113,40 @@ Full detail: [Telemetry reference](/reference/telemetry).
   logs.
 - Migrations are forward-only and additive, so a rollback to the previous
   release runs safely against the current schema.
+- The production database accepts **no external connections**. Its IP allow-list
+  is empty; the service reaches it over the host's private network. The nightly
+  backup opens a single-address window for itself and closes it again, and
+  refuses to run at all if it finds the list already open.
+
+## Backups and recovery
+
+Backups run nightly and are **verified by restoring them**. Each dump is
+restored into a scratch PostgreSQL instance and compared against a manifest
+captured at dump time — every table, exact row counts, and the row-level
+security shape (RLS enabled state and policy counts per table) — *before* the
+archive is kept. A dump that fails that comparison is never stored. Nothing in
+our backup set is a backup we have not already restored at least once.
+
+Row counts alone would not catch a restore that silently dropped RLS: the
+numbers would look perfect while tenant isolation was gone. That is why the
+security shape is part of what gets asserted.
+
+Archives are encrypted with **public-key cryptography** (age). The backup job
+holds only the public key, so it can create backups and cannot read one.
+Compromising our CI, or the backup store, does not disclose customer data.
+
+| | |
+| --- | --- |
+| Frequency | Nightly |
+| Retention | 14 days |
+| Verification | Every backup restored and asserted before it is kept |
+| Encryption | age public-key; the private key is not held by any automated system |
+| Recovery point objective | **Up to 24 hours.** See below. |
+
+**There is no point-in-time recovery.** A restore returns the database to the
+last nightly backup, so a worst-case failure loses up to 24 hours of writes.
+That is a real limitation of where we are today, and we would rather state it
+than imply continuous protection we do not have.
 
 ## What we do **not** have yet
 
@@ -125,7 +159,7 @@ We would rather you learn this here than in a questionnaire.
 | External review of the auth implementation | **Not yet** — planned before GA. |
 | WAF / managed DDoS protection | **Not yet** — platform-level protection only. |
 | SSO / SAML / SCIM | **No.** GitHub sign-in only today. |
-| Formal backup + restore drill | **Not yet.** Currently on managed Postgres with provider-level durability; a documented, exercised restore is planned. |
+| Point-in-time recovery | **No.** Nightly verified backups only — up to 24 hours of writes at risk. |
 | Published uptime SLA | **No.** No contractual SLA at this stage. |
 | Bug bounty | **No.** Responsible disclosure below is the channel. |
 | Data residency choices | **No.** Single region today. |
