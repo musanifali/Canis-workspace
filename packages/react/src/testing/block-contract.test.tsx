@@ -5,10 +5,14 @@
  */
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Board, KpiCards, Queue, Table, Graph } from "@ticora/ui";
-import { FilterBar } from "@ticora/ui";
 import type { BlockComponentProps } from "../renderer/types";
 import { assertBlockContract, blockStates, BlockContractError } from "./block-contract";
+
+// The companion test — that the SHIPPED @ticora/ui blocks satisfy this kit —
+// lives in packages/ui. It cannot live here: @ticora/ui depends on this package,
+// so importing it back would be a cycle. It only ever resolved because npm
+// symlinks every workspace package into the root node_modules, which made an
+// undeclared dependency look fine locally and fail in CI on a cold cache.
 
 describe("fixtures", () => {
   it("covers every binding shape with the states a block can receive", () => {
@@ -30,21 +34,9 @@ describe("fixtures", () => {
   });
 });
 
-describe("the shipped default blocks satisfy their own contract", () => {
-  // Pass the registry TYPE, not a hand-written shape: the kit derives the shape
-  // the renderer actually produces. Asserting against a hand-picked shape is
-  // how you get a vacuous pass (Graph is "aggregate", not "rows").
-  it.each([
-    ["CasesTable", Table],
-    ["GroupedBoard", Board],
-    ["KpiCards", KpiCards],
-    ["CaseQueue", Queue],
-    ["Graph", Graph],
-    ["FilterBar", FilterBar],
-  ])("%s", (type, Component) => {
-    assertBlockContract(Component, { type, render });
-  });
-});
+/** Any component will do below: these assertions reject the ARGUMENTS, before
+ *  anything is ever rendered. */
+const Anything = ({ data }: BlockComponentProps) => <div>{(data as unknown[])?.length ?? 0}</div>;
 
 describe("shape resolution can't be fudged", () => {
   it("derives the shape from the registry, not the caller", () => {
@@ -55,13 +47,13 @@ describe("shape resolution can't be fudged", () => {
   });
 
   it("refuses an unknown type instead of guessing", () => {
-    expect(() => assertBlockContract(Table, { type: "NotARealBlock", render })).toThrow(
+    expect(() => assertBlockContract(Anything, { type: "NotARealBlock", render })).toThrow(
       /unknown block type/,
     );
   });
 
   it("refuses when given neither type nor shape", () => {
-    expect(() => assertBlockContract(Table, { render })).toThrow(/needs either/);
+    expect(() => assertBlockContract(Anything, { render })).toThrow(/needs either/);
   });
 });
 
