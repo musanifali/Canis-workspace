@@ -306,13 +306,52 @@ test("your components do NOT widen what the gate allows", () => {
 ## Level 3 — your own block types
 
 Levels 1–2 reuse the six built-in types. If you need a block we don't ship — a
-burndown, a heatmap — the validator has to learn it too, because it gates every
-block's config and binding shape. That means a registry entry alongside your
-component. See [`defineBlockType`](/reference/api) for the current surface.
+burndown, a heatmap — the **validator** has to learn it too, because it gates
+every block's config, binding shape, and size. So a custom type is two
+registrations: a registry entry for the gate, and a component for the renderer.
+
+```ts
+import { defineBlockType, extendRegistry, DEFAULT_REGISTRY } from "@ticora/core";
+import { z } from "zod";
+
+export const burndown = defineBlockType({
+  type: "Burndown",
+  bindingShape: "aggregate",
+  // MUST be .strict() — a loose schema would let anything into config and the
+  // gate would never refuse it. defineBlockType throws if you forget.
+  config: z.object({ title: z.string().optional() }).strict(),
+  minSize: { w: 4, h: 3 },
+  maxSize: { w: 12, h: 8 },
+});
+
+export const registry = extendRegistry(DEFAULT_REGISTRY, [burndown]);
+```
+
+Then use that registry on **both** sides — the gate and the renderer:
+
+```tsx
+// where you validate (generation / save):
+validateSpec(candidate, { contracts, registry });
+
+// where you render:
+<WorkspaceProvider
+  registry={registry}
+  contracts={[issueContract]}
+  blocks={[defineBlock({ type: "Burndown", accepts: { shape: "aggregate" }, component: Burndown })]}
+>
+```
+
+Miss the registry on the provider and registration throws immediately — the
+common mistake is extending it for the gate and forgetting the renderer, so it
+fails loudly rather than rendering a broken block.
+
+Your custom type is then held to exactly the same standard as a built-in: config
+outside its schema, a binding whose shape doesn't match the declaration, or a
+frame outside its size bounds all come back as typed `REJECT`s.
 
 Until you need one, prefer an existing type: `CasesTable` (rows),
-`GroupedBoard` (groups), `KpiCards` (aggregates), `Graph`, `CaseQueue`,
-`FilterBar`.
+`GroupedBoard` (groups), `KpiCards` and `Graph` (aggregate), `CaseQueue`
+(rows), `FilterBar` (static).
 
 ## Prove your components in CI
 

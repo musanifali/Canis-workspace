@@ -97,6 +97,12 @@ export {
   type BlockRegistryEntry,
 } from "./registry/registry.js";
 export {
+  defineBlockType,
+  extendRegistry,
+  BlockTypeDefinitionError,
+  type BlockTypeDefinition,
+} from "./registry/define-block-type.js";
+export {
   validateSpec,
   MAX_BLOCKS,
   type TenantPolicy,

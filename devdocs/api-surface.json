@@ -1,5 +1,6 @@
 {
   "@ticora/core": {
+    "BlockTypeDefinitionError": "function",
     "ContractDefinitionError": "function",
     "ContractRevivalError": "function",
     "DEFAULT_EXECUTION": "object",
@@ -27,9 +28,11 @@
     "compileToValidator": "function",
     "createMigrationRunner": "function",
     "dateValueSchema": "object",
+    "defineBlockType": "function",
     "defineEntity": "function",
     "deriveBindingShape": "function",
     "executeQuery": "function",
+    "extendRegistry": "function",
     "fieldNameSchema": "object",
     "filterSchema": "object",
     "filterValueSchemas": "object",
