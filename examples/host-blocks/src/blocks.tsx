@@ -44,7 +44,7 @@ export function IssueTable({ block, data, status }: BlockComponentProps) {
 
 /** Your board. A "groups" binding gives you `{ key, rows }` buckets. */
 export function IssueBoard({ block, data }: BlockComponentProps) {
-  const groups = (data as { key: string; rows: Issue[] }[] | undefined) ?? [];
+  const groups = (data as { group: string; rows: Issue[] }[] | undefined) ?? [];
   const title = (block.config as { title?: string }).title ?? "Board";
 
   return (
@@ -52,9 +52,9 @@ export function IssueBoard({ block, data }: BlockComponentProps) {
       <h3 className="your-card__title">{title}</h3>
       <div className="your-board">
         {groups.map((group) => (
-          <div className="your-board__column" key={group.key}>
+          <div className="your-board__column" key={group.group}>
             <h4>
-              {group.key} <span className="your-count">{group.rows.length}</span>
+              {group.group} <span className="your-count">{group.rows.length}</span>
             </h4>
             {group.rows.map((issue) => (
               <article className="your-board__card" key={issue.id}>

@@ -49,7 +49,7 @@ export function NwTable({ block, data, status }: BlockComponentProps) {
 
 /** Northwind's board: columns with count chips. */
 export function NwBoard({ block, data, status }: BlockComponentProps) {
-  const groups = (data as { key: string; rows: Row[] }[] | undefined) ?? [];
+  const groups = (data as { group: string; rows: Row[] }[] | undefined) ?? [];
   const title = (block.config as { title?: string }).title ?? "Board";
   if (status === "loading") return <div className="nw-skeleton" />;
   return (
@@ -57,9 +57,9 @@ export function NwBoard({ block, data, status }: BlockComponentProps) {
       <header className="nw-card__head">{title}</header>
       <div className="nw-board">
         {groups.map((g) => (
-          <div className="nw-col" key={g.key}>
+          <div className="nw-col" key={g.group}>
             <div className="nw-col__head">
-              {g.key} <span className="nw-chip">{g.rows.length}</span>
+              {g.group} <span className="nw-chip">{g.rows.length}</span>
             </div>
             {g.rows.slice(0, 4).map((r) => (
               <article className="nw-tile" key={r.id}>
