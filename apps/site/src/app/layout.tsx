@@ -17,10 +17,8 @@ export const metadata: Metadata = {
     siteName: "Ticora",
     title: TITLE,
     description: DESC,
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Ticora" }],
   },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og.svg"] },
-  icons: { icon: "/icon.svg" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESC },
   robots: { index: true, follow: true },
 };
 
