@@ -54,6 +54,28 @@ try {
     process.exit(0);
   }
 
+  // A scope rename breaks source-level continuity by definition: the old
+  // examples import a package name that no longer exists. That is only safe to
+  // skip because the old scope was NEVER PUBLISHED — no adopter can be on it,
+  // so there is genuinely nothing to verify. If we ever rename a scope that HAS
+  // been published, this must become a hard failure with a migration guide.
+  const oldRoot = JSON.parse(readFileSync(join(work, "old", "package.json"), "utf8"));
+  const oldUsesCurrentScope = readdirSync(oldExamples).some((example) => {
+    const manifest = join(oldExamples, example, "package.json");
+    if (!existsSync(manifest)) return false;
+    const deps = JSON.parse(readFileSync(manifest, "utf8")).dependencies ?? {};
+    return Object.keys(deps).some((d) => d.startsWith("@ticora/"));
+  });
+  if (!oldUsesCurrentScope) {
+    log(
+      `compat-suite: ${previousMinor} predates the @ticora scope ` +
+        `(${oldRoot.name ?? "workspace"}) — the old examples import package ` +
+        "names that were never published, so there is no compatibility to " +
+        "check. Skipping.",
+    );
+    process.exit(0);
+  }
+
   // 2. Tarballs from the CURRENT tree.
   const tarballDir = join(work, "tarballs");
   mkdirSync(tarballDir);
@@ -65,7 +87,7 @@ try {
   );
   const tarballByPackage = {};
   for (const file of readdirSync(tarballDir)) {
-    const name = `@ticora/${file.replace(/^workspace-engine-/, "").replace(/-\d.*$/, "")}`;
+    const name = `@ticora/${file.replace(/^ticora-/, "").replace(/-\d.*$/, "")}`;
     tarballByPackage[name] = join(tarballDir, file);
   }
 
