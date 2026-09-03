@@ -77,9 +77,36 @@ It unseals, verifies checksums, creates roles, restores, and checks the result
 against the manifest captured at dump time. It prints timings; put them in the
 incident log.
 
-**Measured on the current database** (12 tables, 27 rows, 22 RLS policies,
-51 KB dump, 12 KB sealed): unseal + restore + verify, **~1 second**. Expect this
-to grow roughly linearly with data; re-measure at each drill and update this line.
+**Measured 2026-09-03**, restoring the published `backup-2026-09-03` archive
+(12 tables, 27 rows, 22 RLS policies, 68 KB bundle, 9.6 KB sealed):
+
+| Step | Time |
+| --- | --- |
+| Download the release asset | ~2s |
+| Unseal + checksum + roles + restore + verify | **<1s** |
+| Cross-tenant RLS suite against the restored database | 15/15 in 120ms |
+
+Expect this to grow roughly linearly with data. Re-measure at each drill and
+update this table — a stale number is worse than none, because someone will
+plan an incident around it.
+
+### Proving isolation survived, not just the rows
+
+The manifest check asserts RLS is still enabled with the same policy counts.
+To prove isolation actually *holds* on the restored data, point the real
+cross-tenant suite at it:
+
+```bash
+TEST_DATABASE_URL=postgres://postgres:pw@localhost:5455/prod_drill \
+  npx vitest run --root packages/db src/rls.test.ts
+```
+
+That is the same 15-assertion probe from #25 — tenant B attempting to read and
+write tenant A's rows, denied by Postgres rather than by application politeness.
+It passed against the restored database on 2026-09-03.
+
+Note that it also runs `migrate()` first, which no-ops against a correctly
+restored database — quiet proof that the migration ledger came back intact.
 
 ### Over production
 
