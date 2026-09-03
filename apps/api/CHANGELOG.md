@@ -1,5 +1,13 @@
 # @ticora/api
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [4f5edc1]
+  - @ticora/core@0.3.1
+  - @ticora/db@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes

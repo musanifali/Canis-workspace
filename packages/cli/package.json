@@ -1,6 +1,6 @@
 {
   "name": "@ticora/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -45,8 +45,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ticora/client": "0.3.0",
-    "@ticora/core": "0.3.0"
+    "@ticora/client": "0.3.1",
+    "@ticora/core": "0.3.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",

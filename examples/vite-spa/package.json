@@ -1,6 +1,6 @@
 {
   "name": "@ticora/example-vite-spa",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "Vite SPA example (#50): contract + validated spec + renderer in a plain client-side React app. CI builds it against the current packages — it feeds the compat suite (#51).",
@@ -12,9 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ticora/core": "0.3.0",
-    "@ticora/react": "0.3.0",
-    "@ticora/ui": "0.3.0",
+    "@ticora/core": "0.3.1",
+    "@ticora/react": "0.3.1",
+    "@ticora/ui": "0.3.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zod": "^3.25.0"
