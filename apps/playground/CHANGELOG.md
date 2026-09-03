@@ -1,4 +1,4 @@
-# @ticora/db
+# @ticora/playground
 
 ## 0.1.2
 
@@ -6,9 +6,5 @@
 
 - Updated dependencies [4bd3f39]
   - @ticora/core@0.3.0
-
-## 0.1.1
-
-### Patch Changes
-
-- @ticora/core@0.2.0
+  - @ticora/react@0.3.0
+  - @ticora/ui@0.3.0

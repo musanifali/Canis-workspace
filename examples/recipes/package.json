@@ -1,6 +1,6 @@
 {
   "name": "@ticora/example-recipes",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "The adapter recipes from the docs (REST/GraphQL/Prisma/Supabase fetch implementations), as compiled + unit-tested code. The docs' adapters page syncs against these files.",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ticora/core": "0.2.0",
+    "@ticora/core": "0.3.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

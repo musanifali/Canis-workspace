@@ -1,6 +1,6 @@
 {
   "name": "@ticora/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "description": "Workspace Spec schemas, types, and pure helpers. Zero IO: no React, no DB, no fetch \u2014 zod is the only runtime dependency.",
+  "description": "Workspace Spec schemas, types, and pure helpers. Zero IO: no React, no DB, no fetch — zod is the only runtime dependency.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

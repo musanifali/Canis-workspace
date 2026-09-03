@@ -1,6 +1,6 @@
 {
   "name": "@ticora/example-quickstart",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "The docs quickstart, as real compiled+tested code. Every fenced code block in apps/docs' quickstart page is one of these files — quickstart-sync.test.ts fails CI if they drift.",
@@ -10,9 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ticora/core": "0.2.0",
-    "@ticora/react": "0.2.0",
-    "@ticora/ui": "0.2.0",
+    "@ticora/core": "0.3.0",
+    "@ticora/react": "0.3.0",
+    "@ticora/ui": "0.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zod": "^3.25.0"
