@@ -1,0 +1,161 @@
+# Security & trust
+
+Ticora lets a language model generate a screen from a sentence. That is the
+genuinely risky part of the product, so this page states what we guarantee,
+**how each guarantee is enforced**, and — just as importantly — what we do
+**not** have yet.
+
+Every claim below points at a mechanism you can inspect in the
+[source](https://github.com/musanifali/Canis-workspace), not a policy we
+promise to follow.
+
+## The short version
+
+- A model can only ever emit a **WorkspaceSpec** — a validated JSON document.
+  It cannot emit SQL, HTML, or code.
+- Every spec passes the **same validator** before anything renders. Out-of-
+  contract requests are refused with a reason, not partially rendered.
+- **Your customers' row data never rests with us.** The SDK fetches it inside
+  your application.
+- Tenant isolation is enforced by **Postgres row-level security**, not by
+  application code remembering to filter.
+
+## What the model can and cannot do
+
+The model's only output channel is a spec. Before a screen exists, that spec is
+checked against **your** data contract — the fields, filters, sorts, groupings,
+and aggregations you declared. Anything outside it returns `REJECT` (with the
+reason, in your data model's terms) or `CLARIFY` (one targeted question).
+Nothing half-valid renders.
+
+**Verified:** an adversarial suite of **55 attacks across 12 families** —
+field exfiltration, unknown sorts/groups/aggregations, out-of-contract
+entities, non-filterable and non-sortable fields, disallowed aggregations,
+limit abuse, and prompt injection — is run through the *same* gate the render
+path uses, on every CI run. Current result: **55/55 caught (100%)**. It is a
+deterministic property of the validator (no model call, no network), so it
+can't silently regress: if an attack ever escaped, CI fails.
+
+You can watch this yourself in the [playground](https://ticora-playground.vercel.app) —
+the refusal prompts are the demo.
+
+## Your data
+
+**Row data never leaves your application.** Contracts declare a `fetch` that
+runs in your app, against your API, with your end-user's auth passed through
+**unchanged**. We never see, proxy, or store the rows a workspace displays.
+
+What we do store, per tenant: workspace **specs** and their version history,
+data-contract definitions, API-key hashes, and the audit trail. Not your
+business data.
+
+## Tenant isolation
+
+Isolation is a database property, not a convention. Every tenant-scoped table
+has row-level-security policies keyed to a transaction-local
+`app.tenant_id`, and the service runs under a **non-owner** Postgres role, so
+the policies actually apply.
+
+**Verified:** a cross-tenant adversarial suite (15 assertions) attempts to read
+and write another tenant's rows through the service role and is denied *by
+Postgres* — including the pooled-connection case, where a leaked tenant scope
+between transactions would be the classic bypass. It runs against a real
+Postgres in CI, and the same suite can be pointed at the production database —
+that's a documented step in our deploy runbook, not an automated gate.
+
+## Tamper-evidence
+
+Workspace versions and the audit log are **append-only at the database level**.
+The service role has no UPDATE or DELETE privilege on either table:
+
+```sql
+REVOKE UPDATE, DELETE ON workspace_versions FROM workspace_service;
+REVOKE UPDATE, DELETE ON audit_log FROM workspace_service;
+```
+
+That's a revoked privilege, not an absent code path — an attempt to rewrite
+history fails loudly rather than succeeding quietly. Audit entries record who
+did what and when; version history survives a workspace being deleted.
+
+## Credentials
+
+- **API keys** are stored as `sha256` hashes only. The raw key is shown exactly
+  once, at creation, and is not retrievable afterward — not by you, not by us.
+- Keys are **scoped**: a `runtime` key (the most a browser-adjacent credential
+  should hold) cannot reach the contract registry, audit, usage, or key
+  management. Those require an `admin` key and return a machine-readable 403.
+- **Revocation is immediate** — a revoked key stops resolving on the next
+  request; there is no cache to go stale.
+- **Dashboard sessions** are server-side rows storing only a hash of the
+  session token, so signing out is a real revocation rather than a cookie
+  deletion, and a fresh token is minted on every login.
+
+## Telemetry
+
+SDK telemetry is **off by default, opt-in, and anonymous**. The event set is a
+pinned enum validated server-side; anything outside it is rejected. The table
+has **no tenant and no user columns** — by construction, not by policy — and
+the ingest endpoint does not persist the API key or tenant it authenticated
+with. No spec contents, prompts, field names, or row data are ever sent.
+
+Full detail: [Telemetry reference](/reference/telemetry).
+
+## Operational posture
+
+- TLS everywhere; HTTP redirects to HTTPS.
+- Secrets live only in the host's secret store. A clone of our repository
+  contains zero production credentials.
+- CORS **fails closed** in production: the service refuses to start without an
+  explicit origin allow-list, rather than reflecting arbitrary origins.
+- Structured request logs carry route, status, latency, tenant id, and a
+  request id — and deliberately **no** request bodies, spec contents, row data,
+  or credentials. A test asserts a secret planted in a spec never appears in
+  logs.
+- Migrations are forward-only and additive, so a rollback to the previous
+  release runs safely against the current schema.
+
+## What we do **not** have yet
+
+We would rather you learn this here than in a questionnaire.
+
+| | Status |
+| --- | --- |
+| SOC 2 / ISO 27001 | **No.** Not started. |
+| Third-party penetration test | **No.** Internal red-teaming and threat modelling only. |
+| External review of the auth implementation | **Not yet** — planned before GA. |
+| WAF / managed DDoS protection | **Not yet** — platform-level protection only. |
+| SSO / SAML / SCIM | **No.** GitHub sign-in only today. |
+| Formal backup + restore drill | **Not yet.** Currently on managed Postgres with provider-level durability; a documented, exercised restore is planned. |
+| Published uptime SLA | **No.** No contractual SLA at this stage. |
+| Bug bounty | **No.** Responsible disclosure below is the channel. |
+| Data residency choices | **No.** Single region today. |
+
+We are early, and pre-GA. If one of these is a hard requirement for you, tell
+us — it's better to know before a pilot than during one.
+
+## Reporting a vulnerability
+
+Use **[GitHub private vulnerability reporting](https://github.com/musanifali/Canis-workspace/security/advisories/new)**
+— it's enabled on the repository, so your report is private to the maintainers
+from the moment you file it. Please don't open a public issue for a
+vulnerability.
+
+We will acknowledge within **2 business days** and give you our assessment and
+an expected fix timeline within **10 business days**.
+
+(A `security@` alias on our own domain will replace this once the domain is
+registered; until then the GitHub channel is the one that actually reaches us,
+so we're not printing an address that would bounce.)
+
+Please don't run automated scanners against the hosted service — they mostly
+generate noise and can degrade the shared playground for others. If you want to
+test aggressively, ask us and we'll arrange a window.
+
+We won't pursue legal action against good-faith research that respects user
+privacy, avoids service degradation, and gives us reasonable time to fix an
+issue before disclosure.
+
+---
+
+*Last reviewed: 2026-09-03. The underlying threat model lives in
+[`devdocs/security-review.md`](https://github.com/musanifali/Canis-workspace/blob/main/devdocs/security-review.md).*
