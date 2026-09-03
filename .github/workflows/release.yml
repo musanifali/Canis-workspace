@@ -39,6 +39,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          # REQUIRED for publishing: this is what writes the .npmrc that reads
+          # NODE_AUTH_TOKEN. Without it the token is an unused env var and
+          # `changeset publish` fails with ENEEDAUTH.
+          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - name: Detect pending changesets
         id: pending
@@ -100,6 +104,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          # REQUIRED for publishing: this is what writes the .npmrc that reads
+          # NODE_AUTH_TOKEN. Without it the token is an unused env var and
+          # `changeset publish` fails with ENEEDAUTH.
+          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - name: Detect pending changesets
         id: pending
