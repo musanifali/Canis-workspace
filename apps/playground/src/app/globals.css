@@ -118,3 +118,40 @@ body {
   padding: 0.7rem 1.4rem;
   font-weight: 600;
 }
+
+/* Partner proof — side by side (#113) */
+.proof { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+@media (min-width: 900px) { .proof { grid-template-columns: 1fr 1fr; } }
+.proof-pane { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; background: #fff; }
+.proof-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .06em;
+  color: #6b7280; margin-bottom: .75rem; font-weight: 700; }
+.proof-note { color: #9ca3af; font-size: .8rem; margin-top: 2rem; }
+
+/* "Northwind" — a deliberately different design language */
+.proof-pane--nw { background: #0f172a; border-color: #1e293b; }
+.proof-pane--nw .proof-label { color: #94a3b8; }
+.nw-card { background: #111c33; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; }
+.nw-card__head { padding: .6rem .85rem; font-size: .8rem; font-weight: 700;
+  color: #e2e8f0; border-bottom: 1px solid #1e293b; letter-spacing: .02em; }
+.nw-table { width: 100%; border-collapse: collapse; font-size: .82rem; color: #cbd5e1; }
+.nw-table td { padding: .45rem .85rem; border-bottom: 1px solid #172136; }
+.nw-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #38bdf8; font-size: .78rem; }
+.nw-effort { text-align: right; color: #f1f5f9; font-weight: 600; }
+.nw-pill { font-size: .7rem; padding: .1rem .5rem; border-radius: 999px;
+  background: #1e293b; color: #93c5fd; }
+.nw-pill--done { background: #052e1a; color: #4ade80; }
+.nw-pill--in_progress { background: #2a2205; color: #fbbf24; }
+.nw-board { display: flex; gap: .6rem; padding: .75rem; }
+.nw-col { flex: 1; }
+.nw-col__head { font-size: .72rem; color: #94a3b8; text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: .5rem; font-weight: 700; }
+.nw-chip { background: #1e293b; color: #cbd5e1; border-radius: 999px; padding: 0 .4rem; font-size: .7rem; }
+.nw-tile { background: #0b1526; border: 1px solid #1e293b; border-radius: 8px;
+  padding: .5rem .6rem; margin-bottom: .4rem; font-size: .78rem; color: #e2e8f0;
+  display: flex; flex-direction: column; gap: .2rem; }
+.nw-kpis { display: flex; gap: .75rem; }
+.nw-kpi { flex: 1; background: #111c33; border: 1px solid #1e293b;
+  border-radius: 10px; padding: .8rem; text-align: center; }
+.nw-kpi__value { font-size: 1.6rem; font-weight: 800; color: #38bdf8; }
+.nw-kpi__label { font-size: .72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+.nw-skeleton { height: 90px; background: #111c33; border-radius: 10px; }
