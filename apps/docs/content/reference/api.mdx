@@ -76,6 +76,34 @@ Blocks read `--we-*` CSS custom properties from any ancestor — no CSS import:
 `--we-accent`, `--we-positive`, `--we-negative`, `--we-radius`, `--we-gap`
 (exported as `tokens` / `TOKEN_NAMES`).
 
+### Embedding in your app
+
+The renderer is built to mount inside someone else's shell, under someone
+else's stylesheet. Both directions of style interference are covered — and
+pinned by tests (`packages/react/src/renderer/embedding.test.tsx`):
+
+**We cannot restyle your app.** Every style we emit is an inline `style`
+attribute on an element we rendered. The published packages ship **no
+stylesheet**, and nothing is ever injected into `document.head` — so mounting
+a workspace cannot change how the rest of your product looks.
+
+**Your CSS cannot break our layout.** Inline styles outrank any selector, so
+the layout-critical properties survive a hostile global stylesheet: the grid
+stays `display: grid` with 12 columns and each block keeps its
+`grid-column` placement, even under rules like
+`div { display: block !important }` or `* { box-sizing: content-box }`.
+
+**The container contract** — what you must provide:
+
+- A block-level container with a **width**. The grid fills it; it does not
+  assume a viewport, a position, or a stacking context.
+- Nothing else. No required class, no reset, no wrapper.
+
+**The one caveat, stated plainly:** properties we *don't* set inline still
+inherit from your page — `font-family` and text `color` most visibly. That is
+usually what you want (the workspace picks up your typography). If you want it
+isolated instead, set those explicitly on the container you mount into.
+
 ## `@ticora/client`
 
 ### Workspace Service client
